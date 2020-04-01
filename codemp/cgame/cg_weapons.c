@@ -452,7 +452,7 @@ Ghoul2 Insert Start
 	{
 
 		// add the weapon
-		VectorCopy( parent->lightingOrigin, gun.lightingOrigin );
+		VectorCopy(parent->lightingOrigin, gun.lightingOrigin);
 		gun.shadowPlane = parent->shadowPlane;
 		gun.renderfx = parent->renderfx;
 
@@ -468,19 +468,20 @@ Ghoul2 Insert Start
 			return;
 		}
 
-		if ( !ps ) {
+		if (!ps) {
 			// add weapon ready sound
 			cent->pe.lightningFiring = qfalse;
-			if ( ( cent->currentState.eFlags & EF_FIRING ) && weapon->firingSound ) {
+			if ((cent->currentState.eFlags & EF_FIRING) && weapon->firingSound) {
 				// lightning gun and gauntlet make a different sound when fire is held down
-				trap->S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->firingSound );
+				trap->S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->firingSound);
 				cent->pe.lightningFiring = qtrue;
-			} else if ( weapon->readySound ) {
-				trap->S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->readySound );
+			}
+			else if (weapon->readySound) {
+				trap->S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->readySound);
 			}
 		}
 
-		CG_PositionEntityOnTag( &gun, parent, parent->hModel, "tag_weapon");
+		CG_PositionEntityOnTag(&gun, parent, parent->hModel, "tag_weapon");
 
 		if (!CG_IsMindTricked(cent->currentState.trickedentindex,
 			cent->currentState.trickedentindex2,
@@ -488,7 +489,7 @@ Ghoul2 Insert Start
 			cent->currentState.trickedentindex4,
 			cg.snap->ps.clientNum))
 		{
-			CG_AddWeaponWithPowerups( &gun, cent->currentState.powerups ); //don't draw the weapon if the player is invisible
+			CG_AddWeaponWithPowerups(&gun, cent->currentState.powerups); //don't draw the weapon if the player is invisible
 			/*
 			if ( weaponNum == WP_STUN_BATON )
 			{
@@ -507,8 +508,8 @@ Ghoul2 Insert Start
 
 			while (i < 3)
 			{
-				memset( &barrel, 0, sizeof( barrel ) );
-				VectorCopy( parent->lightingOrigin, barrel.lightingOrigin );
+				memset(&barrel, 0, sizeof(barrel));
+				VectorCopy(parent->lightingOrigin, barrel.lightingOrigin);
 				barrel.shadowPlane = parent->shadowPlane;
 				barrel.renderfx = parent->renderfx;
 
@@ -528,21 +529,21 @@ Ghoul2 Insert Start
 				angles[PITCH] = 0;
 				angles[ROLL] = 0;
 
-				AnglesToAxis( angles, barrel.axis );
+				AnglesToAxis(angles, barrel.axis);
 
 				if (i == 0)
 				{
-					CG_PositionRotatedEntityOnTag( &barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel" );
+					CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel");
 				}
 				else if (i == 1)
 				{
-					CG_PositionRotatedEntityOnTag( &barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel2" );
+					CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel2");
 				}
 				else
 				{
-					CG_PositionRotatedEntityOnTag( &barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel3" );
+					CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel3");
 				}
-				CG_AddWeaponWithPowerups( &barrel, cent->currentState.powerups );
+				CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups);
 
 				i++;
 			}
@@ -550,9 +551,9 @@ Ghoul2 Insert Start
 		else
 		{
 			// add the spinning barrel
-			if ( weapon->barrelModel ) {
-				memset( &barrel, 0, sizeof( barrel ) );
-				VectorCopy( parent->lightingOrigin, barrel.lightingOrigin );
+			if (weapon->barrelModel) {
+				memset(&barrel, 0, sizeof(barrel));
+				VectorCopy(parent->lightingOrigin, barrel.lightingOrigin);
 				barrel.shadowPlane = parent->shadowPlane;
 				barrel.renderfx = parent->renderfx;
 
@@ -561,22 +562,51 @@ Ghoul2 Insert Start
 				angles[PITCH] = 0;
 				angles[ROLL] = 0;
 
-				AnglesToAxis( angles, barrel.axis );
+				AnglesToAxis(angles, barrel.axis);
 
-				CG_PositionRotatedEntityOnTag( &barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel" );
+				CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel");
 
-				CG_AddWeaponWithPowerups( &barrel, cent->currentState.powerups );
+				CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups);
+			}
+
+			//G2 Viewmodels - START
+			memset(&flash, 0, sizeof(flash));
+
+			// Seems like we should always do this in case we have an animating muzzle flash....that way we can always store the correct muzzle dir, etc.
+			if (!weapon->bUsesGhoul2) 
+			{
+				CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
+
+				VectorCopy(flash.origin, cg.lastFPFlashPoint);
+			}
+			else 
+			{
+				int bolt = trap->G2API_AddBolt(cent->ghoul2, 0, "*flash");
+
+				assert(bolt != -1);
+
+				if (bolt != -1)
+				{
+					mdxaBone_t    boltMatrix;
+
+					trap->G2API_GetBoltMatrix(cent->ghoul2, 0, bolt, &boltMatrix, cent->lerpAngles, cent->lerpOrigin,
+						cg.time, cgs.gameModels, cent->modelScale);
+
+					BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
+					VectorMA(flash.origin, 20, cg.refdef.viewaxis[0], flash.origin);
+					VectorCopy(cg.snap->ps.viewangles, flash.angles);
+
+					BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flash.axis[0]);
+					BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Y, flash.axis[1]);
+					BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, flash.axis[2]);
+				}
 			}
 		}
 	}
-/*
-Ghoul2 Insert End
-*/
-
-	memset (&flash, 0, sizeof(flash));
-	CG_PositionEntityOnTag( &flash, &gun, gun.hModel, "tag_flash");
-
-	VectorCopy(flash.origin, cg.lastFPFlashPoint);
+	/*
+	Ghoul2 Insert End
+	*/
+//G2 Viewmodels - END
 
 	// Do special charge bits
 	//-----------------------

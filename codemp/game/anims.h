@@ -1813,3 +1813,65 @@ typedef enum //# animNumber_e
 } animNumber_t;
 
 #define SABER_ANIM_GROUP_SIZE (BOTH_A2_T__B_ - BOTH_A1_T__B_)
+
+//G2 viewmodels - START
+/*
+======================================
+Viewmodel Animations
+======================================
+*/
+typedef enum {
+	VM_READY,						// Weapon 1-frame idle. Usually first frame of VM_FIRE.
+	VM_IDLE,						// Weapon idling animation
+	VM_RAISE,						// Draw weapon
+	VM_LOWER,						// Put weapon away
+	VM_FIRE,						// Fire weapon
+
+	VM_THERMAL_PULLBACK,			// Thermal detonator pull back
+	VM_THERMAL_THROW,				// Thermal detonator throw
+
+	VM_MELEE1,						// Melee 1. WP_MELEE only!
+	VM_MELEE2,						// Melee 2. WP_MELEE only!
+
+	VM_FPUSH,						// Force Push
+	VM_FPULL,						// Force Pull
+	VM_FGRIP,						// Force Grip
+	VM_FGRIP_HOLD,					// Force Grip hold
+	VM_FGRIP_RELEASE,				// Force Grip release
+	VM_TOSS_LEFT,					// Throwing to left after force gripping
+	VM_TOSS_RIGHT,					// Throwing to right after force gripping
+	VM_FHEAL_QUICK,					// Force Heal quick
+	VM_FHEAL_START,					// Force Heal start
+	VM_FHEAL_STOP,					// Force Heal stop
+	VM_FLIGHTNING,					// Force Lightning
+	VM_FLIGHTNING_START,			// Force Lightning start
+	VM_FLIGHTNING_HOLD,				// Force Lightning hold
+	VM_FLIGHTNING_RELEASE,			// Force Lightning release
+	VM_FRESISTPUSH,					// Force resist push
+	VM_FMINDTRICK,					// Force Mind Trick
+	// Not sure about these yet. commented out for now.
+	/*VM_FRAGE,						// Force Rage
+	VM_F2HANDEDLIGHTNING,			// Force 2-Handed Lightning. (Puts gun away quickly, does the 2H lightning and then returns the gun)
+	VM_F2HANDEDLIGHTNING_START,		// Force 2-Handed Lightning start. (Puts gun away quickly, then starts the 2H lightning)
+	VM_F2HANDEDLIGHTNING_HOLD,		// Force 2-Handed Lightning hold. (Does the 2H lightning in a loop)
+	VM_F2HANDEDLIGHTNING_RELEASE,	// Force 2-Handed Lightning release. Finishes the 2H lightning, then returns the gun)
+	VM_FDRAIN,						// Force Drain
+	VM_FDRAIN_START,				// Force Drain start
+	VM_FDRAIN_HOLD,					// Force Drain hold
+	VM_FDRAIN_RELEASE,				// Force Drain release
+	VM_FDRAIN_GRAB_START,			// Force Drain grab start
+	VM_FDRAIN_GRAB_HOLD,			// Force Drain grab hold
+	VM_FDRAIN_GRAB_END,				// Force Drain grab end
+	VM_FDRAIN_GRABBED,				// Force Drain grabbed
+	VM_FORCE_ABSORB,				// Force Absorb
+	VM_FORCE_ABSORB_START,			// Force Absorb start
+	VM_FORCE_ABSORB_END,			// Force Absorb end
+	VM_FORCE_PROTECT,				// Force Protect*/
+
+	//# #eol
+	MAX_VIEWMODEL_ANIMATIONS,
+} viewModelAnimNumber_t;
+
+
+
+//G2 viewmodels - END

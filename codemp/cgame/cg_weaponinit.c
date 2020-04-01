@@ -67,10 +67,26 @@ void CG_RegisterWeapon( int weaponNum) {
 	}
 	CG_RegisterItemVisuals( item - bg_itemlist );
 
+	//G2 viewmodels - START
+	// set up in view weapon model
+	if (Q_stristr(path, ".glm")) {
+		weaponInfo->bUsesGhoul2 = qtrue;
+	}
+
 	// load cmodel before model so filecache works
 	weaponInfo->weaponModel = trap->R_RegisterModel( item->world_model[0] );
+
 	// load in-view model also
-	weaponInfo->viewModel = trap->R_RegisterModel(item->view_model);
+	if (!weaponInfo->bUsesGhoul2)
+	{
+		weaponInfo->viewModel = trap->R_RegisterModel(item->view_model);
+	}
+	else
+	{
+		weaponInfo->viewModel = trap->R_RegisterModel(item->view_model[0]);
+	}
+
+	//G2 viewmodels - END
 
 	// calc midpoint for rotation
 	trap->R_ModelBounds( weaponInfo->weaponModel, mins, maxs );
@@ -616,3 +632,121 @@ void CG_RegisterWeapon( int weaponNum) {
 		break;
 	}
 }
+
+/*
+=================
+CG_LoadViewmodelAnimations
+
+Loads animation.cfg for viewmodel
+=================
+*/
+extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
+void CG_LoadViewmodelAnimations(centity_t *cent, const char *modelName, viewModelAnimSet_t* ptAnims) 
+{
+	// Basic NULL checks, nothin' fishy better be in here...
+	if (!cent->ghoul2 || !modelName || !ptAnims) {
+		return;
+	}
+
+	// Get the GLA's path.
+	char GLAName[MAX_QPATH];
+	GLAName[0] = 0;
+	trap->G2API_GetGLAName(cent->ghoul2, 0, GLAName);
+	if (!GLAName) {
+		return;
+	}
+
+	// From the GLA's path, determine the path to animation.cfg and stuff the value into animName.
+	char	animName[MAX_QPATH];
+	char	*slash = NULL;
+
+	Q_strncpyz(animName, GLAName, sizeof(animName)/*, qtrue*/);
+	slash = strrchr(animName, '/');
+	if (slash)
+	{
+		*slash = 0;
+	}
+	Q_strcat(animName, sizeof(animName), "/animation.cfg");
+
+
+	// Load the file (erroring out if none found)
+	fileHandle_t f;
+	int len = trap_FS_FOpenFile(animName, &f, FS_READ);
+	if (f == -1) {
+		Com_Printf("^1ERROR: Failed to load %s: file not found\n", animName);
+		return;
+	}
+	else if (len <= 0) {
+		Com_Printf("^1ERROR: Failed to load %s: file blank or not found\n", animName);
+		trap_FS_FCloseFile(f);
+		return;
+	}
+
+	// Read the file, and close it.
+	char buffer[16535];
+	trap_FS_Read(buffer, len, f);
+	trap_FS_FCloseFile(f);
+	buffer[len] = 0;
+
+	// Set initial data in the animation.cfg data bufffer.
+	// This is slightly optimized from base's method - we do this in one step by ZeroMemory as opposed to looping.
+	Q_strncpyz(ptAnims->filename, animName, sizeof(ptAnims->filename));
+	// FIXME: shouldn't just sizeof(ptAnims->animations) do?
+	memset(ptAnims->animations, 0, sizeof(animation_t)* MAX_VIEWMODEL_ANIMATIONS);
+
+
+	// Actually parse the file, woot.
+	// This is more or less ripped from MP, bad styling and all.
+	char *token;
+	const char *s = (const char*)buffer;
+
+	COM_BeginParseSession("G2_Viewmodel_Anims");
+	while (1) {
+		token = COM_Parse(&s);
+		if (!token || !token[0]) {
+			break;
+		}
+
+		int animNum = GetIDForString(vmAnimTable, token);
+		if (animNum == -1) {
+			if (Q_stricmp(token, "ROOT")) {
+				Com_Printf(S_COLOR_RED"WARNING: Unknown token %s in %s\n", token, ptAnims->filename);
+			}
+			continue;
+		}
+
+		token = COM_Parse(&s);
+		if (!token || !token[0]) {
+			break;
+		}
+		ptAnims->animations[animNum].firstFrame = atoi(token);
+
+		token = COM_Parse(&s);
+		if (!token || !token[0]) {
+			break;
+		}
+		ptAnims->animations[animNum].numFrames = atoi(token);
+
+		token = COM_Parse(&s);
+		if (!token || !token[0]) {
+			break;
+		}
+		ptAnims->animations[animNum].loopFrames = atoi(token);
+
+		token = COM_Parse(&s);
+		if (!token || !token[0]) {
+			break;
+		}
+		float fps = atof(token);
+		if (fps == 0)
+			fps = 1;
+		if (fps < 0)
+			ptAnims->animations[animNum].frameLerp = floor(1000.0f / fps);
+		else
+			ptAnims->animations[animNum].frameLerp = ceil(1000.0f / fps);
+
+		ptAnims->animations[animNum].initialLerp = ceil(1000.0f / fabs(fps));
+	}
+	//COM_EndParseSession();
+}
+//G2 Viewmodels - END

@@ -1232,7 +1232,7 @@ Don't place this
 		"sound/weapons/w_pkup.wav",
         { "models/weapons2/heavy_repeater/heavy_repeater_w.glm",
 		0, 0, 0},
-/* view */		"models/weapons2/heavy_repeater/heavy_repeater.md3",
+/* view */		"models/weapons2/heavy_repeater/model.glm",
 /* icon */		"gfx/hud/w_icon_repeater",
 /* pickup *///	"Imperial Heavy Repeater",
 		100,

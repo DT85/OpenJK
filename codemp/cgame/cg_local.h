@@ -29,6 +29,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "game/bg_public.h"
 #include "cg_public.h"
 
+//G2 viewmodels - START
+#include "game/anims.h"
+
+typedef struct {
+	char			filename[MAX_QPATH];
+	animation_t		animations[MAX_VIEWMODEL_ANIMATIONS];
+} viewModelAnimSet_t;
+//G2 viewmodels - END
+
 // The entire cgame module is unloaded and reloaded on each level change,
 // so there is NO persistant data between levels on the client side.
 // If you absolutely need something stored, it can either be kept
@@ -696,6 +705,14 @@ typedef struct weaponInfo_s {
 	float			trailRadius;
 	float			wiTrailTime;
 
+	//G2 viewmodels - START
+	qboolean		bUsesGhoul2;
+	//qhandle_t		g2_flashbolt;
+	//qhandle_t		g2_effectsbolt;
+	//short			g2_index;
+	//int				g2_skin;
+	viewModelAnimSet_t g2_anims;
+	//G2 viewmodels - END
 } weaponInfo_t;
 
 

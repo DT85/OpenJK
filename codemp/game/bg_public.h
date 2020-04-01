@@ -295,6 +295,9 @@ typedef struct animation_s {
 	short				frameLerp;			// msec between frames
 	//initialLerp is abs(frameLerp)
 	signed char			loopFrames;			// 0 to numFrames
+	//G2 viewmodels - START
+	int					initialLerp;		// msec to get to first frame
+	//G2 viewmodels - END
 } animation_t;
 #pragma pack(pop)
 
