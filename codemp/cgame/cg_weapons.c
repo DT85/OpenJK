@@ -25,6 +25,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "cg_local.h"
 #include "fx_local.h"
 
+#include "ghoul2/g2.h"
+
 /*
 Ghoul2 Insert Start
 */
@@ -97,6 +99,7 @@ Ghoul2 Insert Start
 			itemInfo->radius[0] = 60;
 		}
 	}
+
 /*
 Ghoul2 Insert End
 */
@@ -425,6 +428,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	weaponInfo_t	*weapon;
 	centity_t	*nonPredictedCent;
 	refEntity_t	flash;
+	refEntity_t	hand;
 
 	weaponNum = cent->currentState.weapon;
 
@@ -458,7 +462,20 @@ Ghoul2 Insert Start
 
 		if (ps)
 		{	// this player, in first person view
-			gun.hModel = weapon->viewModel;
+
+			//G2 Viewmodels - START
+			if (!weapon->bUsesGhoul2)
+			{
+				gun.hModel = weapon->viewModel;
+			}
+			else
+			{
+				gun.ghoul2 = weapon->ghoul2;
+				gun.radius = 60;
+				gun.customSkin = weapon->g2_skin;
+				VectorCopy(hand.axis[0], gun.axis[0]);
+			}
+			//G2 Viewmodels - END
 		}
 		else
 		{
@@ -481,7 +498,16 @@ Ghoul2 Insert Start
 			}
 		}
 
-		CG_PositionEntityOnTag(&gun, parent, parent->hModel, "tag_weapon");
+		//G2 Viewmodels - START
+		if (!weapon->bUsesGhoul2)
+		{
+			CG_PositionEntityOnTag(&gun, parent, parent->hModel, "tag_weapon");
+		}
+		else
+		{
+			VectorCopy(hand.origin, gun.origin);
+		}
+		//G2 Viewmodels - END
 
 		if (!CG_IsMindTricked(cent->currentState.trickedentindex,
 			cent->currentState.trickedentindex2,
@@ -551,54 +577,53 @@ Ghoul2 Insert Start
 		else
 		{
 			// add the spinning barrel
-			if (weapon->barrelModel) {
-				memset(&barrel, 0, sizeof(barrel));
-				VectorCopy(parent->lightingOrigin, barrel.lightingOrigin);
-				barrel.shadowPlane = parent->shadowPlane;
-				barrel.renderfx = parent->renderfx;
-
-				barrel.hModel = weapon->barrelModel;
-				angles[YAW] = 0;
-				angles[PITCH] = 0;
-				angles[ROLL] = 0;
-
-				AnglesToAxis(angles, barrel.axis);
-
-				CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel");
-
-				CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups);
-			}
-
-			//G2 Viewmodels - START
-			memset(&flash, 0, sizeof(flash));
-
-			// Seems like we should always do this in case we have an animating muzzle flash....that way we can always store the correct muzzle dir, etc.
 			if (!weapon->bUsesGhoul2) 
 			{
-				CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
+				if (weapon->barrelModel) {
+					memset(&barrel, 0, sizeof(barrel));
+					VectorCopy(parent->lightingOrigin, barrel.lightingOrigin);
+					barrel.shadowPlane = parent->shadowPlane;
+					barrel.renderfx = parent->renderfx;
 
-				VectorCopy(flash.origin, cg.lastFPFlashPoint);
-			}
-			else 
-			{
-				int bolt = trap->G2API_AddBolt(cent->ghoul2, 0, "*flash");
+					barrel.hModel = weapon->barrelModel;
+					angles[YAW] = 0;
+					angles[PITCH] = 0;
+					angles[ROLL] = 0;
 
-				assert(bolt != -1);
+					AnglesToAxis(angles, barrel.axis);
 
-				if (bolt != -1)
+					CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel");
+
+					CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups);
+				}
+
+				//G2 Viewmodels - START
+				memset(&flash, 0, sizeof(flash));
+
+				// Seems like we should always do this in case we have an animating muzzle flash....that way we can always store the correct muzzle dir, etc.
+				if (!weapon->bUsesGhoul2)
 				{
+					CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
+					VectorCopy(flash.origin, cg.lastFPFlashPoint);
+				}
+				else {
 					mdxaBone_t    boltMatrix;
+					vec3_t	setAngles;
 
-					trap->G2API_GetBoltMatrix(cent->ghoul2, 0, bolt, &boltMatrix, cent->lerpAngles, cent->lerpOrigin,
-						cg.time, cgs.gameModels, cent->modelScale);
+					VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
+					trap->G2API_GetBoltMatrix(weapon->ghoul2, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, setAngles, gun.origin,
+						cg.time, NULL, gun.modelScale);
 					BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
-					VectorMA(flash.origin, 20, cg.refdef.viewaxis[0], flash.origin);
+					// this seems to screw the position a bit
+					//VectorMA(flash.origin, 20, cg.refdef.viewaxis[0], flash.origin);
 					VectorCopy(cg.snap->ps.viewangles, flash.angles);
 
 					BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flash.axis[0]);
 					BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Y, flash.axis[1]);
 					BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, flash.axis[2]);
+
+					VectorCopy(flash.origin, cg.lastFPFlashPoint);
 				}
 			}
 		}
@@ -802,6 +827,159 @@ Ghoul2 Insert Start
 	}
 }
 
+//G2 viewmodels - START
+/*
+==============
+CG_AnimateViewmodel
+==============
+*/
+static int lastAnimPlayed = 0;
+int CG_MapTorsoToG2VMAnimation(playerState_t *ps)
+{
+	switch (ps->torsoAnim)
+	{
+	case TORSO_WEAPONREADY1:
+	case TORSO_WEAPONREADY2:
+	case TORSO_WEAPONREADY3:
+	case TORSO_WEAPONREADY4:
+	case TORSO_WEAPONREADY10:
+	case TORSO_WEAPONIDLE2:
+	case TORSO_WEAPONIDLE3:
+	case TORSO_WEAPONIDLE4:
+	case TORSO_WEAPONIDLE10:
+		return VM_READY;
+	case BOTH_STAND1IDLE1:
+	case BOTH_STAND3IDLE1:
+	case BOTH_STAND5IDLE1:
+	case BOTH_STAND9IDLE1:
+		return VM_IDLE;
+	case TORSO_DROPWEAP1:
+		return VM_LOWER;
+	case TORSO_RAISEWEAP1:
+		return VM_RAISE;
+	case BOTH_ATTACK1:
+	case BOTH_ATTACK2:
+	case BOTH_ATTACK3:
+	case BOTH_ATTACK4:
+	case BOTH_ATTACK10:
+	case BOTH_ATTACK11:
+		return VM_FIRE;
+	case BOTH_THERMAL_READY:
+		return VM_THERMAL_PULLBACK;
+	case BOTH_THERMAL_THROW:
+		return VM_THERMAL_THROW;
+	case BOTH_MELEE1:
+		return VM_MELEE1;
+	case BOTH_MELEE2:
+		return VM_MELEE2;
+	case BOTH_FORCEPUSH:
+		return 	VM_FPUSH;
+	case BOTH_FORCEPULL:
+		return 	VM_FPULL;
+	case BOTH_FORCEGRIP1:
+		return 	VM_FGRIP;
+	case BOTH_FORCEGRIP_HOLD:
+		return 	VM_FGRIP_HOLD;
+	case BOTH_FORCEGRIP_RELEASE:
+		return 	VM_FGRIP_RELEASE;
+	case BOTH_TOSS1:
+		return VM_TOSS_LEFT;
+	case BOTH_TOSS2:
+		return VM_TOSS_RIGHT;
+	case BOTH_FORCEHEAL_QUICK:
+		return 	VM_FHEAL_QUICK;
+	case BOTH_FORCEHEAL_START:
+		return 	VM_FHEAL_START;
+	case BOTH_FORCEHEAL_STOP:
+		return 	VM_FHEAL_STOP;
+	case BOTH_FORCELIGHTNING:
+		return 	VM_FLIGHTNING;
+	case BOTH_FORCELIGHTNING_START:
+		return 	VM_FLIGHTNING_START;
+	case BOTH_FORCELIGHTNING_HOLD:
+		return 	VM_FLIGHTNING_HOLD;
+	case BOTH_FORCELIGHTNING_RELEASE:
+		return 	VM_FLIGHTNING_RELEASE;
+	case BOTH_RESISTPUSH:
+		return 	VM_FRESISTPUSH;
+	case BOTH_MINDTRICK1:
+	case BOTH_MINDTRICK2:
+		return 	VM_FMINDTRICK;
+		// Not sure about these yet. commented out for now.
+		/*case BOTH_FORCE_RAGE:
+			return 	VM_FRAGE;
+		case BOTH_FORCE_2HANDEDLIGHTNING:
+			return 	VM_F2HANDEDLIGHTNING;
+		case BOTH_FORCE_2HANDEDLIGHTNING_START:
+			return 	VM_F2HANDEDLIGHTNING_START;
+		case BOTH_FORCE_2HANDEDLIGHTNING_HOLD:
+			return 	VM_F2HANDEDLIGHTNING_HOLD;
+		case BOTH_FORCE_2HANDEDLIGHTNING_RELEASE:
+			return 	VM_F2HANDEDLIGHTNING_RELEASE;
+		case BOTH_FORCE_DRAIN:
+			return 	VM_FDRAIN;
+		case BOTH_FORCE_DRAIN_START:
+			return 	VM_FDRAIN_START;
+		case BOTH_FORCE_DRAIN_HOLD:
+			return 	VM_FDRAIN_HOLD;
+		case BOTH_FORCE_DRAIN_RELEASE:
+			return 	VM_FDRAIN_RELEASE;
+		case BOTH_FORCE_DRAIN_GRAB_START:
+			return 	VM_FDRAIN_GRAB_START;
+		case BOTH_FORCE_DRAIN_GRAB_HOLD:
+			return 	VM_FDRAIN_GRAB_HOLD;
+		case BOTH_FORCE_DRAIN_GRAB_END:
+			return 	VM_FDRAIN_GRAB_END;
+		case BOTH_FORCE_DRAIN_GRABBED:
+			return 	VM_FDRAIN_GRABBED;
+		case BOTH_FORCE_ABSORB:
+			return 	VM_FORCE_ABSORB;
+		case BOTH_FORCE_ABSORB_START:
+			return 	VM_FORCE_ABSORB_START;
+		case BOTH_FORCE_ABSORB_END:
+			return 	VM_FORCE_ABSORB_END;
+		case BOTH_FORCE_PROTECT:
+		case BOTH_FORCE_PROTECT_FAST:
+			return 	VM_FORCE_PROTECT;*/
+
+	default:
+		return VM_READY;
+	}
+}
+
+//extern void CG_ForcePushBlur(const vec3_t org, qboolean darkSide = qfalse);
+void CG_AnimateViewmodel(centity_t* cent, playerState_t *ps) {
+	CG_RegisterWeapon(ps->weapon);
+	weaponInfo_t* weapon = &cg_weapons[ps->weapon];
+	int desiredAnim = CG_MapTorsoToG2VMAnimation(ps);
+	int flags = BONE_ANIM_OVERRIDE;
+
+	switch (desiredAnim) {
+	case VM_FIRE:
+		if (cent->muzzleFlashTime <= 0)
+			return;
+		break;
+	case VM_READY:
+		flags = BONE_ANIM_OVERRIDE_LOOP;
+		if (ps->torsoAnim == lastAnimPlayed)
+			return;
+		break;
+	default:
+		if (ps->torsoAnim == lastAnimPlayed)
+			return;
+		break;
+	}
+
+	lastAnimPlayed = ps->torsoAnim;
+
+	trap->G2API_SetBoneAnim(&weapon->ghoul2, weapon->g2_index, "model_root",
+		weapon->g2_anims.animations[desiredAnim].firstFrame,
+		weapon->g2_anims.animations[desiredAnim].firstFrame + weapon->g2_anims.animations[desiredAnim].numFrames,
+		flags, 100.0f / weapon->g2_anims.animations[desiredAnim].frameLerp,
+		cg.time, weapon->g2_anims.animations[desiredAnim].firstFrame, -1);
+}
+//G2 viewmodels - END
+
 /*
 ==============
 CG_AddViewWeapon
@@ -866,6 +1044,16 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	weapon = &cg_weapons[ ps->weapon ];
 
 	memset (&hand, 0, sizeof(hand));
+	if (weapon->bUsesGhoul2)
+	{
+		hand.ghoul2 = weapon->ghoul2;
+
+		if (!trap->G2_HaveWeGhoul2Models(hand.ghoul2))
+		{
+			// No weapon to draw!
+			return;
+		}
+	}
 
 	// set up gun position
 	CG_CalculateWeaponPosition( hand.origin, angles );
@@ -911,24 +1099,45 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		hand.backlerp = 1.0f - (currentFrame-floor(currentFrame));
 
 		// Handle the fringe situation where oldframe is invalid
-		if ( hand.frame == -1 )
+		//G2 viewmodels - START
+		if ( hand.frame == -1 && !weapon->bUsesGhoul2)
 		{
 			hand.frame = 0;
 			hand.oldframe = 0;
 			hand.backlerp = 0;
 		}
-		else if ( hand.oldframe == -1 )
+		else if ( hand.oldframe == -1 && !weapon->bUsesGhoul2)
 		{
 			hand.oldframe = hand.frame;
 			hand.backlerp = 0;
 		}
+		
+		if (weapon->bUsesGhoul2)
+		{
+			// Using ghoul2 (question mark?)
+			CG_AnimateViewmodel(cent, ps);			
+		}
+		//G2 viewmodels - END
 	}
 
-	hand.hModel = weapon->handsModel;
+	if (!weapon->bUsesGhoul2)
+	{
+		hand.hModel = weapon->handsModel;
+	}
+	//else
+	//{
+		//hand.hModel = weapon->ghoul2;
+	//}
+
 	hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON;// | RF_MINLIGHT;
 
 	// add everything onto the hand
-	CG_AddPlayerWeapon( &hand, ps, &cg_entities[cg.predictedPlayerState.clientNum], ps->persistant[PERS_TEAM], angles, qfalse );
+	CG_AddPlayerWeapon(&hand, ps, &cg_entities[cg.predictedPlayerState.clientNum], ps->persistant[PERS_TEAM], angles, qfalse);
+
+	if (weapon->bUsesGhoul2)
+	{
+		trap->R_AddRefEntityToScene(&hand);
+	}
 }
 
 /*

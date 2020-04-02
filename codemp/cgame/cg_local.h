@@ -707,10 +707,11 @@ typedef struct weaponInfo_s {
 
 	//G2 viewmodels - START
 	qboolean		bUsesGhoul2;
-	//qhandle_t		g2_flashbolt;
-	//qhandle_t		g2_effectsbolt;
-	//short			g2_index;
-	//int				g2_skin;
+	void			*ghoul2;
+	qhandle_t		g2_flashbolt;
+	qhandle_t		g2_effectsbolt;
+	int				g2_index;
+	int				g2_skin;
 	viewModelAnimSet_t g2_anims;
 	//G2 viewmodels - END
 } weaponInfo_t;

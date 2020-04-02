@@ -25,7 +25,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "cg_local.h"
 #include "fx_local.h"
 
-
+//G2 viewmodels - START
+void CG_LoadViewmodelAnimations(centity_t *cent, const char *modelName, viewModelAnimSet_t* ptAnims);
+//G2 viewmodels - END
 /*
 =================
 CG_RegisterWeapon
@@ -39,7 +41,7 @@ void CG_RegisterWeapon( int weaponNum) {
 	char			path[MAX_QPATH];
 	vec3_t			mins, maxs;
 	int				i;
-
+	
 	if ( weaponNum <= WP_NONE || weaponNum >= WP_NUM_WEAPONS ) {
 		return;
 	}
@@ -69,24 +71,18 @@ void CG_RegisterWeapon( int weaponNum) {
 
 	//G2 viewmodels - START
 	// set up in view weapon model
-	if (Q_stristr(path, ".glm")) {
+	if (Q_stristr(item->view_model, ".glm")) {
 		weaponInfo->bUsesGhoul2 = qtrue;
 	}
+	//G2 viewmodels - END
 
 	// load cmodel before model so filecache works
 	weaponInfo->weaponModel = trap->R_RegisterModel( item->world_model[0] );
 
 	// load in-view model also
-	if (!weaponInfo->bUsesGhoul2)
-	{
+	if (!weaponInfo->bUsesGhoul2) {
 		weaponInfo->viewModel = trap->R_RegisterModel(item->view_model);
 	}
-	else
-	{
-		weaponInfo->viewModel = trap->R_RegisterModel(item->view_model[0]);
-	}
-
-	//G2 viewmodels - END
 
 	// calc midpoint for rotation
 	trap->R_ModelBounds( weaponInfo->weaponModel, mins, maxs );
@@ -133,17 +129,63 @@ void CG_RegisterWeapon( int weaponNum) {
 		weaponInfo->barrelModel = 0;
 	}
 
-	if (weaponNum != WP_SABER)
+	//G2 viewmodels - START
+	Q_strncpyz(path, item->view_model, sizeof(path));
+	if (weaponInfo->bUsesGhoul2)
 	{
-		Q_strncpyz( path, item->view_model, sizeof(path) );
-		COM_StripExtension( path, path, sizeof( path ) );
-		Q_strcat( path, sizeof(path), "_hand.md3" );
-		weaponInfo->handsModel = trap->R_RegisterModel( path );
+		// Init the ghoul2 model
+		weaponInfo->g2_index = trap->G2API_InitGhoul2Model(&weaponInfo->ghoul2, path, 0, 0, 0, 0, 0);
+
+		if (trap->G2_HaveWeGhoul2Models(weaponInfo->ghoul2))
+		{
+			// Grab the skin file path from the model path, and add a default .skin
+			char skinName[MAX_QPATH];
+			int l;
+
+			Q_strncpyz(skinName, path, MAX_QPATH);
+			l = strlen(skinName);
+			while (l > 0 && skinName[l] != '/')
+			{ //parse back to first /
+				l--;
+			}
+			if (skinName[l] == '/')
+			{ //got it
+				l++;
+				skinName[l] = 0;
+				Q_strcat(skinName, MAX_QPATH, "model_default.skin");
+			}
+
+			// Add skin
+			weaponInfo->g2_skin = trap->R_RegisterSkin(skinName);
+			trap->G2API_SetSkin(&weaponInfo->ghoul2, weaponInfo->g2_index, 0, weaponInfo->g2_skin);
+
+			// Add flash bolt
+			weaponInfo->g2_flashbolt = trap->G2API_AddBolt(&weaponInfo->ghoul2, weaponInfo->g2_index, "*flash");
+			weaponInfo->g2_effectsbolt = trap->G2API_AddBolt(&weaponInfo->ghoul2, weaponInfo->g2_index, "*l_hand");
+
+			// Load the animation.cfg
+			CG_LoadViewmodelAnimations(&weaponInfo->ghoul2, item->view_model, &weaponInfo->g2_anims);
+		}
+		else
+		{
+			Com_Printf("CG_RegisterWeapon: Unable to load weapon view model: %i\n", weaponNum);
+		}
 	}
 	else
 	{
-		weaponInfo->handsModel = 0;
+		if (weaponNum != WP_SABER)
+		{
+			Q_strncpyz(path, item->view_model, sizeof(path));
+			COM_StripExtension(path, path, sizeof(path));
+			Q_strcat(path, sizeof(path), "_hand.md3");
+			weaponInfo->handsModel = trap->R_RegisterModel(path);
+		}
+		else
+		{
+			weaponInfo->handsModel = 0;
+		}
 	}
+	//G2 viewmodels - END
 
 //	if ( !weaponInfo->handsModel ) {
 //		weaponInfo->handsModel = trap->R_RegisterModel( "models/weapons2/shotgun/shotgun_hand.md3" );
