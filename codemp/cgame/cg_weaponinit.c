@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "fx_local.h"
 
 //G2 viewmodels - START
-void CG_LoadViewmodelAnimations(centity_t *cent, const char *modelName, viewModelAnimSet_t* ptAnims);
+void CG_LoadViewmodelAnimations(void *ghoul2, int modelIndex, const char *modelName, viewModelAnimSet_t* ptAnims);
 //G2 viewmodels - END
 /*
 =================
@@ -133,38 +133,38 @@ void CG_RegisterWeapon( int weaponNum) {
 	Q_strncpyz(path, item->view_model, sizeof(path));
 	if (weaponInfo->bUsesGhoul2)
 	{
+		// Grab the skin file path from the model path, and add a default .skin
+		char skinName[MAX_QPATH];
+		int l;
+
+		Q_strncpyz(skinName, path, MAX_QPATH);
+		l = strlen(skinName);
+		while (l > 0 && skinName[l] != '/')
+		{ //parse back to first /
+			l--;
+		}
+		if (skinName[l] == '/')
+		{ //got it
+			l++;
+			skinName[l] = 0;
+			Q_strcat(skinName, MAX_QPATH, "model_default.skin");
+		}
+
 		// Init the ghoul2 model
-		weaponInfo->g2_index = trap->G2API_InitGhoul2Model(&weaponInfo->ghoul2, path, 0, 0, 0, 0, 0);
+		weaponInfo->g2_skin = trap->R_RegisterSkin(skinName);
+		weaponInfo->g2_index = trap->G2API_InitGhoul2Model(&weaponInfo->ghoul2, path, 0, weaponInfo->g2_skin, 0, 0, 0);
 
 		if (trap->G2_HaveWeGhoul2Models(weaponInfo->ghoul2))
 		{
-			// Grab the skin file path from the model path, and add a default .skin
-			char skinName[MAX_QPATH];
-			int l;
-
-			Q_strncpyz(skinName, path, MAX_QPATH);
-			l = strlen(skinName);
-			while (l > 0 && skinName[l] != '/')
-			{ //parse back to first /
-				l--;
-			}
-			if (skinName[l] == '/')
-			{ //got it
-				l++;
-				skinName[l] = 0;
-				Q_strcat(skinName, MAX_QPATH, "model_default.skin");
-			}
-
 			// Add skin
-			weaponInfo->g2_skin = trap->R_RegisterSkin(skinName);
-			trap->G2API_SetSkin(&weaponInfo->ghoul2, weaponInfo->g2_index, 0, weaponInfo->g2_skin);
+			trap->G2API_SetSkin(weaponInfo->ghoul2, weaponInfo->g2_index, weaponInfo->g2_skin, weaponInfo->g2_skin);
 
 			// Add flash bolt
-			weaponInfo->g2_flashbolt = trap->G2API_AddBolt(&weaponInfo->ghoul2, weaponInfo->g2_index, "*flash");
-			weaponInfo->g2_effectsbolt = trap->G2API_AddBolt(&weaponInfo->ghoul2, weaponInfo->g2_index, "*l_hand");
+			weaponInfo->g2_flashbolt = trap->G2API_AddBolt(weaponInfo->ghoul2, weaponInfo->g2_index, "*flash");
+			weaponInfo->g2_effectsbolt = trap->G2API_AddBolt(weaponInfo->ghoul2, weaponInfo->g2_index, "*l_hand");
 
 			// Load the animation.cfg
-			CG_LoadViewmodelAnimations(&weaponInfo->ghoul2, item->view_model, &weaponInfo->g2_anims);
+			CG_LoadViewmodelAnimations(weaponInfo->ghoul2, weaponInfo->g2_index, path, &weaponInfo->g2_anims);
 		}
 		else
 		{
@@ -683,17 +683,18 @@ Loads animation.cfg for viewmodel
 =================
 */
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
-void CG_LoadViewmodelAnimations(centity_t *cent, const char *modelName, viewModelAnimSet_t* ptAnims) 
+void CG_LoadViewmodelAnimations(void *ghoul2, int modelIndex, const char *modelName, viewModelAnimSet_t* ptAnims)
 {
 	// Basic NULL checks, nothin' fishy better be in here...
-	if (!cent->ghoul2 || !modelName || !ptAnims) {
+	if (!ghoul2 || /*!modelIndex ||*/ !modelName || !ptAnims) {
+		Com_Printf("^1ERROR: Everything is NULL! Loading of viewmodel animations aborted!\n");
 		return;
 	}
 
 	// Get the GLA's path.
 	char GLAName[MAX_QPATH];
 	GLAName[0] = 0;
-	trap->G2API_GetGLAName(cent->ghoul2, 0, GLAName);
+	trap->G2API_GetGLAName(ghoul2, modelIndex, GLAName);
 	if (!GLAName) {
 		return;
 	}
@@ -733,12 +734,12 @@ void CG_LoadViewmodelAnimations(centity_t *cent, const char *modelName, viewMode
 	// Set initial data in the animation.cfg data bufffer.
 	// This is slightly optimized from base's method - we do this in one step by ZeroMemory as opposed to looping.
 	Q_strncpyz(ptAnims->filename, animName, sizeof(ptAnims->filename));
+	
 	// FIXME: shouldn't just sizeof(ptAnims->animations) do?
 	memset(ptAnims->animations, 0, sizeof(animation_t)* MAX_VIEWMODEL_ANIMATIONS);
 
-
 	// Actually parse the file, woot.
-	// This is more or less ripped from MP, bad styling and all.
+	// This is more or less ripped from SoF2MP, bad styling and all.
 	char *token;
 	const char *s = (const char*)buffer;
 
@@ -750,12 +751,12 @@ void CG_LoadViewmodelAnimations(centity_t *cent, const char *modelName, viewMode
 		}
 
 		int animNum = GetIDForString(vmAnimTable, token);
-		if (animNum == -1) {
+		/*if (animNum == -1) {
 			if (Q_stricmp(token, "ROOT")) {
 				Com_Printf(S_COLOR_RED"WARNING: Unknown token %s in %s\n", token, ptAnims->filename);
 			}
 			continue;
-		}
+		}*/
 
 		token = COM_Parse(&s);
 		if (!token || !token[0]) {
@@ -789,6 +790,5 @@ void CG_LoadViewmodelAnimations(centity_t *cent, const char *modelName, viewMode
 
 		ptAnims->animations[animNum].initialLerp = ceil(1000.0f / fabs(fps));
 	}
-	//COM_EndParseSession();
 }
 //G2 Viewmodels - END

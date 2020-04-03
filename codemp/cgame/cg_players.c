@@ -4834,7 +4834,7 @@ static void CG_PlayerSplash( centity_t *cent ) {
 }
 
 #define REFRACT_EFFECT_DURATION		500
-static void CG_ForcePushBlur( vec3_t org, centity_t *cent )
+/*static */void CG_ForcePushBlur( vec3_t org, centity_t *cent )
 {
 	if (!cent || !cg_renderToTextureFX.integer)
 	{

@@ -27,6 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "ghoul2/g2.h"
 
+static void CG_ForcePushBlur(vec3_t org, centity_t *cent);
 /*
 Ghoul2 Insert Start
 */
@@ -445,6 +446,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 
 	CG_RegisterWeapon( weaponNum );
 	weapon = &cg_weapons[weaponNum];
+
 /*
 Ghoul2 Insert Start
 */
@@ -606,13 +608,14 @@ Ghoul2 Insert Start
 					CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
 					VectorCopy(flash.origin, cg.lastFPFlashPoint);
 				}
-				else {
+				else 
+				{
 					mdxaBone_t    boltMatrix;
 					vec3_t	setAngles;
 
 					VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-					trap->G2API_GetBoltMatrix(weapon->ghoul2, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, setAngles, gun.origin,
+					trap->G2API_GetBoltMatrix(gun.ghoul2, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, setAngles, gun.origin,
 						cg.time, NULL, gun.modelScale);
 					BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
 					// this seems to screw the position a bit
@@ -623,7 +626,23 @@ Ghoul2 Insert Start
 					BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Y, flash.axis[1]);
 					BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, flash.axis[2]);
 
-					VectorCopy(flash.origin, cg.lastFPFlashPoint);
+					// Play effects if requested 
+					/*if (ps->powerups[PW_FORCE_PUSH] > cg.time ||
+						ps->fd.forcePowersActive & (1 << FP_GRIP)) {
+						vec3_t effectOrigin;
+						VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
+						trap->G2API_GetBoltMatrix(s, weapon->g2_index, weapon->g2_effectsbolt, &boltMatrix, setAngles, gun.origin,
+							cg.time, NULL, gun.modelScale);
+						BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, effectOrigin);
+						CG_ForcePushBlur(effectOrigin);
+					}*/
+
+					// The effect position gets broken with differences in FOV. This should (hopefully) fix that. 
+					/*if (cg_fovViewmodel.integer) {
+						float fracDistFOV = tanf(cg.refdef.fov_x * (M_PI / 180) * 0.5f);
+						float fracWeapFOV = (1.0f / fracDistFOV) * tanf(actualFOV * (M_PI / 180) * 0.5f);
+						VectorScale(flash.axis[0], fracWeapFOV, flash.axis[0]);
+					}*/
 				}
 			}
 		}
@@ -649,8 +668,34 @@ Ghoul2 Insert Start
 
 		if (!thirdPerson)
 		{
-			VectorCopy(flash.origin, flashorigin);
-			VectorCopy(flash.axis[0], flashdir);
+			if (!weapon->bUsesGhoul2)
+			{
+				VectorCopy(flash.origin, flashorigin);
+				VectorCopy(flash.axis[0], flashdir);
+			}
+			else
+			{
+				mdxaBone_t 		boltMatrix;
+
+				if (!trap->G2API_HasGhoul2ModelOnIndex(&(cent->ghoul2), 1))
+				{ //it's quite possible that we may have have no weapon model and be in a valid state, so return here if this is the case
+					return;
+				}
+
+				void *s = gun.ghoul2;
+				vec3_t	setAngles;
+
+				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
+
+				// go away and get me the bolt position for this frame please
+				if (!(trap->G2API_GetBoltMatrix(s, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, setAngles, gun.origin, cg.time, NULL, gun.modelScale)))
+				{	// Couldn't find bolt point.
+					return;
+				}
+
+				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flashorigin);
+				BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flashdir);
+			}
 		}
 		else
 		{
@@ -1058,7 +1103,14 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	// set up gun position
 	CG_CalculateWeaponPosition( hand.origin, angles );
 
-	VectorMA( hand.origin, cg_gunX.value, cg.refdef.viewaxis[0], hand.origin );
+	if (weapon->bUsesGhoul2)
+	{
+		VectorMA(hand.origin, cg_gunX.value + 0.1, cg.refdef.viewaxis[0], hand.origin);
+	}
+	else
+	{
+		VectorMA(hand.origin, cg_gunX.value, cg.refdef.viewaxis[0], hand.origin);
+	}
 	VectorMA( hand.origin, cg_gunY.value, cg.refdef.viewaxis[1], hand.origin );
 	VectorMA( hand.origin, (cg_gunZ.value+fovOffset), cg.refdef.viewaxis[2], hand.origin );
 
