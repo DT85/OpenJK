@@ -447,6 +447,12 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	CG_RegisterWeapon( weaponNum );
 	weapon = &cg_weapons[weaponNum];
 
+	//G2 viewmodels - START
+	if (Q_stristr(weapon->item->view_model, ".glm")) {
+		weapon->bUsesGhoul2 = qtrue;
+	}
+	//G2 viewmodels - END
+
 /*
 Ghoul2 Insert Start
 */
@@ -483,8 +489,12 @@ Ghoul2 Insert Start
 		{
 			gun.hModel = weapon->weaponModel;
 		}
-		if (!gun.hModel) {
-			return;
+
+		if (!weapon->bUsesGhoul2)
+		{
+			if (!gun.hModel) {
+				return;
+			}
 		}
 
 		if (!ps) {
@@ -643,6 +653,8 @@ Ghoul2 Insert Start
 						float fracWeapFOV = (1.0f / fracDistFOV) * tanf(actualFOV * (M_PI / 180) * 0.5f);
 						VectorScale(flash.axis[0], fracWeapFOV, flash.axis[0]);
 					}*/
+
+					VectorCopy(flash.origin, cg.lastFPFlashPoint);
 				}
 			}
 		}
@@ -675,20 +687,18 @@ Ghoul2 Insert Start
 			}
 			else
 			{
-				mdxaBone_t 		boltMatrix;
+				mdxaBone_t boltMatrix;
+				vec3_t setAngles;
 
 				if (!trap->G2API_HasGhoul2ModelOnIndex(&(cent->ghoul2), 1))
 				{ //it's quite possible that we may have have no weapon model and be in a valid state, so return here if this is the case
 					return;
-				}
-
-				void *s = gun.ghoul2;
-				vec3_t	setAngles;
+				}				
 
 				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
 				// go away and get me the bolt position for this frame please
-				if (!(trap->G2API_GetBoltMatrix(s, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, setAngles, gun.origin, cg.time, NULL, gun.modelScale)))
+				if (!(trap->G2API_GetBoltMatrix(gun.ghoul2, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, setAngles, gun.origin, cg.time, NULL, gun.modelScale)))
 				{	// Couldn't find bolt point.
 					return;
 				}
@@ -807,9 +817,33 @@ Ghoul2 Insert Start
 
 		if (!thirdPerson)
 		{
-			CG_PositionEntityOnTag( &flash, &gun, gun.hModel, "tag_flash");
-			VectorCopy(flash.origin, flashorigin);
-			VectorCopy(flash.axis[0], flashdir);
+			if (!weapon->bUsesGhoul2)
+			{
+				CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
+				VectorCopy(flash.origin, flashorigin);
+				VectorCopy(flash.axis[0], flashdir);
+			}
+			else
+			{
+				mdxaBone_t boltMatrix;
+				vec3_t setAngles;
+
+				if (!trap->G2API_HasGhoul2ModelOnIndex(&(cent->ghoul2), 1))
+				{ //it's quite possible that we may have have no weapon model and be in a valid state, so return here if this is the case
+					return;
+				}
+
+				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
+
+				// go away and get me the bolt position for this frame please
+				if (!(trap->G2API_GetBoltMatrix(gun.ghoul2, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, setAngles, gun.origin, cg.time, NULL, gun.modelScale)))
+				{	// Couldn't find bolt point.
+					return;
+				}
+
+				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flashorigin);
+				BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flashdir);
+			}
 		}
 		else
 		{
@@ -838,7 +872,7 @@ Ghoul2 Insert Start
 				{
 					if (!thirdPerson)
 					{
-						trap->FX_PlayEntityEffectID(weapon->altMuzzleEffect, flashorigin, flash.axis, -1, -1, -1, -1  );
+						trap->FX_PlayEntityEffectID(weapon->altMuzzleEffect, flashorigin, flash.axis, -1, -1, -1, -1);
 					}
 					else
 					{
