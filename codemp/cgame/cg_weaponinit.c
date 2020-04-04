@@ -159,7 +159,7 @@ void CG_RegisterWeapon( int weaponNum) {
 			// Add skin
 			trap->G2API_SetSkin(weaponInfo->ghoul2, weaponInfo->g2_index, weaponInfo->g2_skin, weaponInfo->g2_skin);
 
-			// Add flash bolt
+			// Add flash & effects bolt
 			weaponInfo->g2_flashbolt = trap->G2API_AddBolt(weaponInfo->ghoul2, weaponInfo->g2_index, "*flash");
 			weaponInfo->g2_effectsbolt = trap->G2API_AddBolt(weaponInfo->ghoul2, weaponInfo->g2_index, "*l_hand");
 
@@ -714,21 +714,21 @@ void CG_LoadViewmodelAnimations(void *ghoul2, int modelIndex, const char *modelN
 
 	// Load the file (erroring out if none found)
 	fileHandle_t f;
-	int len = trap_FS_FOpenFile(animName, &f, FS_READ);
+	int len = trap->FS_Open(animName, &f, FS_READ);
 	if (f == -1) {
 		Com_Printf("^1ERROR: Failed to load %s: file not found\n", animName);
 		return;
 	}
 	else if (len <= 0) {
 		Com_Printf("^1ERROR: Failed to load %s: file blank or not found\n", animName);
-		trap_FS_FCloseFile(f);
+		trap->FS_Close(f);
 		return;
 	}
 
 	// Read the file, and close it.
 	char buffer[16535];
-	trap_FS_Read(buffer, len, f);
-	trap_FS_FCloseFile(f);
+	trap->FS_Read(buffer, len, f);
+	trap->FS_Close(f);
 	buffer[len] = 0;
 
 	// Set initial data in the animation.cfg data bufffer.
