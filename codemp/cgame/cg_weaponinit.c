@@ -102,37 +102,48 @@ void CG_RegisterWeapon( int weaponNum) {
 		weaponInfo->ammoModel = trap->R_RegisterModel( ammo->world_model[0] );
 	}
 
-//	strcpy( path, item->view_model );
-//	COM_StripExtension( path, path );
-//	strcat( path, "_flash.md3" );
-	weaponInfo->flashModel = 0;//trap->R_RegisterModel( path );
-
-	if (weaponNum == WP_DISRUPTOR ||
-		weaponNum == WP_FLECHETTE ||
-		weaponNum == WP_REPEATER ||
-		weaponNum == WP_ROCKET_LAUNCHER ||
-		weaponNum == WP_CONCUSSION)
-	{
-		Q_strncpyz( path, item->view_model, sizeof(path) );
-		COM_StripExtension( path, path, sizeof( path ) );
-		Q_strcat( path, sizeof(path), "_barrel.md3" );
-		weaponInfo->barrelModel = trap->R_RegisterModel( path );
-	}
-	else if (weaponNum == WP_STUN_BATON)
-	{ //only weapon with more than 1 barrel..
-		trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel.md3");
-		trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel2.md3");
-		trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel3.md3");
-	}
-	else
-	{
-		weaponInfo->barrelModel = 0;
-	}
+	//	strcpy( path, item->view_model );
+	//	COM_StripExtension( path, path );
+	//	strcat( path, "_flash.md3" );
 
 	//G2 viewmodels - START
+	if (!weaponInfo->bUsesGhoul2) 
+	{
+		weaponInfo->flashModel = 0;//trap->R_RegisterModel( path );
+
+		if (weaponNum == WP_DISRUPTOR ||
+			weaponNum == WP_FLECHETTE ||
+			weaponNum == WP_REPEATER ||
+			weaponNum == WP_ROCKET_LAUNCHER ||
+			weaponNum == WP_CONCUSSION)
+		{
+			Q_strncpyz(path, item->view_model, sizeof(path));
+			COM_StripExtension(path, path, sizeof(path));
+			Q_strcat(path, sizeof(path), "_barrel.md3");
+			weaponInfo->barrelModel = trap->R_RegisterModel(path);
+		}
+		else if (weaponNum == WP_STUN_BATON)
+		{ //only weapon with more than 1 barrel..
+			trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel.md3");
+			trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel2.md3");
+			trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel3.md3");
+		}
+		else
+		{
+			weaponInfo->barrelModel = 0;
+		}
+	}
+	//G2 viewmodels - END
+
 	Q_strncpyz(path, item->view_model, sizeof(path));
+
+	//G2 viewmodels - START
 	if (weaponInfo->bUsesGhoul2)
 	{
+		weaponInfo->flashModel = 0;
+		weaponInfo->barrelModel = 0;
+		weaponInfo->handsModel = 0;
+
 		// Grab the skin file path from the model path, and add a default .skin
 		char skinName[MAX_QPATH];
 		int l;
@@ -159,7 +170,7 @@ void CG_RegisterWeapon( int weaponNum) {
 			// Add skin
 			trap->G2API_SetSkin(weaponInfo->ghoul2, weaponInfo->g2_index, weaponInfo->g2_skin, weaponInfo->g2_skin);
 
-			// Add flash & effects bolt
+			// Add weapon flash & left hand effects bolts
 			weaponInfo->g2_flashbolt = trap->G2API_AddBolt(weaponInfo->ghoul2, weaponInfo->g2_index, "*flash");
 			weaponInfo->g2_effectsbolt = trap->G2API_AddBolt(weaponInfo->ghoul2, weaponInfo->g2_index, "*l_hand");
 
@@ -175,7 +186,6 @@ void CG_RegisterWeapon( int weaponNum) {
 	{
 		if (weaponNum != WP_SABER)
 		{
-			Q_strncpyz(path, item->view_model, sizeof(path));
 			COM_StripExtension(path, path, sizeof(path));
 			Q_strcat(path, sizeof(path), "_hand.md3");
 			weaponInfo->handsModel = trap->R_RegisterModel(path);
