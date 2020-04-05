@@ -447,12 +447,6 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	CG_RegisterWeapon( weaponNum );
 	weapon = &cg_weapons[weaponNum];
 
-	//G2 viewmodels - START
-	if (Q_stristr(weapon->item->view_model, ".glm")) {
-		weapon->bUsesGhoul2 = qtrue;
-	}
-	//G2 viewmodels - END
-
 /*
 Ghoul2 Insert Start
 */
@@ -470,7 +464,7 @@ Ghoul2 Insert Start
 		{	// this player, in first person view
 
 			//G2 Viewmodels - START
-			if (!weapon->bUsesGhoul2)
+			if (!weapon->bIsG2Viewmodel)
 			{
 				gun.hModel = weapon->viewModel;
 			}
@@ -479,15 +473,16 @@ Ghoul2 Insert Start
 				gun.ghoul2 = parent->ghoul2;
 				gun.radius = 60;
 				gun.customSkin = weapon->g2_skin;
-				VectorCopy(parent->axis[0], gun.axis[0]);
-				VectorCopy(parent->origin, gun.origin);
 			}
 			//G2 Viewmodels - END
 		}
-		else if (!weapon->bUsesGhoul2)
+		else
 		{
 			gun.hModel = weapon->weaponModel;
+		}
 
+		if (!weapon->bIsG2Viewmodel)
+		{
 			if (!gun.hModel) {
 				return;
 			}
@@ -507,9 +502,16 @@ Ghoul2 Insert Start
 		}
 
 		//G2 Viewmodels - START
-		if (!weapon->bUsesGhoul2)
+		if (!weapon->bIsG2Viewmodel)
 		{
 			CG_PositionEntityOnTag(&gun, parent, parent->hModel, "tag_weapon");
+		}
+		else
+		{
+			VectorCopy(parent->origin, gun.origin);
+			VectorCopy(parent->axis[0], gun.axis[0]);
+			VectorCopy(parent->axis[1], gun.axis[1]);
+			VectorCopy(parent->axis[2], gun.axis[2]);
 		}
 		//G2 Viewmodels - END
 
@@ -581,7 +583,7 @@ Ghoul2 Insert Start
 		else
 		{
 			// add the spinning barrel
-			if (!weapon->bUsesGhoul2)
+			if (!weapon->bIsG2Viewmodel)
 			{
 				if (weapon->barrelModel) {
 					memset(&barrel, 0, sizeof(barrel));
@@ -606,7 +608,7 @@ Ghoul2 Insert Start
 			memset(&flash, 0, sizeof(flash));
 
 			// Seems like we should always do this in case we have an animating muzzle flash....that way we can always store the correct muzzle dir, etc.
-			if (!weapon->bUsesGhoul2)
+			if (!weapon->bIsG2Viewmodel)
 			{
 				CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
 				VectorCopy(flash.origin, cg.lastFPFlashPoint);
@@ -618,7 +620,7 @@ Ghoul2 Insert Start
 
 				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-				trap->G2API_GetBoltMatrix(gun.ghoul2, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, setAngles, gun.origin,
+				trap->G2API_GetBoltMatrix(weapon->g2_info, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, setAngles, gun.origin,
 					cg.time, NULL, gun.modelScale);
 
 				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
@@ -639,7 +641,7 @@ Ghoul2 Insert Start
 
 					VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-					trap->G2API_GetBoltMatrix(gun.ghoul2, weapon->g2_index, weapon->g2_effectsbolt, &boltMatrix, setAngles, gun.origin,
+					trap->G2API_GetBoltMatrix(weapon->g2_info, weapon->g2_index, weapon->g2_effectsbolt, &boltMatrix, setAngles, gun.origin,
 						cg.time, NULL, gun.modelScale);
 
 					BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, effectOrigin);
@@ -688,7 +690,7 @@ Ghoul2 Insert Start
 
 		if (!thirdPerson)
 		{
-			if (!weapon->bUsesGhoul2)
+			if (!weapon->bIsG2Viewmodel)
 			{
 				VectorCopy(flash.origin, flashorigin);
 				VectorCopy(flash.axis[0], flashdir);
@@ -697,13 +699,13 @@ Ghoul2 Insert Start
 			{
 				mdxaBone_t boltMatrix;
 
-				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->ghoul2), weapon->g2_index))
+				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_info), weapon->g2_index))
 				{ //it's quite possible that we may have have no weapon model and be in a valid state, so return here if this is the case
 					return;
 				}
 
 				// go away and get me the bolt position for this frame please
-				if (!(trap->G2API_GetBoltMatrix(weapon->ghoul2, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
+				if (!(trap->G2API_GetBoltMatrix(weapon->g2_info, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
 				{	// Couldn't find bolt point.
 					return;
 				}
@@ -825,7 +827,7 @@ Ghoul2 Insert Start
 
 		if (!thirdPerson)
 		{
-			if (!weapon->bUsesGhoul2)
+			if (!weapon->bIsG2Viewmodel)
 			{
 				CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
 				VectorCopy(flash.origin, flashorigin);
@@ -835,13 +837,13 @@ Ghoul2 Insert Start
 			{
 				mdxaBone_t boltMatrix;
 
-				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->ghoul2), weapon->g2_index))
+				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_info), weapon->g2_index))
 				{ //it's quite possible that we may have have no weapon model and be in a valid state, so return here if this is the case
 					return;
 				}
 
 				// go away and get me the bolt position for this frame please
-				if (!(trap->G2API_GetBoltMatrix(weapon->ghoul2, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
+				if (!(trap->G2API_GetBoltMatrix(weapon->g2_info, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
 				{	// Couldn't find bolt point.
 					return;
 				}
@@ -925,73 +927,73 @@ int CG_MapTorsoToG2VMAnimation(playerState_t *ps)
 {
 	switch (ps->torsoAnim)
 	{
-	case TORSO_WEAPONREADY1:
-	case TORSO_WEAPONREADY2:
-	case TORSO_WEAPONREADY3:
-	case TORSO_WEAPONREADY4:
-	case TORSO_WEAPONREADY10:
-	case TORSO_WEAPONIDLE2:
-	case TORSO_WEAPONIDLE3:
-	case TORSO_WEAPONIDLE4:
-	case TORSO_WEAPONIDLE10:
-		return VM_READY;
-	case BOTH_STAND1IDLE1:
-	case BOTH_STAND3IDLE1:
-	case BOTH_STAND5IDLE1:
-	case BOTH_STAND9IDLE1:
-		return VM_IDLE;
-	case TORSO_DROPWEAP1:
-		return VM_LOWER;
-	case TORSO_RAISEWEAP1:
-		return VM_RAISE;
-	case BOTH_ATTACK1:
-	case BOTH_ATTACK2:
-	case BOTH_ATTACK3:
-	case BOTH_ATTACK4:
-	case BOTH_ATTACK10:
-	case BOTH_ATTACK11:
-		return VM_FIRE;
-	case BOTH_THERMAL_READY:
-		return VM_THERMAL_PULLBACK;
-	case BOTH_THERMAL_THROW:
-		return VM_THERMAL_THROW;
-	case BOTH_MELEE1:
-		return VM_MELEE1;
-	case BOTH_MELEE2:
-		return VM_MELEE2;
-	case BOTH_FORCEPUSH:
-		return 	VM_FPUSH;
-	case BOTH_FORCEPULL:
-		return 	VM_FPULL;
-	case BOTH_FORCEGRIP1:
-		return 	VM_FGRIP;
-	case BOTH_FORCEGRIP_HOLD:
-		return 	VM_FGRIP_HOLD;
-	case BOTH_FORCEGRIP_RELEASE:
-		return 	VM_FGRIP_RELEASE;
-	case BOTH_TOSS1:
-		return VM_TOSS_LEFT;
-	case BOTH_TOSS2:
-		return VM_TOSS_RIGHT;
-	case BOTH_FORCEHEAL_QUICK:
-		return 	VM_FHEAL_QUICK;
-	case BOTH_FORCEHEAL_START:
-		return 	VM_FHEAL_START;
-	case BOTH_FORCEHEAL_STOP:
-		return 	VM_FHEAL_STOP;
-	case BOTH_FORCELIGHTNING:
-		return 	VM_FLIGHTNING;
-	case BOTH_FORCELIGHTNING_START:
-		return 	VM_FLIGHTNING_START;
-	case BOTH_FORCELIGHTNING_HOLD:
-		return 	VM_FLIGHTNING_HOLD;
-	case BOTH_FORCELIGHTNING_RELEASE:
-		return 	VM_FLIGHTNING_RELEASE;
-	case BOTH_RESISTPUSH:
-		return 	VM_FRESISTPUSH;
-	case BOTH_MINDTRICK1:
-	case BOTH_MINDTRICK2:
-		return 	VM_FMINDTRICK;
+		case TORSO_WEAPONREADY1:
+		case TORSO_WEAPONREADY2:
+		case TORSO_WEAPONREADY3:
+		case TORSO_WEAPONREADY4:
+		case TORSO_WEAPONREADY10:
+		case TORSO_WEAPONIDLE2:
+		case TORSO_WEAPONIDLE3:
+		case TORSO_WEAPONIDLE4:
+		case TORSO_WEAPONIDLE10:
+			return VM_READY;
+		case BOTH_STAND1IDLE1:
+		case BOTH_STAND3IDLE1:
+		case BOTH_STAND5IDLE1:
+		case BOTH_STAND9IDLE1:
+			return VM_IDLE;
+		case TORSO_DROPWEAP1:
+			return VM_LOWER;
+		case TORSO_RAISEWEAP1:
+			return VM_RAISE;
+		case BOTH_ATTACK1:
+		case BOTH_ATTACK2:
+		case BOTH_ATTACK3:
+		case BOTH_ATTACK4:
+		case BOTH_ATTACK10:
+		case BOTH_ATTACK11:
+			return VM_FIRE;
+		case BOTH_THERMAL_READY:
+			return VM_THERMAL_PULLBACK;
+		case BOTH_THERMAL_THROW:
+			return VM_THERMAL_THROW;
+		case BOTH_MELEE1:
+			return VM_MELEE1;
+		case BOTH_MELEE2:
+			return VM_MELEE2;
+		case BOTH_FORCEPUSH:
+			return 	VM_FPUSH;
+		case BOTH_FORCEPULL:
+			return 	VM_FPULL;
+		case BOTH_FORCEGRIP1:
+			return 	VM_FGRIP;
+		case BOTH_FORCEGRIP_HOLD:
+			return 	VM_FGRIP_HOLD;
+		case BOTH_FORCEGRIP_RELEASE:
+			return 	VM_FGRIP_RELEASE;
+		case BOTH_TOSS1:
+			return VM_TOSS_LEFT;
+		case BOTH_TOSS2:
+			return VM_TOSS_RIGHT;
+		case BOTH_FORCEHEAL_QUICK:
+			return 	VM_FHEAL_QUICK;
+		case BOTH_FORCEHEAL_START:
+			return 	VM_FHEAL_START;
+		case BOTH_FORCEHEAL_STOP:
+			return 	VM_FHEAL_STOP;
+		case BOTH_FORCELIGHTNING:
+			return 	VM_FLIGHTNING;
+		case BOTH_FORCELIGHTNING_START:
+			return 	VM_FLIGHTNING_START;
+		case BOTH_FORCELIGHTNING_HOLD:
+			return 	VM_FLIGHTNING_HOLD;
+		case BOTH_FORCELIGHTNING_RELEASE:
+			return 	VM_FLIGHTNING_RELEASE;
+		case BOTH_RESISTPUSH:
+			return 	VM_FRESISTPUSH;
+		case BOTH_MINDTRICK1:
+		case BOTH_MINDTRICK2:
+			return 	VM_FMINDTRICK;
 		// Not sure about these yet. commented out for now.
 		/*case BOTH_FORCE_RAGE:
 			return 	VM_FRAGE;
@@ -1029,8 +1031,8 @@ int CG_MapTorsoToG2VMAnimation(playerState_t *ps)
 		case BOTH_FORCE_PROTECT_FAST:
 			return 	VM_FORCE_PROTECT;*/
 
-	default:
-		return VM_READY;
+		default:
+			return VM_READY;
 	}
 }
 
@@ -1041,29 +1043,31 @@ void CG_AnimateViewmodel(centity_t* cent, playerState_t *ps)
 	int desiredAnim = CG_MapTorsoToG2VMAnimation(ps);
 	int flags = BONE_ANIM_OVERRIDE;
 
-	switch (desiredAnim) {
-	case VM_FIRE:
-		if (cent->muzzleFlashTime <= 0)
-			return;
-		break;
-	case VM_READY:
-		flags = BONE_ANIM_OVERRIDE_LOOP;
-		if (ps->torsoAnim == lastAnimPlayed)
-			return;
-		break;
-	default:
-		if (ps->torsoAnim == lastAnimPlayed)
-			return;
-		break;
+	switch (desiredAnim) 
+	{
+		// This stops the animation from playing. Need to do something here to make the animation play always..
+		/*case VM_FIRE:
+			if (cent->muzzleFlashTime <= 0)
+				return;
+			break;*/
+		case VM_READY:
+			flags = BONE_ANIM_OVERRIDE_LOOP;
+			if (ps->torsoAnim == lastAnimPlayed)
+				return;
+			break;
+		default:
+			if (ps->torsoAnim == lastAnimPlayed)
+				return;
+			break;
 	}
 
 	lastAnimPlayed = ps->torsoAnim;
 
-	trap->G2API_SetBoneAnim(&weapon->ghoul2, weapon->g2_index, "model_root",
+	trap->G2API_SetBoneAnim(weapon->g2_info, weapon->g2_index, "model_root",
 							weapon->g2_anims.animations[desiredAnim].firstFrame,
 							weapon->g2_anims.animations[desiredAnim].firstFrame + weapon->g2_anims.animations[desiredAnim].numFrames,
 							flags, 100.0f / weapon->g2_anims.animations[desiredAnim].frameLerp,
-							cg.time, weapon->g2_anims.animations[desiredAnim].firstFrame, -1);
+							cg.time, weapon->g2_anims.animations[desiredAnim].firstFrame, 150);
 }
 //G2 viewmodels - END
 
@@ -1135,14 +1139,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	// set up gun position
 	CG_CalculateWeaponPosition( hand.origin, angles );
 
-	if (weapon->bUsesGhoul2)
-	{
-		VectorMA(hand.origin, cg_gunX.value + 0.1, cg.refdef.viewaxis[0], hand.origin);
-	}
-	else
-	{
-		VectorMA(hand.origin, cg_gunX.value, cg.refdef.viewaxis[0], hand.origin);
-	}
+	VectorMA( hand.origin, cg_gunX.value, cg.refdef.viewaxis[0], hand.origin );
 	VectorMA( hand.origin, cg_gunY.value, cg.refdef.viewaxis[1], hand.origin );
 	VectorMA( hand.origin, (cg_gunZ.value+fovOffset), cg.refdef.viewaxis[2], hand.origin );
 
@@ -1162,7 +1159,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		hand.backlerp = 0;
 	} else {
 		//G2 viewmodels - START
-		if (!weapon->bUsesGhoul2) 
+		if (!weapon->bIsG2Viewmodel)
 		{
 			float currentFrame;
 
@@ -1206,13 +1203,13 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		//G2 viewmodels - END
 	}
 
-	if (!weapon->bUsesGhoul2)
+	if (!weapon->bIsG2Viewmodel)
 	{
 		hand.hModel = weapon->handsModel;
 	}
 	else
 	{
-		hand.ghoul2 = weapon->ghoul2;
+		hand.ghoul2 = weapon->g2_info;
 	}
 
 	hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON;// | RF_MINLIGHT;

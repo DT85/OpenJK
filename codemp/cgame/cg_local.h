@@ -706,8 +706,8 @@ typedef struct weaponInfo_s {
 	float			wiTrailTime;
 
 	//G2 viewmodels - START
-	qboolean		bUsesGhoul2;
-	void			*ghoul2;
+	qboolean		bIsG2Viewmodel;
+	void			*g2_info;
 	qhandle_t		g2_flashbolt;
 	qhandle_t		g2_effectsbolt;
 	int				g2_index;

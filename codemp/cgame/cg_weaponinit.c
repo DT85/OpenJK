@@ -72,7 +72,7 @@ void CG_RegisterWeapon( int weaponNum) {
 	//G2 viewmodels - START
 	// set up in view weapon model
 	if (Q_stristr(item->view_model, ".glm")) {
-		weaponInfo->bUsesGhoul2 = qtrue;
+		weaponInfo->bIsG2Viewmodel = qtrue;
 	}
 	//G2 viewmodels - END
 
@@ -80,7 +80,7 @@ void CG_RegisterWeapon( int weaponNum) {
 	weaponInfo->weaponModel = trap->R_RegisterModel( item->world_model[0] );
 
 	// load in-view model also
-	if (!weaponInfo->bUsesGhoul2) {
+	if (!weaponInfo->bIsG2Viewmodel) {
 		weaponInfo->viewModel = trap->R_RegisterModel(item->view_model);
 	}
 
@@ -107,7 +107,7 @@ void CG_RegisterWeapon( int weaponNum) {
 	//	strcat( path, "_flash.md3" );
 
 	//G2 viewmodels - START
-	if (!weaponInfo->bUsesGhoul2) 
+	if (!weaponInfo->bIsG2Viewmodel)
 	{
 		weaponInfo->flashModel = 0;//trap->R_RegisterModel( path );
 
@@ -138,7 +138,7 @@ void CG_RegisterWeapon( int weaponNum) {
 	Q_strncpyz(path, item->view_model, sizeof(path));
 
 	//G2 viewmodels - START
-	if (weaponInfo->bUsesGhoul2)
+	if (weaponInfo->bIsG2Viewmodel)
 	{
 		weaponInfo->flashModel = 0;
 		weaponInfo->barrelModel = 0;
@@ -163,19 +163,19 @@ void CG_RegisterWeapon( int weaponNum) {
 
 		// Init the ghoul2 model
 		weaponInfo->g2_skin = trap->R_RegisterSkin(skinName);
-		weaponInfo->g2_index = trap->G2API_InitGhoul2Model(&weaponInfo->ghoul2, path, 0, weaponInfo->g2_skin, 0, 0, 0);
+		weaponInfo->g2_index = trap->G2API_InitGhoul2Model(&weaponInfo->g2_info, path, 0, weaponInfo->g2_skin, 0, 0, 0);
 
-		if (trap->G2_HaveWeGhoul2Models(weaponInfo->ghoul2))
+		if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_info))
 		{
 			// Add skin
-			trap->G2API_SetSkin(weaponInfo->ghoul2, weaponInfo->g2_index, weaponInfo->g2_skin, weaponInfo->g2_skin);
+			trap->G2API_SetSkin(weaponInfo->g2_info, weaponInfo->g2_index, weaponInfo->g2_skin, weaponInfo->g2_skin);
 
 			// Add weapon flash & left hand effects bolts
-			weaponInfo->g2_flashbolt = trap->G2API_AddBolt(weaponInfo->ghoul2, weaponInfo->g2_index, "*flash");
-			weaponInfo->g2_effectsbolt = trap->G2API_AddBolt(weaponInfo->ghoul2, weaponInfo->g2_index, "*l_hand");
+			weaponInfo->g2_flashbolt = trap->G2API_AddBolt(weaponInfo->g2_info, weaponInfo->g2_index, "*flash");
+			weaponInfo->g2_effectsbolt = trap->G2API_AddBolt(weaponInfo->g2_info, weaponInfo->g2_index, "*l_hand");
 
 			// Load the animation.cfg
-			CG_LoadViewmodelAnimations(weaponInfo->ghoul2, weaponInfo->g2_index, path, &weaponInfo->g2_anims);
+			CG_LoadViewmodelAnimations(weaponInfo->g2_info, weaponInfo->g2_index, path, &weaponInfo->g2_anims);
 		}
 		else
 		{
