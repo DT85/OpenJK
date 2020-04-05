@@ -31,11 +31,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 //G2 viewmodels - START
 #include "game/anims.h"
-
-typedef struct {
-	char			filename[MAX_QPATH];
-	animation_t		animations[MAX_VIEWMODEL_ANIMATIONS];
-} viewModelAnimSet_t;
 //G2 viewmodels - END
 
 // The entire cgame module is unloaded and reloaded on each level change,
@@ -99,6 +94,13 @@ typedef struct {
 
 #define	WAVE_AMPLITUDE	1
 #define	WAVE_FREQUENCY	0.4
+
+//G2 viewmodels - START
+typedef struct {
+	char			filename[MAX_QPATH];
+	animation_t		animations[MAX_VIEWMODEL_ANIMATIONS];
+} vmAnimation_t;
+//G2 viewmodels - END
 
 typedef enum {
 	FOOTSTEP_STONEWALK,
@@ -707,12 +709,13 @@ typedef struct weaponInfo_s {
 
 	//G2 viewmodels - START
 	qboolean		bIsG2Viewmodel;
-	void			*g2_info;
-	qhandle_t		g2_flashbolt;
-	qhandle_t		g2_effectsbolt;
-	int				g2_index;
-	int				g2_skin;
-	viewModelAnimSet_t g2_anims;
+	void			*g2_vmInfo;
+	qhandle_t		g2_vmMuzzleBolt;
+	qhandle_t		g2_vmLHandBolt;
+	qhandle_t		g2_vmRHandBolt;
+	int				g2_vmModelIndex;
+	int				g2_vmSkin;
+	vmAnimation_t	g2_vmAnims;
 	//G2 viewmodels - END
 } weaponInfo_t;
 

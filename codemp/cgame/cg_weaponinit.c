@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "fx_local.h"
 
 //G2 viewmodels - START
-void CG_LoadViewmodelAnimations(void *ghoul2, int modelIndex, const char *modelName, viewModelAnimSet_t* ptAnims);
+void CG_ParseVMAnimationFile(void *g2_info, int g2_modelIndex, vmAnimation_t* vmAnims);
 //G2 viewmodels - END
 /*
 =================
@@ -161,21 +161,21 @@ void CG_RegisterWeapon( int weaponNum) {
 			Q_strcat(skinName, MAX_QPATH, "model_default.skin");
 		}
 
-		// Init the ghoul2 model
-		weaponInfo->g2_skin = trap->R_RegisterSkin(skinName);
-		weaponInfo->g2_index = trap->G2API_InitGhoul2Model(&weaponInfo->g2_info, path, 0, weaponInfo->g2_skin, 0, 0, 0);
+		// Init the model
+		weaponInfo->g2_vmSkin = trap->R_RegisterSkin(skinName);
+		weaponInfo->g2_vmModelIndex = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, path, 0, weaponInfo->g2_vmSkin, 0, 0, 0);
 
-		if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_info))
+		if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_vmInfo))
 		{
-			// Add skin
-			trap->G2API_SetSkin(weaponInfo->g2_info, weaponInfo->g2_index, weaponInfo->g2_skin, weaponInfo->g2_skin);
+			// Set skin
+			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, weaponInfo->g2_vmSkin, weaponInfo->g2_vmSkin);
 
-			// Add weapon flash & left hand effects bolts
-			weaponInfo->g2_flashbolt = trap->G2API_AddBolt(weaponInfo->g2_info, weaponInfo->g2_index, "*flash");
-			weaponInfo->g2_effectsbolt = trap->G2API_AddBolt(weaponInfo->g2_info, weaponInfo->g2_index, "*l_hand");
+			// Add the muzzle & left hand bolts
+			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, "*flash");
+			weaponInfo->g2_vmLHandBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, "*l_hand");
 
-			// Load the animation.cfg
-			CG_LoadViewmodelAnimations(weaponInfo->g2_info, weaponInfo->g2_index, path, &weaponInfo->g2_anims);
+			// Parse the animation file
+			CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, &weaponInfo->g2_vmAnims);
 		}
 		else
 		{
@@ -686,72 +686,62 @@ void CG_RegisterWeapon( int weaponNum) {
 }
 
 /*
-=================
-CG_LoadViewmodelAnimations
+======================
+CG_ParseVMAnimationFile
 
-Loads animation.cfg for viewmodel
-=================
+Read a configuration file containing animation counts and rates
+models/players/visor/animation.cfg, etc
+
+======================
 */
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
-void CG_LoadViewmodelAnimations(void *ghoul2, int modelIndex, const char *modelName, viewModelAnimSet_t* ptAnims)
+void CG_ParseVMAnimationFile(void *g2_info, int g2_modelIndex, vmAnimation_t* vmAnims)
 {
-	// Basic NULL checks, nothin' fishy better be in here...
-	if (!ghoul2 || /*!modelIndex ||*/ !modelName || !ptAnims) {
-		Com_Printf("^1ERROR: Everything is NULL! Loading of viewmodel animations aborted!\n");
-		return;
-	}
-
-	// Get the GLA's path.
+	int len;
+	char text[20000];
+	fileHandle_t f;
 	char GLAName[MAX_QPATH];
+	const char *s;
+	char *token;
+	int animNum;
+	float fps;
+
 	GLAName[0] = 0;
-	trap->G2API_GetGLAName(ghoul2, modelIndex, GLAName);
+
+	trap->G2API_GetGLAName(g2_info, g2_modelIndex, GLAName);
+
 	if (!GLAName) {
 		return;
 	}
 
-	// From the GLA's path, determine the path to animation.cfg and stuff the value into animName.
 	char	animName[MAX_QPATH];
 	char	*slash = NULL;
 
-	Q_strncpyz(animName, GLAName, sizeof(animName)/*, qtrue*/);
+	Q_strncpyz(animName, GLAName, sizeof(animName));
 	slash = strrchr(animName, '/');
-	if (slash)
-	{
+
+	if (slash) {
 		*slash = 0;
 	}
+
 	Q_strcat(animName, sizeof(animName), "/animation.cfg");
 
-
-	// Load the file (erroring out if none found)
-	fileHandle_t f;
-	int len = trap->FS_Open(animName, &f, FS_READ);
-	if (f == -1) {
-		Com_Printf("^1ERROR: Failed to load %s: file not found\n", animName);
-		return;
-	}
-	else if (len <= 0) {
-		Com_Printf("^1ERROR: Failed to load %s: file blank or not found\n", animName);
-		trap->FS_Close(f);
-		return;
+	// load the file	
+	len = trap->FS_Open(animName, &f, FS_READ);
+	if (len <= 0 || len >= sizeof(text) - 1)
+	{
+		return qfalse;
 	}
 
-	// Read the file, and close it.
-	char buffer[16535];
-	trap->FS_Read(buffer, len, f);
+	trap->FS_Read(text, len, f);
 	trap->FS_Close(f);
-	buffer[len] = 0;
 
-	// Set initial data in the animation.cfg data bufffer.
-	// This is slightly optimized from base's method - we do this in one step by ZeroMemory as opposed to looping.
-	Q_strncpyz(ptAnims->filename, animName, sizeof(ptAnims->filename));
+	Q_strncpyz(vmAnims->filename, animName, sizeof(vmAnims->filename));
 	
 	// FIXME: shouldn't just sizeof(ptAnims->animations) do?
-	memset(ptAnims->animations, 0, sizeof(animation_t)* MAX_VIEWMODEL_ANIMATIONS);
+	//memset(vmAnims->animations, 0, sizeof(animation_t)* MAX_VIEWMODEL_ANIMATIONS);
 
-	// Actually parse the file, woot.
-	// This is more or less ripped from SoF2MP, bad styling and all.
-	char *token;
-	const char *s = (const char*)buffer;
+	s = (const char*)text;
 
 	COM_BeginParseSession("G2_Viewmodel_Anims");
 	while (1) {
@@ -760,7 +750,8 @@ void CG_LoadViewmodelAnimations(void *ghoul2, int modelIndex, const char *modelN
 			break;
 		}
 
-		int animNum = GetIDForString(vmAnimTable, token);
+		animNum = GetIDForString(vmAnimTable, token);
+
 		/*if (animNum == -1) {
 			if (Q_stricmp(token, "ROOT")) {
 				Com_Printf(S_COLOR_RED"WARNING: Unknown token %s in %s\n", token, ptAnims->filename);
@@ -769,36 +760,43 @@ void CG_LoadViewmodelAnimations(void *ghoul2, int modelIndex, const char *modelN
 		}*/
 
 		token = COM_Parse(&s);
+
 		if (!token || !token[0]) {
 			break;
 		}
-		ptAnims->animations[animNum].firstFrame = atoi(token);
+		vmAnims->animations[animNum].firstFrame = atoi(token);
 
 		token = COM_Parse(&s);
+
 		if (!token || !token[0]) {
 			break;
 		}
-		ptAnims->animations[animNum].numFrames = atoi(token);
+		vmAnims->animations[animNum].numFrames = atoi(token);
 
 		token = COM_Parse(&s);
+
 		if (!token || !token[0]) {
 			break;
 		}
-		ptAnims->animations[animNum].loopFrames = atoi(token);
+		vmAnims->animations[animNum].loopFrames = atoi(token);
 
 		token = COM_Parse(&s);
+
 		if (!token || !token[0]) {
 			break;
 		}
-		float fps = atof(token);
+
+		fps = atof(token);
+
 		if (fps == 0)
 			fps = 1;
-		if (fps < 0)
-			ptAnims->animations[animNum].frameLerp = floor(1000.0f / fps);
-		else
-			ptAnims->animations[animNum].frameLerp = ceil(1000.0f / fps);
 
-		ptAnims->animations[animNum].initialLerp = ceil(1000.0f / fabs(fps));
+		if (fps < 0)
+			vmAnims->animations[animNum].frameLerp = floor(1000.0f / fps);
+		else
+			vmAnims->animations[animNum].frameLerp = ceil(1000.0f / fps);
+
+		vmAnims->animations[animNum].initialLerp = ceil(1000.0f / fabs(fps));
 	}
 }
 //G2 Viewmodels - END

@@ -1849,29 +1849,8 @@ typedef enum {
 	VM_FLIGHTNING_RELEASE,			// Force Lightning release
 	VM_FRESISTPUSH,					// Force resist push
 	VM_FMINDTRICK,					// Force Mind Trick
-	// Not sure about these yet. commented out for now.
-	/*VM_FRAGE,						// Force Rage
-	VM_F2HANDEDLIGHTNING,			// Force 2-Handed Lightning. (Puts gun away quickly, does the 2H lightning and then returns the gun)
-	VM_F2HANDEDLIGHTNING_START,		// Force 2-Handed Lightning start. (Puts gun away quickly, then starts the 2H lightning)
-	VM_F2HANDEDLIGHTNING_HOLD,		// Force 2-Handed Lightning hold. (Does the 2H lightning in a loop)
-	VM_F2HANDEDLIGHTNING_RELEASE,	// Force 2-Handed Lightning release. Finishes the 2H lightning, then returns the gun)
-	VM_FDRAIN,						// Force Drain
-	VM_FDRAIN_START,				// Force Drain start
-	VM_FDRAIN_HOLD,					// Force Drain hold
-	VM_FDRAIN_RELEASE,				// Force Drain release
-	VM_FDRAIN_GRAB_START,			// Force Drain grab start
-	VM_FDRAIN_GRAB_HOLD,			// Force Drain grab hold
-	VM_FDRAIN_GRAB_END,				// Force Drain grab end
-	VM_FDRAIN_GRABBED,				// Force Drain grabbed
-	VM_FORCE_ABSORB,				// Force Absorb
-	VM_FORCE_ABSORB_START,			// Force Absorb start
-	VM_FORCE_ABSORB_END,			// Force Absorb end
-	VM_FORCE_PROTECT,				// Force Protect*/
 
 	//# #eol
 	MAX_VIEWMODEL_ANIMATIONS,
-} viewModelAnimNumber_t;
-
-
-
+} vmAnimNumber_t;
 //G2 viewmodels - END
