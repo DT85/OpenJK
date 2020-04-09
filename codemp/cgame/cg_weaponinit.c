@@ -132,17 +132,25 @@ void CG_RegisterWeapon( int weaponNum) {
 		{
 			weaponInfo->barrelModel = 0;
 		}
+
+		if (weaponNum != WP_SABER)
+		{
+			COM_StripExtension(path, path, sizeof(path));
+			Q_strcat(path, sizeof(path), "_hand.md3");
+			weaponInfo->handsModel = trap->R_RegisterModel(path);
+		}
+		else
+		{
+			weaponInfo->handsModel = 0;
+		}
 	}
-	//G2 viewmodels - END
-
-	Q_strncpyz(path, item->view_model, sizeof(path));
-
-	//G2 viewmodels - START
-	if (weaponInfo->bIsG2Viewmodel)
+	else
 	{
 		weaponInfo->flashModel = 0;
 		weaponInfo->barrelModel = 0;
 		weaponInfo->handsModel = 0;
+
+		Q_strncpyz(path, item->view_model, sizeof(path));
 
 		// Grab the skin file path from the model path, and add a default .skin
 		char skinName[MAX_QPATH];
@@ -180,19 +188,6 @@ void CG_RegisterWeapon( int weaponNum) {
 		else
 		{
 			Com_Printf("CG_RegisterWeapon: Unable to load weapon view model: %i\n", weaponNum);
-		}
-	}
-	else
-	{
-		if (weaponNum != WP_SABER)
-		{
-			COM_StripExtension(path, path, sizeof(path));
-			Q_strcat(path, sizeof(path), "_hand.md3");
-			weaponInfo->handsModel = trap->R_RegisterModel(path);
-		}
-		else
-		{
-			weaponInfo->handsModel = 0;
 		}
 	}
 	//G2 viewmodels - END

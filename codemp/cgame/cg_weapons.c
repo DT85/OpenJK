@@ -534,145 +534,145 @@ Ghoul2 Insert Start
 			*/
 		}
 
-		if (weaponNum == WP_STUN_BATON)
+		memset(&flash, 0, sizeof(flash));
+
+		if (!weapon->bIsG2Viewmodel)
 		{
-			int i = 0;
-
-			while (i < 3)
+			if (weaponNum == WP_STUN_BATON)
 			{
-				memset(&barrel, 0, sizeof(barrel));
-				VectorCopy(parent->lightingOrigin, barrel.lightingOrigin);
-				barrel.shadowPlane = parent->shadowPlane;
-				barrel.renderfx = parent->renderfx;
+				int i = 0;
 
-				if (i == 0)
+				while (i < 3)
 				{
-					barrel.hModel = trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel.md3");
-				}
-				else if (i == 1)
-				{
-					barrel.hModel = trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel2.md3");
-				}
-				else
-				{
-					barrel.hModel = trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel3.md3");
-				}
-				angles[YAW] = 0;
-				angles[PITCH] = 0;
-				angles[ROLL] = 0;
-
-				AnglesToAxis(angles, barrel.axis);
-
-				if (i == 0)
-				{
-					CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel");
-				}
-				else if (i == 1)
-				{
-					CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel2");
-				}
-				else
-				{
-					CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel3");
-				}
-				CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups);
-
-				i++;
-			}
-		}
-		else
-		{
-			// add the spinning barrel
-			if (!weapon->bIsG2Viewmodel)
-			{
-				if (weapon->barrelModel) {
 					memset(&barrel, 0, sizeof(barrel));
 					VectorCopy(parent->lightingOrigin, barrel.lightingOrigin);
 					barrel.shadowPlane = parent->shadowPlane;
 					barrel.renderfx = parent->renderfx;
 
-					barrel.hModel = weapon->barrelModel;
+					if (i == 0)
+					{
+						barrel.hModel = trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel.md3");
+					}
+					else if (i == 1)
+					{
+						barrel.hModel = trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel2.md3");
+					}
+					else
+					{
+						barrel.hModel = trap->R_RegisterModel("models/weapons2/stun_baton/baton_barrel3.md3");
+					}
+
 					angles[YAW] = 0;
 					angles[PITCH] = 0;
 					angles[ROLL] = 0;
 
 					AnglesToAxis(angles, barrel.axis);
 
-					CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel");
+					if (i == 0)
+					{
+						CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel");
+					}
+					else if (i == 1)
+					{
+						CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel2");
+					}
+					else
+					{
+						CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel3");
+					}
 
 					CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups);
+
+					i++;
+				}
+			}
+			else
+			{
+				// add the spinning barrel
+				if (!weapon->bIsG2Viewmodel)
+				{
+					if (weapon->barrelModel) {
+						memset(&barrel, 0, sizeof(barrel));
+						VectorCopy(parent->lightingOrigin, barrel.lightingOrigin);
+						barrel.shadowPlane = parent->shadowPlane;
+						barrel.renderfx = parent->renderfx;
+
+						barrel.hModel = weapon->barrelModel;
+						angles[YAW] = 0;
+						angles[PITCH] = 0;
+						angles[ROLL] = 0;
+
+						AnglesToAxis(angles, barrel.axis);
+
+						CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel");
+
+						CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups);
+					}
 				}
 			}
 
-			//G2 Viewmodels - START
-			memset(&flash, 0, sizeof(flash));
-
 			// Seems like we should always do this in case we have an animating muzzle flash....that way we can always store the correct muzzle dir, etc.
-			if (!weapon->bIsG2Viewmodel)
+			CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
+		}
+		else
+		{			
+			mdxaBone_t    boltMatrix;
+			vec3_t	setAngles;
+
+			VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
+
+			trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndex, weapon->g2_vmMuzzleBolt, &boltMatrix, setAngles, gun.origin,
+				cg.time, NULL, gun.modelScale);
+
+			BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
+
+			// this seems to screw the position a bit
+			//VectorMA(flash.origin, 20, cg.refdef.viewaxis[0], flash.origin);
+			VectorCopy(cg.snap->ps.viewangles, flash.angles);
+
+			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flash.axis[0]);
+			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Y, flash.axis[1]);
+			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, flash.axis[2]);
+
+			// Play effects if requested 
+			if (/*ps->powerups[PW_FORCE_PUSH] > cg.time ||*/
+				ps->fd.forcePowersActive & (1 << FP_GRIP)) 
 			{
-				CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
-				VectorCopy(flash.origin, cg.lastFPFlashPoint);
-			}
-			else 
-			{
-				mdxaBone_t    boltMatrix;
-				vec3_t	setAngles;
+				vec3_t effectOrigin;
 
 				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndex, weapon->g2_vmMuzzleBolt, &boltMatrix, setAngles, gun.origin,
+				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndex, weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
 					cg.time, NULL, gun.modelScale);
 
-				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
-
-				// this seems to screw the position a bit
-				//VectorMA(flash.origin, 20, cg.refdef.viewaxis[0], flash.origin);
-				VectorCopy(cg.snap->ps.viewangles, flash.angles);
-
-				BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flash.axis[0]);
-				BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Y, flash.axis[1]);
-				BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, flash.axis[2]);
-
-				// Play effects if requested 
-				if (/*ps->powerups[PW_FORCE_PUSH] > cg.time ||*/
-					ps->fd.forcePowersActive & (1 << FP_GRIP)) 
-				{
-					vec3_t effectOrigin;
-
-					VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
-
-					trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndex, weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
-						cg.time, NULL, gun.modelScale);
-
-					BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, effectOrigin);
+				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, effectOrigin);
 					
-					CG_ForcePushBlur(effectOrigin, cent);
-				}
+				CG_ForcePushBlur(effectOrigin, cent);
+			}
 
-				// The effect position gets broken with differences in FOV. This should (hopefully) fix that. 
-				float actualFOV = cg_fovViewmodel.integer ? cg_fovViewmodel.value : cg_fov.value;
+			// The effect position gets broken with differences in FOV. This should (hopefully) fix that. 
+			float actualFOV = cg_fovViewmodel.integer ? cg_fovViewmodel.value : cg_fov.value;
 
-				if (actualFOV < 1)
-					actualFOV = 1;
+			if (actualFOV < 1)
+				actualFOV = 1;
 
-				if (actualFOV > 130)
-					actualFOV = 130;
+			if (actualFOV > 130)
+				actualFOV = 130;
 
-				if (cg_fovViewmodel.integer) 
-				{
-					float fracDistFOV = tanf(cg.refdef.fov_x * (M_PI / 180) * 0.5f);
-					float fracWeapFOV = (1.0f / fracDistFOV) * tanf(actualFOV * (M_PI / 180) * 0.5f);
-					VectorScale(flash.axis[0], fracWeapFOV, flash.axis[0]);
-				}
-
-				VectorCopy(flash.origin, cg.lastFPFlashPoint);
+			if (cg_fovViewmodel.integer) 
+			{
+				float fracDistFOV = tanf(cg.refdef.fov_x * (M_PI / 180) * 0.5f);
+				float fracWeapFOV = (1.0f / fracDistFOV) * tanf(actualFOV * (M_PI / 180) * 0.5f);
+				VectorScale(flash.axis[0], fracWeapFOV, flash.axis[0]);
 			}
 		}
+		//G2 Viewmodels - END
+
+		VectorCopy(flash.origin, cg.lastFPFlashPoint);
 	}
 	/*
 	Ghoul2 Insert End
 	*/
-//G2 Viewmodels - END
 
 	// Do special charge bits
 	//-----------------------
@@ -1125,26 +1125,26 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		hand.frame = hand.oldframe = cg_debugGun.integer;
 		hand.backlerp = 0;
 	} else {
+		float currentFrame;
+
+		// get clientinfo for animation map
+		if (cent->currentState.eType == ET_NPC)
+		{
+			if (!cent->npcClient)
+			{
+				return;
+			}
+
+			ci = cent->npcClient;
+		}
+		else
+		{
+			ci = &cgs.clientinfo[cent->currentState.clientNum];
+		}
+
 		//G2 viewmodels - START
 		if (!weapon->bIsG2Viewmodel)
 		{
-			float currentFrame;
-
-			// get clientinfo for animation map
-			if (cent->currentState.eType == ET_NPC)
-			{
-				if (!cent->npcClient)
-				{
-					return;
-				}
-
-				ci = cent->npcClient;
-			}
-			else
-			{
-				ci = &cgs.clientinfo[cent->currentState.clientNum];
-			}
-
 			trap->G2API_GetBoneFrame(cent->ghoul2, "lower_lumbar", cg.time, &currentFrame, cgs.gameModels, 0);
 			hand.frame = CG_MapTorsoToWeaponFrame(ci, ceil(currentFrame), ps->torsoAnim);
 			hand.oldframe = CG_MapTorsoToWeaponFrame(ci, floor(currentFrame), ps->torsoAnim);
@@ -1162,21 +1162,16 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 				hand.oldframe = hand.frame;
 				hand.backlerp = 0;
 			}
+
+			hand.hModel = weapon->handsModel;
 		}
 		else
 		{
 			CG_StartVMAnimation(cent, ps);
+
+			hand.ghoul2 = weapon->g2_vmInfo;
 		}
 		//G2 viewmodels - END
-	}
-
-	if (!weapon->bIsG2Viewmodel)
-	{
-		hand.hModel = weapon->handsModel;
-	}
-	else
-	{
-		hand.ghoul2 = weapon->g2_vmInfo;
 	}
 
 	hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON;// | RF_MINLIGHT;
