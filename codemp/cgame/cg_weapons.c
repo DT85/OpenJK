@@ -467,6 +467,10 @@ Ghoul2 Insert Start
 			if (!weapon->bIsG2Viewmodel)
 			{
 				gun.hModel = weapon->viewModel;
+
+				if (!gun.hModel) {
+					return;
+				}
 			}
 			else
 			{
@@ -479,10 +483,7 @@ Ghoul2 Insert Start
 		else
 		{
 			gun.hModel = weapon->weaponModel;
-		}
 
-		if (!weapon->bIsG2Viewmodel)
-		{
 			if (!gun.hModel) {
 				return;
 			}
@@ -534,8 +535,7 @@ Ghoul2 Insert Start
 			*/
 		}
 
-		memset(&flash, 0, sizeof(flash));
-
+		//G2 Viewmodels - START
 		if (!weapon->bIsG2Viewmodel)
 		{
 			if (weaponNum == WP_STUN_BATON)
@@ -589,27 +589,26 @@ Ghoul2 Insert Start
 			else
 			{
 				// add the spinning barrel
-				if (!weapon->bIsG2Viewmodel)
-				{
-					if (weapon->barrelModel) {
-						memset(&barrel, 0, sizeof(barrel));
-						VectorCopy(parent->lightingOrigin, barrel.lightingOrigin);
-						barrel.shadowPlane = parent->shadowPlane;
-						barrel.renderfx = parent->renderfx;
+				if (weapon->barrelModel) {
+					memset(&barrel, 0, sizeof(barrel));
+					VectorCopy(parent->lightingOrigin, barrel.lightingOrigin);
+					barrel.shadowPlane = parent->shadowPlane;
+					barrel.renderfx = parent->renderfx;
 
-						barrel.hModel = weapon->barrelModel;
-						angles[YAW] = 0;
-						angles[PITCH] = 0;
-						angles[ROLL] = 0;
+					barrel.hModel = weapon->barrelModel;
+					angles[YAW] = 0;
+					angles[PITCH] = 0;
+					angles[ROLL] = 0;
 
-						AnglesToAxis(angles, barrel.axis);
+					AnglesToAxis(angles, barrel.axis);
 
-						CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel");
+					CG_PositionRotatedEntityOnTag(&barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel");
 
-						CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups);
-					}
+					CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups);
 				}
 			}
+
+			memset(&flash, 0, sizeof(flash));
 
 			// Seems like we should always do this in case we have an animating muzzle flash....that way we can always store the correct muzzle dir, etc.
 			CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
@@ -618,6 +617,8 @@ Ghoul2 Insert Start
 		{			
 			mdxaBone_t    boltMatrix;
 			vec3_t	setAngles;
+
+			memset(&flash, 0, sizeof(flash));
 
 			VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
@@ -690,12 +691,8 @@ Ghoul2 Insert Start
 
 		if (!thirdPerson)
 		{
-			if (!weapon->bIsG2Viewmodel)
-			{
-				VectorCopy(flash.origin, flashorigin);
-				VectorCopy(flash.axis[0], flashdir);
-			}
-			else
+			//G2 Viewmodels - START
+			if (weapon->bIsG2Viewmodel)
 			{
 				mdxaBone_t boltMatrix;
 
@@ -712,10 +709,11 @@ Ghoul2 Insert Start
 
 				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
 				BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flash.axis[0]);
-
-				VectorCopy(flash.origin, flashorigin);
-				VectorCopy(flash.axis[0], flashdir);
 			}
+			//G2 Viewmodels - END
+
+			VectorCopy(flash.origin, flashorigin);
+			VectorCopy(flash.axis[0], flashdir);
 		}
 		else
 		{
@@ -821,21 +819,21 @@ Ghoul2 Insert Start
 			cent->currentState.number != cg.predictedPlayerState.clientNum )
 	{	// Make sure we don't do the thirdperson model effects for the local player if we're in first person
 		vec3_t flashorigin, flashdir;
-		refEntity_t	flash;
-
-		memset (&flash, 0, sizeof(flash));
+		refEntity_t	flash;		
 
 		if (!thirdPerson)
 		{
+			//G2 viewmodels - START
 			if (!weapon->bIsG2Viewmodel)
 			{
+				memset(&flash, 0, sizeof(flash));
 				CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
-				VectorCopy(flash.origin, flashorigin);
-				VectorCopy(flash.axis[0], flashdir);
 			}
 			else
 			{
 				mdxaBone_t boltMatrix;
+
+				memset(&flash, 0, sizeof(flash));
 
 				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_vmInfo), weapon->g2_vmModelIndex))
 				{ //it's quite possible that we may have have no weapon model and be in a valid state, so return here if this is the case
@@ -850,10 +848,11 @@ Ghoul2 Insert Start
 
 				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
 				BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flash.axis[0]);
-
-				VectorCopy(flash.origin, flashorigin);
-				VectorCopy(flash.axis[0], flashdir);
 			}
+			//G2 viewmodels - END
+
+			VectorCopy(flash.origin, flashorigin);
+			VectorCopy(flash.axis[0], flashdir);
 		}
 		else
 		{

@@ -78,11 +78,13 @@ void CG_RegisterWeapon( int weaponNum) {
 
 	// load cmodel before model so filecache works
 	weaponInfo->weaponModel = trap->R_RegisterModel( item->world_model[0] );
-
-	// load in-view model also
+	
+	//G2 viewmodels - START
 	if (!weaponInfo->bIsG2Viewmodel) {
+		// load in-view model also
 		weaponInfo->viewModel = trap->R_RegisterModel(item->view_model);
 	}
+	//G2 viewmodels - END
 
 	// calc midpoint for rotation
 	trap->R_ModelBounds( weaponInfo->weaponModel, mins, maxs );
@@ -135,6 +137,7 @@ void CG_RegisterWeapon( int weaponNum) {
 
 		if (weaponNum != WP_SABER)
 		{
+			Q_strncpyz(path, item->view_model, sizeof(path));
 			COM_StripExtension(path, path, sizeof(path));
 			Q_strcat(path, sizeof(path), "_hand.md3");
 			weaponInfo->handsModel = trap->R_RegisterModel(path);
@@ -148,7 +151,7 @@ void CG_RegisterWeapon( int weaponNum) {
 	{
 		weaponInfo->flashModel = 0;
 		weaponInfo->barrelModel = 0;
-		weaponInfo->handsModel = 0;
+		weaponInfo->handsModel = 0;		
 
 		Q_strncpyz(path, item->view_model, sizeof(path));
 
@@ -187,7 +190,7 @@ void CG_RegisterWeapon( int weaponNum) {
 		}
 		else
 		{
-			Com_Printf("CG_RegisterWeapon: Unable to load weapon view model: %i\n", weaponNum);
+			Com_Printf("CG_RegisterWeapon: Unable to load G2 view model: %s\n", path);
 		}
 	}
 	//G2 viewmodels - END
@@ -725,7 +728,7 @@ void CG_ParseVMAnimationFile(void *g2_info, int g2_modelIndex, vmAnimation_t* vm
 	len = trap->FS_Open(animName, &f, FS_READ);
 	if (len <= 0 || len >= sizeof(text) - 1)
 	{
-		return qfalse;
+		return;
 	}
 
 	trap->FS_Read(text, len, f);
