@@ -456,6 +456,16 @@ void R_SetColorMode(GLboolean *rgba, stereoFrame_t stereoFrame, int colormode)
 	}
 }
 
+void RE_RenderWorldEffects(void)
+{
+	drawBufferCommand_t	*cmd;
+
+	cmd = (drawBufferCommand_t *)R_GetCommandBuffer(sizeof(*cmd));
+	if (!cmd) {
+		return;
+	}
+	cmd->commandId = RC_WORLD_EFFECTS;
+}
 
 /*
 ====================

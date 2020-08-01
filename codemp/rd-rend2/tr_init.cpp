@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ghoul2/g2_local.h"
 #include "tr_cache.h"
 #include "tr_allocator.h"
-#include "tr_weather.h"
+#include "tr_WorldEffects.h"
 #include <algorithm>
 
 static size_t STATIC_UNIFORM_BUFFER_SIZE = 1 * 1024 * 1024;
@@ -1397,7 +1397,7 @@ static consoleCommand_t	commands[] = {
 	{ "screenshot_tga",		R_ScreenShotTGA_f },
 	{ "gfxinfo",			GfxInfo_f },
 	{ "gfxmeminfo",			GfxMemInfo_f },
-	//{ "r_we",				R_WorldEffect_f },
+	{ "r_we",				R_WorldEffect_f },
 	//{ "imagecacheinfo",		RE_RegisterImages_Info_f },
 	{ "modellist",			R_Modellist_f },
 	//{ "modelcacheinfo",		RE_RegisterModels_Info_f },
@@ -1774,6 +1774,7 @@ static void R_ShutdownBackEndFrameData()
 R_Init
 ===============
 */
+extern void R_InitWorldEffects(void); //tr_WorldEffects.cpp
 void R_Init( void ) {
 	byte *ptr;
 	int i;
@@ -1874,7 +1875,7 @@ void R_Init( void ) {
 
 	R_InitQueries();
 
-	R_InitWeatherSystem();
+	R_InitWorldEffects();
 
 #if defined(_DEBUG)
 	GLenum err = qglGetError();
@@ -1903,7 +1904,7 @@ void RE_Shutdown( qboolean destroyWindow, qboolean restarting ) {
 
 	R_ShutdownBackEndFrameData();
 
-	R_ShutdownWeatherSystem();
+	R_ShutdownWorldEffects();
 
 	R_ShutdownFonts();
 	if ( tr.registered ) {
@@ -1962,9 +1963,6 @@ static void GetRealRes( int *w, int *h ) {
 	*h = glConfig.vidHeight;
 }
 
-// STUBS, REPLACEME
-qboolean stub_InitializeWireframeAutomap() { return qtrue; }
-
 void RE_GetLightStyle(int style, color4ub_t color)
 {
 	if (style >= MAX_LIGHT_STYLES)
@@ -1990,11 +1988,6 @@ void RE_SetLightStyle(int style, int color)
 		ba->i = color;
 	}
 }
-
-void stub_RE_GetBModelVerts (int bModel, vec3_t *vec, float *normal) {}
-void stub_RE_WorldEffectCommand ( const char *cmd ){}
-void stub_RE_AddWeatherZone ( vec3_t mins, vec3_t maxs ) {}
-static void RE_SetRefractionProperties ( float distortionAlpha, float distortionStretch, qboolean distortionPrePost, qboolean distortionNegate ) { }
 
 void C_LevelLoadBegin(const char *psMapName, ForceReload_e eForceReload)
 {
@@ -2027,6 +2020,11 @@ void C_LevelLoadEnd( void )
 	ri.SND_RegisterAudio_LevelLoadEnd( qfalse );
 	ri.S_RestartMusic();
 }
+
+// STUBS, REPLACEME
+qboolean stub_InitializeWireframeAutomap() { return qtrue; }
+void stub_RE_GetBModelVerts(int bModel, vec3_t *vec, float *normal) {}
+static void stub_RE_SetRefractionProperties(float distortionAlpha, float distortionStretch, qboolean distortionPrePost, qboolean distortionNegate) { }
 
 /*
 @@@@@@@@@@@@@@@@@@@@@
@@ -2108,13 +2106,13 @@ Q_EXPORT refexport_t* QDECL GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.GetBModelVerts = stub_RE_GetBModelVerts;
 
 	re.SetRangedFog = RE_SetRangedFog;
-	re.SetRefractionProperties = RE_SetRefractionProperties;
+	re.SetRefractionProperties = stub_RE_SetRefractionProperties;
 	re.GetDistanceCull = GetDistanceCull;
 	re.GetRealRes = GetRealRes;
 	// R_AutomapElevationAdjustment
 	re.InitializeWireframeAutomap = stub_InitializeWireframeAutomap;
-	re.AddWeatherZone = stub_RE_AddWeatherZone;
-	re.WorldEffectCommand = stub_RE_WorldEffectCommand;
+	re.AddWeatherZone = RE_AddWeatherZone;
+	re.WorldEffectCommand = RE_WorldEffectCommand;
 	re.RegisterMedia_LevelLoadBegin = C_LevelLoadBegin;
 	re.RegisterMedia_LevelLoadEnd = C_LevelLoadEnd;
 	re.RegisterMedia_GetLevel = C_GetLevel;

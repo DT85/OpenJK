@@ -286,6 +286,8 @@ void RE_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, flo
 
 void RE_BeginScene(const refdef_t *fd)
 {
+	static	int		lastTime = 0;
+
 	Com_Memcpy( tr.refdef.text, fd->text, sizeof( tr.refdef.text ) );
 
 	tr.refdef.x = fd->x;
@@ -301,6 +303,7 @@ void RE_BeginScene(const refdef_t *fd)
 	VectorCopy( fd->viewaxis[2], tr.refdef.viewaxis[2] );
 
 	tr.refdef.time = fd->time;
+	tr.refdef.frametime = fd->time - lastTime;
 	tr.refdef.rdflags = fd->rdflags;
 
 	// copy the areamask data over and note if it has changed, which
@@ -439,6 +442,15 @@ void RE_BeginScene(const refdef_t *fd)
 	if (fd->rdflags & RDF_SKYBOXPORTAL)
 	{
 		tr.world->skyboxportal = 1;
+	}
+
+	if (tr.refdef.frametime > 500)
+	{
+		tr.refdef.frametime = 500;
+	}
+	else if (tr.refdef.frametime < 0)
+	{
+		tr.refdef.frametime = 0;
 	}
 
 	// a single frame may have multiple scenes draw inside it --

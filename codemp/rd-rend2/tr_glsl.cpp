@@ -2196,34 +2196,26 @@ static int GLSL_LoadGPUProgramSurfaceSprites(
 	return numPrograms;
 }
 
-static int GLSL_LoadGPUProgramWeather(
+static int GLSL_LoadGPUProgramJKAWeather(
 	ShaderProgramBuilder& builder,
-	Allocator& scratchAlloc )
+	Allocator& scratchAlloc)
 {
 	GLSL_LoadGPUProgramBasic(
 		builder,
 		scratchAlloc,
-		&tr.weatherShader,
-		"weather",
-		fallback_weatherProgram,
-		ATTR_POSITION | ATTR_COLOR);
+		&tr.jka_weatherShader,
+		"jka_weather",
+		fallback_jka_weatherProgram);
 
-	GLSL_InitUniforms(&tr.weatherShader);
-	GLSL_FinishGPUShader(&tr.weatherShader);
+	GLSL_InitUniforms(&tr.jka_weatherShader);
 
-	GLSL_LoadGPUProgramBasic(
-		builder,
-		scratchAlloc,
-		&tr.weatherUpdateShader,
-		"weatherUpdate",
-		fallback_weatherUpdateProgram,
-		ATTR_POSITION | ATTR_COLOR,
-		(1u << XFB_VAR_POSITION) | (1u << XFB_VAR_VELOCITY));
+	qglUseProgram(tr.jka_weatherShader.program);
+	GLSL_SetUniformInt(&tr.jka_weatherShader, UNIFORM_TEXTUREMAP, TB_DIFFUSEMAP);
+	qglUseProgram(0);
 
-	GLSL_InitUniforms(&tr.weatherUpdateShader);
-	GLSL_FinishGPUShader(&tr.weatherUpdateShader);
+	GLSL_FinishGPUShader(&tr.jka_weatherShader);
 
-	return 2;
+	return 1;
 }
 
 void GLSL_LoadGPUShaders()
@@ -2312,7 +2304,7 @@ void GLSL_LoadGPUShaders()
 	numEtcShaders += GLSL_LoadGPUProgramDynamicGlowUpsample(builder, allocator);
 	numEtcShaders += GLSL_LoadGPUProgramDynamicGlowDownsample(builder, allocator);
 	numEtcShaders += GLSL_LoadGPUProgramSurfaceSprites(builder, allocator);
-	numEtcShaders += GLSL_LoadGPUProgramWeather(builder, allocator);
+	numEtcShaders += GLSL_LoadGPUProgramJKAWeather(builder, allocator);
 
 	ri.Printf(PRINT_ALL, "loaded %i GLSL shaders (%i gen %i light %i etc) in %5.2f seconds\n", 
 		numGenShaders + numLightShaders + numEtcShaders, numGenShaders, numLightShaders, 
@@ -2375,8 +2367,7 @@ void GLSL_ShutdownGPUShaders(void)
 	for (i = 0; i < SSDEF_COUNT; ++i)
 		GLSL_DeleteGPUShader(&tr.spriteShader[i]);
 
-	GLSL_DeleteGPUShader(&tr.weatherUpdateShader);
-	GLSL_DeleteGPUShader(&tr.weatherShader);
+	GLSL_DeleteGPUShader(&tr.jka_weatherShader);
 
 	glState.currentProgram = 0;
 	qglUseProgram(0);

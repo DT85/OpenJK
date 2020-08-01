@@ -1392,6 +1392,7 @@ typedef struct {
 	stereoFrame_t	stereoFrame;
 
 	int			time;				// time in milliseconds for shader effects and other time dependent rendering issues
+	int			frametime;
 	int			rdflags;			// RDF_NOWORLDMODEL, etc
 
 	// 1 bits will prevent the associated area from rendering at all
@@ -2395,8 +2396,7 @@ typedef struct trGlobals_s {
 	shaderProgram_t dglowDownsample;
 	shaderProgram_t dglowUpsample;
 	shaderProgram_t spriteShader[SSDEF_COUNT];
-	shaderProgram_t weatherUpdateShader;
-	shaderProgram_t weatherShader;
+	shaderProgram_t jka_weatherShader;
 
 	GLuint staticUbo;
 	int entity2DUboOffset;
@@ -3443,6 +3443,7 @@ typedef enum {
 	RC_SWAP_BUFFERS,
 	RC_SCREENSHOT,
 	RC_VIDEOFRAME,
+	RC_WORLD_EFFECTS,
 	RC_COLORMASK,
 	RC_CLEARDEPTH,
 	RC_CONVOLVECUBEMAP,

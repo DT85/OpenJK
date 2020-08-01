@@ -3927,6 +3927,4 @@ void RE_LoadWorldMap( const char *name ) {
 	{
 		R_RenderAllCubemaps();
 	}
-
-	R_InitWeatherForMap();
 }

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 #include "tr_allocator.h"
+#include "tr_WorldEffects.h"
 #include "glext.h"
 #include <algorithm>
 
@@ -494,7 +495,7 @@ static void RB_Hyperspace( void ) {
 }
 
 
-static void SetViewportAndScissor( void ) {
+void SetViewportAndScissor( void ) {
 	GL_SetProjectionMatrix( backEnd.viewParms.projectionMatrix );
 
 	// set the window clipping
@@ -3060,6 +3061,29 @@ static const void	*RB_SwapBuffers( const void *data ) {
 	return (const void *)(cmd + 1);
 }
 
+extern void RB_RenderWorldEffects(void);
+const void	*RB_WorldEffects(const void *data)
+{
+	const drawBufferCommand_t	*cmd;
+
+	cmd = (const drawBufferCommand_t *)data;
+
+	// Always flush the tess buffer
+	if (tess.shader && tess.numIndexes)
+	{
+		RB_EndSurface();
+	}
+
+	RB_RenderWorldEffects();
+
+	if (tess.shader)
+	{
+		RB_BeginSurface(tess.shader, tess.fogNum, 0);
+	}
+
+	return (const void *)(cmd + 1);
+}
+
 /*
 =============
 RB_PostProcess
@@ -3386,6 +3410,9 @@ void RB_ExecuteRenderCommands( const void *data ) {
 			break;
 		case RC_VIDEOFRAME:
 			data = RB_TakeVideoFrameCmd( data );
+			break;
+		case RC_WORLD_EFFECTS:
+			data = RB_WorldEffects( data );
 			break;
 		case RC_COLORMASK:
 			data = RB_ColorMask(data);
