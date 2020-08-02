@@ -655,20 +655,6 @@ void FBO_Init(void)
 		R_CheckFBO(tr.preFilterEnvMapFbo);
 	}
 
-	if (tr.weatherDepthImage != nullptr)
-	{
-		tr.weatherDepthFbo = FBO_Create(
-			"_weatherDepthFbo",
-			tr.weatherDepthImage->width,
-			tr.weatherDepthImage->height);
-
-		FBO_Bind(tr.weatherDepthFbo);
-		R_AttachFBOTextureDepth(tr.weatherDepthImage->texnum);
-		FBO_SetupDrawBuffers();
-
-		R_CheckFBO(tr.weatherDepthFbo);
-	}
-
 	GL_CheckErrors();
 
 	FBO_Bind(NULL);

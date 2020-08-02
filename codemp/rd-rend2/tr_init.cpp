@@ -249,6 +249,7 @@ cvar_t	*r_marksOnTriangleMeshes;
 cvar_t	*r_aviMotionJpegQuality;
 cvar_t	*r_screenshotJpegQuality;
 cvar_t	*r_surfaceSprites;
+cvar_t	*r_surfaceWeather;
 
 // the limits apply to the sum of all scenes in a frame --
 // the main view, all the 3D icons, etc
@@ -268,7 +269,6 @@ cvar_t	*r_dynamicGlowWidth;
 cvar_t	*r_dynamicGlowHeight;
 
 cvar_t *r_debugContext;
-cvar_t *r_debugWeather;
 
 cvar_t	*r_aspectCorrectFonts;
 
@@ -1387,6 +1387,7 @@ typedef struct consoleCommand_s {
 	xcommand_t	func;
 } consoleCommand_t;
 
+extern void R_WorldEffect_f(void);
 static consoleCommand_t	commands[] = {
 	{ "imagelist",			R_ImageList_f },
 	{ "shaderlist",			R_ShaderList_f },
@@ -1444,7 +1445,6 @@ void R_Register( void )
 	r_dynamicGlowHeight					= ri.Cvar_Get( "r_dynamicGlowHeight",		"240",		CVAR_ARCHIVE|CVAR_LATCH, "" );
 
 	r_debugContext						= ri.Cvar_Get( "r_debugContext",			"0",		CVAR_LATCH, "" );
-	r_debugWeather						= ri.Cvar_Get( "r_debugWeather",			"0",		CVAR_ARCHIVE, "" );
 
 	r_picmip = ri.Cvar_Get ("r_picmip", "0", CVAR_ARCHIVE | CVAR_LATCH, "" );
 	ri.Cvar_CheckRange( r_picmip, 0, 16, qtrue );
@@ -1607,6 +1607,7 @@ void R_Register( void )
 	r_aviMotionJpegQuality = ri.Cvar_Get("r_aviMotionJpegQuality", "90", CVAR_ARCHIVE, "");
 	r_screenshotJpegQuality = ri.Cvar_Get("r_screenshotJpegQuality", "90", CVAR_ARCHIVE, "");
 	r_surfaceSprites = ri.Cvar_Get("r_surfaceSprites", "1", CVAR_ARCHIVE, "");
+	r_surfaceWeather = ri.Cvar_Get("r_surfaceWeather", "0", CVAR_TEMP, "");
 
 	r_aspectCorrectFonts = ri.Cvar_Get( "r_aspectCorrectFonts", "0", CVAR_ARCHIVE, "" );
 	r_maxpolys = ri.Cvar_Get( "r_maxpolys", XSTRING( DEFAULT_MAX_POLYS ), 0, "");
@@ -1774,7 +1775,7 @@ static void R_ShutdownBackEndFrameData()
 R_Init
 ===============
 */
-extern void R_InitWorldEffects(void); //tr_WorldEffects.cpp
+extern void R_InitWorldEffects();
 void R_Init( void ) {
 	byte *ptr;
 	int i;
@@ -1873,9 +1874,9 @@ void R_Init( void ) {
 
 	R_InitDecals();
 
-	R_InitQueries();
-
 	R_InitWorldEffects();
+
+	R_InitQueries();
 
 #if defined(_DEBUG)
 	GLenum err = qglGetError();
@@ -1895,6 +1896,7 @@ void R_Init( void ) {
 RE_Shutdown
 ===============
 */
+extern void R_ShutdownWorldEffects(void);
 void RE_Shutdown( qboolean destroyWindow, qboolean restarting ) {
 
 	ri.Printf( PRINT_ALL, "RE_Shutdown( %i )\n", destroyWindow );

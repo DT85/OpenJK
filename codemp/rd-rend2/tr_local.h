@@ -1514,7 +1514,6 @@ typedef enum surfaceType_e
 	SF_VBO_MESH,
 	SF_VBO_MDVMESH,
 	SF_SPRITES,
-	SF_WEATHER,
 
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
@@ -1587,11 +1586,6 @@ struct srfSprites_t
 
 	int numAttributes;
 	vertexAttribute_t *attributes;
-};
-
-struct srfWeather_t
-{
-	surfaceType_t surfaceType;
 };
 
 typedef struct
@@ -2264,7 +2258,6 @@ struct EntityShaderUboOffset
 ** but may read fields that aren't dynamically modified
 ** by the frontend.
 */
-struct weatherSystem_t;
 typedef struct trGlobals_s {
 	qboolean				registered;		// cleared at shutdown, set at beginRegistration
 
@@ -2323,7 +2316,6 @@ typedef struct trGlobals_s {
 	image_t                 *prefilterEnvMapImage;
 	image_t					*envBrdfImage;
 	image_t					*textureDepthImage;
-	image_t					*weatherDepthImage;
 
 	FBO_t					*renderFbo;
 	FBO_t					*glowFboScaled[6];
@@ -2342,13 +2334,11 @@ typedef struct trGlobals_s {
 	FBO_t					*hdrDepthFbo;
 	FBO_t                   *renderCubeFbo;
 	FBO_t					*preFilterEnvMapFbo;
-	FBO_t					*weatherDepthFbo;
 
 	shader_t				*defaultShader;
 	shader_t				*shadowShader;
 	shader_t				*distortionShader;
 	shader_t				*projectionShadowShader;
-	shader_t				*weatherInternalShader;
 
 	shader_t				*flareShader;
 	shader_t				*sunShader;
@@ -2368,7 +2358,6 @@ typedef struct trGlobals_s {
 	trRefEntity_t			worldEntity;		// point currentEntity at this when rendering world
 	model_t					*currentModel;
 
-	weatherSystem_t			*weatherSystem;
 
 	//
 	// GPU shader programs
@@ -2680,7 +2669,6 @@ extern cvar_t	*r_dynamicGlowWidth;
 extern cvar_t	*r_dynamicGlowHeight;
 
 extern cvar_t	*r_debugContext;
-extern cvar_t	*r_debugWeather;
 
 //====================================================================
 
@@ -3550,6 +3538,7 @@ void RE_SetColor( const float *rgba );
 void RE_StretchPic ( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader );
 void RE_RotatePic ( float x, float y, float w, float h, float s1, float t1, float s2, float t2, float a, qhandle_t hShader );
 void RE_RotatePic2 ( float x, float y, float w, float h, float s1, float t1, float s2, float t2,float a, qhandle_t hShader );
+void RE_RenderWorldEffects(void);
 void RE_BeginFrame( stereoFrame_t stereoFrame );
 void RE_EndFrame( int *frontEndMsec, int *backEndMsec );
 void RE_TakeVideoFrame( int width, int height,

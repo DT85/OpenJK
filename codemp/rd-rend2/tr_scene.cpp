@@ -304,6 +304,26 @@ void RE_BeginScene(const refdef_t *fd)
 
 	tr.refdef.time = fd->time;
 	tr.refdef.frametime = fd->time - lastTime;
+	
+	if (fd->rdflags & RDF_SKYBOXPORTAL)
+	{
+		tr.world->skyboxportal = 1;
+	}
+	else
+	{
+		// pasted this from SP
+		// cdr - only change last time for the real render, not the portal
+		lastTime = fd->time;
+	}
+
+	if (tr.refdef.frametime > 500)
+	{
+		tr.refdef.frametime = 500;
+	}
+	else if (tr.refdef.frametime < 0)
+	{
+		tr.refdef.frametime = 0;
+	}
 	tr.refdef.rdflags = fd->rdflags;
 
 	// copy the areamask data over and note if it has changed, which
@@ -439,20 +459,6 @@ void RE_BeginScene(const refdef_t *fd)
 		tr.refdef.num_dlights = 0;
 	}
 
-	if (fd->rdflags & RDF_SKYBOXPORTAL)
-	{
-		tr.world->skyboxportal = 1;
-	}
-
-	if (tr.refdef.frametime > 500)
-	{
-		tr.refdef.frametime = 500;
-	}
-	else if (tr.refdef.frametime < 0)
-	{
-		tr.refdef.frametime = 0;
-	}
-
 	// a single frame may have multiple scenes draw inside it --
 	// a 3D game view, 3D status bar renderings, 3D menus, etc.
 	// They need to be distinguished by the light flare code, because
@@ -482,6 +488,7 @@ Rendering a scene may require multiple views to be rendered
 to handle mirrors,
 @@@@@@@@@@@@@@@@@@@@@
 */
+void RE_RenderWorldEffects(void);
 void RE_RenderScene( const refdef_t *fd ) {
 	viewParms_t		parms;
 	int				startTime;
@@ -578,6 +585,8 @@ void RE_RenderScene( const refdef_t *fd ) {
 	qhandle_t timer = R_BeginTimedBlockCmd( "Main Render" );
 	R_RenderView( &parms );
 	R_EndTimedBlockCmd( timer );
+
+	RE_RenderWorldEffects();
 
 	if(!( fd->rdflags & RDF_NOWORLDMODEL ))
 	{

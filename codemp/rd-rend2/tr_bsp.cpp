@@ -28,7 +28,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #undef JSON_IMPLEMENTATION
 
 #include "tr_cache.h"
-#include "tr_weather.h"
 #include <vector>
 
 #include <cmath>

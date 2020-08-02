@@ -2,9 +2,9 @@
 in vec3 attr_Position;
 in vec4 attr_TexCoord0;
 
-uniform mat4   u_ModelViewProjectionMatrix;
+uniform mat4 u_ModelViewProjectionMatrix;
 
-out vec2   var_Tex1;
+out vec2 var_Tex1;
 
 
 void main()
@@ -18,6 +18,7 @@ uniform sampler2D u_DiffuseMap;
 uniform vec4 u_Color;
 
 in vec2 var_Tex1;
+
 out vec4 out_Color;
 out vec4 out_Glow;
 

@@ -3061,24 +3061,22 @@ static const void	*RB_SwapBuffers( const void *data ) {
 	return (const void *)(cmd + 1);
 }
 
-extern void RB_RenderWorldEffects(void);
-const void	*RB_WorldEffects(const void *data)
+const void	*RB_WorldEffects( const void *data )
 {
 	const drawBufferCommand_t	*cmd;
 
 	cmd = (const drawBufferCommand_t *)data;
 
 	// Always flush the tess buffer
-	if (tess.shader && tess.numIndexes)
+	if ( tess.shader && tess.numIndexes )
 	{
 		RB_EndSurface();
 	}
-
 	RB_RenderWorldEffects();
 
-	if (tess.shader)
+	if(tess.shader)
 	{
-		RB_BeginSurface(tess.shader, tess.fogNum, 0);
+		RB_BeginSurface( tess.shader, tess.fogNum, 0 );
 	}
 
 	return (const void *)(cmd + 1);
@@ -3194,11 +3192,6 @@ const void *RB_PostProcess(const void *data)
 
 	if (1)
 		RB_BokehBlur(NULL, srcBox, NULL, dstBox, backEnd.refdef.blurFactor);
-
-	if (r_debugWeather->integer == 2)
-	{
-		FBO_BlitFromTexture(tr.weatherDepthImage, NULL, NULL, NULL, nullptr, NULL, NULL, 0);
-	}
 
 	if (0 && r_sunlightMode->integer)
 	{

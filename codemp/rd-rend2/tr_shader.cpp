@@ -3441,6 +3441,7 @@ static void FixRenderCommandList( int newShader ) {
 					break;
 					}
 				case RC_DRAW_BUFFER:
+				case RC_WORLD_EFFECTS:
 					{
 					const drawBufferCommand_t *db_cmd = (const drawBufferCommand_t *)curCmd;
 					curCmd = (const void *)(db_cmd + 1);
@@ -4786,11 +4787,6 @@ static void CreateInternalShaders( void ) {
 	shader.defaultShader = qfalse;
 	tr.distortionShader = FinishShader();
 	shader.defaultShader = qtrue;
-
-	// weather shader placeholder
-	Q_strncpyz(shader.name, "<weather>", sizeof(shader.name));
-	shader.sort = SS_SEE_THROUGH;
-	tr.weatherInternalShader = FinishShader();
 }
 
 static void CreateExternalShaders( void ) {
