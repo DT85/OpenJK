@@ -1787,7 +1787,7 @@ void RE_WorldEffectCommand(const char *command)
 			return;
 		}
 		CWeatherParticleCloud& nCloud = mParticleClouds.push_back();
-		nCloud.Initialize(1000, "gfx/world/rain.jpg", 3);
+		nCloud.Initialize(1000, "gfx/world/acidrain.jpg", 3);
 		nCloud.mHeight = 80.0f;
 		nCloud.mWidth = 2.0f;
 		nCloud.mGravity = 2000.0f;
@@ -1795,10 +1795,13 @@ void RE_WorldEffectCommand(const char *command)
 		nCloud.mBlendMode = 1;
 		nCloud.mFade = 100.0f;
 
+		nCloud.mColor = 0.5f;
+		/*
 		nCloud.mColor[0] = 0.34f;
 		nCloud.mColor[1] = 0.70f;
 		nCloud.mColor[2] = 0.34f;
 		nCloud.mColor[3] = 0.70f;
+		*/
 
 		nCloud.mOrientWithVelocity = true;
 		nCloud.mWaterParticles = true;
@@ -1836,7 +1839,7 @@ void RE_WorldEffectCommand(const char *command)
 			return;
 		}
 		CWeatherParticleCloud& nCloud = mParticleClouds.push_back();
-		nCloud.Initialize(1000, "gfx/effects/snowflake1.bmp");
+		nCloud.Initialize(1000, "gfx/world/snow.tga");
 		nCloud.mBlendMode = 1;
 		nCloud.mRotationChangeNext = 0;
 		nCloud.mColor = 0.75f;
@@ -1856,7 +1859,7 @@ void RE_WorldEffectCommand(const char *command)
 		count = atoi(token);
 
 		CWeatherParticleCloud& nCloud = mParticleClouds.push_back();
-		nCloud.Initialize(count, "gfx/effects/snowpuff1.tga");
+		nCloud.Initialize(count, "gfx/world/spacedust.tga");
 		nCloud.mHeight = 1.2f;
 		nCloud.mWidth = 1.2f;
 		nCloud.mGravity = 0.0f;
@@ -1883,15 +1886,16 @@ void RE_WorldEffectCommand(const char *command)
 			return;
 		}
 		CWeatherParticleCloud& nCloud = mParticleClouds.push_back();
-		nCloud.Initialize(400, "gfx/effects/alpha_smoke2b.tga");
+		nCloud.Initialize(400, "gfx/world/sand.tga");
 
 		nCloud.mGravity = 0;
 		nCloud.mWidth = 70;
 		nCloud.mHeight = 70;
-		nCloud.mColor[0] = 0.9f;
+		nCloud.mColor = 0.5f;
+		/*nCloud.mColor[0] = 0.9f;
 		nCloud.mColor[1] = 0.6f;
 		nCloud.mColor[2] = 0.0f;
-		nCloud.mColor[3] = 0.5f;
+		nCloud.mColor[3] = 0.5f;*/
 		nCloud.mFade = 5.0f;
 		nCloud.mMass.mMax = 30.0f;
 		nCloud.mMass.mMin = 10.0f;
@@ -1910,7 +1914,7 @@ void RE_WorldEffectCommand(const char *command)
 			return;
 		}
 		CWeatherParticleCloud& nCloud = mParticleClouds.push_back();
-		nCloud.Initialize(60, "gfx/effects/alpha_smoke2b.tga");
+		nCloud.Initialize(60, "gfx/world/fog.tga");
 		nCloud.mBlendMode = 1;
 		nCloud.mGravity = 0;
 		nCloud.mWidth = 70;
@@ -1925,7 +1929,7 @@ void RE_WorldEffectCommand(const char *command)
 		nCloud.mRotationChangeNext = 0;
 	}
 
-	// Create Heavy Rain & Fog
+	// Create Heavy Rain Fog
 	//-----------------------------------
 	else if (Q_stricmp(token, "heavyrainfog") == 0)
 	{
@@ -1934,7 +1938,7 @@ void RE_WorldEffectCommand(const char *command)
 			return;
 		}
 		CWeatherParticleCloud& nCloud = mParticleClouds.push_back();
-		nCloud.Initialize(70, "gfx/effects/alpha_smoke2b.tga");
+		nCloud.Initialize(70, "gfx/world/fog.tga");
 		nCloud.mBlendMode = 1;
 		nCloud.mGravity = 0;
 		nCloud.mWidth = 100;
@@ -1961,7 +1965,7 @@ void RE_WorldEffectCommand(const char *command)
 			return;
 		}
 		CWeatherParticleCloud& nCloud = mParticleClouds.push_back();
-		nCloud.Initialize(40, "gfx/effects/alpha_smoke2b.tga");
+		nCloud.Initialize(40, "gfx/world/fog.tga");
 		nCloud.mBlendMode = 1;
 		nCloud.mGravity = 0;
 		nCloud.mWidth = 100;
@@ -2008,8 +2012,8 @@ void RE_WorldEffectCommand(const char *command)
 		ri.Printf(PRINT_ALL, "	fog\n");
 		ri.Printf(PRINT_ALL, "	heavyrainfog\n");
 		ri.Printf(PRINT_ALL, "	light_fog\n");
-		ri.Printf(PRINT_ALL, "	outsideshake\n");
-		ri.Printf(PRINT_ALL, "	outsidepain\n");
+		//ri.Printf(PRINT_ALL, "	outsideshake\n");
+		//ri.Printf(PRINT_ALL, "	outsidepain\n");
 	}
 }
 
