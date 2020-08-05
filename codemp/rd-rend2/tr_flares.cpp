@@ -465,7 +465,7 @@ extend past the portal edge will be overwritten.
 ==================
 */
 void RB_RenderFlares (void) {
-#if 0
+#if 1
 	flare_t		*f;
 	flare_t		**prev;
 	qboolean	draw;
