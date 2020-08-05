@@ -12,37 +12,23 @@ in uvec4 attr_BoneIndexes;
 in vec4 attr_BoneWeights;
 #endif
 
-layout(std140) uniform Entity
-{
-	mat4 u_ModelMatrix;
-	mat4 u_ModelViewProjectionMatrix;
-	vec4 u_LocalLightOrigin;
-	vec3 u_AmbientLight;
-	float u_LocalLightRadius;
-	vec3 u_DirectedLight;
-	float u_FXVolumetricBase;
-	vec3 u_ModelLightDir;
-	float u_VertexLerp;
-	vec3 u_LocalViewOrigin;
-	int u_FogIndex;
-};
-
-layout(std140) uniform ShaderInstance
-{
-	vec4 u_DeformParams0;
-	vec4 u_DeformParams1;
-	float u_Time;
-	float u_PortalRange;
-	int u_DeformType;
-	int u_DeformFunc;
-};
-
-#if defined(USE_SKELETAL_ANIMATION)
-layout(std140) uniform Bones
-{
-	mat3x4 u_BoneMatrices[MAX_G2_BONES];
-};
+#if defined(USE_DEFORM_VERTEXES)
+uniform int u_DeformType;
+uniform int u_DeformFunc;
+uniform float u_DeformParams[7];
 #endif
+
+uniform float u_Time;
+uniform mat4 u_ModelMatrix;
+uniform mat4 u_ModelViewProjectionMatrix;
+
+#if defined(USE_VERTEX_ANIMATION)
+uniform float u_VertexLerp;
+#elif defined(USE_SKELETAL_ANIMATION)
+uniform mat4x3 u_BoneMatrices[20];
+#endif
+
+uniform vec4 u_Color;
 
 out vec3 var_WSPosition;
 
@@ -89,9 +75,9 @@ vec3 DeformPosition(const vec3 pos, const vec3 normal, const vec2 st)
 
 		case DEFORM_BULGE:
 		{
-			float bulgeHeight = u_DeformParams0.y; // amplitude
-			float bulgeWidth = u_DeformParams0.z; // phase
-			float bulgeSpeed = u_DeformParams0.w; // frequency
+			float bulgeHeight = u_DeformParams[1]; // amplitude
+			float bulgeWidth = u_DeformParams[2]; // phase
+			float bulgeSpeed = u_DeformParams[3]; // frequency
 
 			float scale = CalculateDeformScale( WF_SIN, u_Time, bulgeWidth * st.x, bulgeSpeed );
 
@@ -100,11 +86,11 @@ vec3 DeformPosition(const vec3 pos, const vec3 normal, const vec2 st)
 
 		case DEFORM_WAVE:
 		{
-			float base = u_DeformParams0.x;
-			float amplitude = u_DeformParams0.y;
-			float phase = u_DeformParams0.z;
-			float frequency = u_DeformParams0.w;
-			float spread = u_DeformParams1.x;
+			float base = u_DeformParams[0];
+			float amplitude = u_DeformParams[1];
+			float phase = u_DeformParams[2];
+			float frequency = u_DeformParams[3];
+			float spread = u_DeformParams[4];
 
 			float offset = dot( pos.xyz, vec3( spread ) );
 			float scale = CalculateDeformScale( u_DeformFunc, u_Time, phase + offset, frequency );
@@ -114,11 +100,11 @@ vec3 DeformPosition(const vec3 pos, const vec3 normal, const vec2 st)
 
 		case DEFORM_MOVE:
 		{
-			float base = u_DeformParams0.x;
-			float amplitude = u_DeformParams0.y;
-			float phase = u_DeformParams0.z;
-			float frequency = u_DeformParams0.w;
-			vec3 direction = u_DeformParams1.xyz;
+			float base = u_DeformParams[0];
+			float amplitude = u_DeformParams[1];
+			float phase = u_DeformParams[2];
+			float frequency = u_DeformParams[3];
+			vec3 direction = vec3( u_DeformParams[4], u_DeformParams[5], u_DeformParams[6] );
 
 			float scale = CalculateDeformScale( u_DeformFunc, u_Time, phase, frequency );
 
@@ -127,9 +113,15 @@ vec3 DeformPosition(const vec3 pos, const vec3 normal, const vec2 st)
 
 		case DEFORM_PROJECTION_SHADOW:
 		{
-			vec3 ground = u_DeformParams0.xyz;
-			float groundDist = u_DeformParams0.w;
-			vec3 lightDir = u_DeformParams1.xyz;
+			vec3 ground = vec3(
+				u_DeformParams[0],
+				u_DeformParams[1],
+				u_DeformParams[2]);
+			float groundDist = u_DeformParams[3];
+			vec3 lightDir = vec3(
+				u_DeformParams[4],
+				u_DeformParams[5],
+				u_DeformParams[6]);
 
 			float d = dot( lightDir, ground );
 
@@ -150,8 +142,8 @@ vec3 DeformNormal( const in vec3 position, const in vec3 normal )
 		return normal;
 	}
 
-	float amplitude = u_DeformParams0.y;
-	float frequency = u_DeformParams0.w;
+	float amplitude = u_DeformParams[1];
+	float frequency = u_DeformParams[3];
 
 	vec3 outNormal = normal;
 	const float scale = 0.98;
@@ -178,18 +170,6 @@ vec3 DeformNormal( const in vec3 position, const in vec3 normal )
 }
 #endif
 
-#if defined(USE_SKELETAL_ANIMATION)
-mat4x3 GetBoneMatrix(uint index)
-{
-	mat3x4 bone = u_BoneMatrices[index];
-	return mat4x3(
-		bone[0].x, bone[1].x, bone[2].x,
-		bone[0].y, bone[1].y, bone[2].y,
-		bone[0].z, bone[1].z, bone[2].z,
-		bone[0].w, bone[1].w, bone[2].w);
-}
-#endif
-
 void main()
 {
 #if defined(USE_VERTEX_ANIMATION)
@@ -198,10 +178,10 @@ void main()
 	normal = normalize(normal - vec3(0.5));
 #elif defined(USE_SKELETAL_ANIMATION)
 	mat4x3 influence =
-		GetBoneMatrix(attr_BoneIndexes[0]) * attr_BoneWeights[0] +
-        GetBoneMatrix(attr_BoneIndexes[1]) * attr_BoneWeights[1] +
-        GetBoneMatrix(attr_BoneIndexes[2]) * attr_BoneWeights[2] +
-        GetBoneMatrix(attr_BoneIndexes[3]) * attr_BoneWeights[3];
+		u_BoneMatrices[attr_BoneIndexes[0]] * attr_BoneWeights[0] +
+        u_BoneMatrices[attr_BoneIndexes[1]] * attr_BoneWeights[1] +
+        u_BoneMatrices[attr_BoneIndexes[2]] * attr_BoneWeights[2] +
+        u_BoneMatrices[attr_BoneIndexes[3]] * attr_BoneWeights[3];
 
     vec3 position = influence * vec4(attr_Position, 1.0);
     vec3 normal = normalize(influence * vec4(attr_Normal - vec3(0.5), 0.0));
@@ -221,57 +201,21 @@ void main()
 }
 
 /*[Fragment]*/
-#if defined(USE_ALPHA_TEST)
-uniform int u_AlphaTestType;
-#endif
+uniform vec4 u_Color;
+uniform int u_AlphaTestFunction;
+uniform float u_AlphaTestValue;
 
-struct Fog
-{
-	vec4 plane;
-	vec4 color;
-	float depthToOpaque;
-	bool hasPlane;
-};
-
-layout(std140) uniform Fogs
-{
-	int u_NumFogs;
-	Fog u_Fogs[16];
-};
-
-layout(std140) uniform Camera
-{
-	vec4 u_ViewInfo;
-	vec3 u_ViewOrigin;
-	vec3 u_ViewForward;
-	vec3 u_ViewLeft;
-	vec3 u_ViewUp;
-};
-
-layout(std140) uniform Entity
-{
-	mat4 u_ModelMatrix;
-	mat4 u_ModelViewProjectionMatrix;
-	vec4 u_LocalLightOrigin;
-	vec3 u_AmbientLight;
-	float u_LocalLightRadius;
-	vec3 u_DirectedLight;
-	float u_FXVolumetricBase;
-	vec3 u_ModelLightDir;
-	float u_VertexLerp;
-	vec3 u_LocalViewOrigin;
-	int u_FogIndex;
-};
-
+uniform vec4 u_FogPlane;
+uniform float u_FogDepthToOpaque;
+uniform bool u_FogHasPlane;
+uniform vec3 u_ViewOrigin;
 in vec3 var_WSPosition;
 
 out vec4 out_Color;
 out vec4 out_Glow;
 
-float CalcFog(in vec3 viewOrigin, in vec3 position, in Fog fog)
+float CalcFog(in vec3 viewOrigin, in vec3 position, in vec4 fogPlane, in float depthToOpaque, in bool hasPlane)
 {
-	bool inFog = dot(viewOrigin, fog.plane.xyz) - fog.plane.w >= 0.0 || !fog.hasPlane;
-
 	// line: x = o + tv
 	// plane: (x . n) + d = 0
 	// intersects: dot(o + tv, n) + d = 0
@@ -281,51 +225,49 @@ float CalcFog(in vec3 viewOrigin, in vec3 position, in Fog fog)
 	vec3 V = position - viewOrigin;
 
 	// fogPlane is inverted in tr_bsp for some reason.
-	float t = -(fog.plane.w + dot(viewOrigin, -fog.plane.xyz)) / dot(V, -fog.plane.xyz);
+	float t = -(fogPlane.w + dot(viewOrigin, -fogPlane.xyz)) / dot(V, -fogPlane.xyz);
 
-	float distToVertexFromViewOrigin = length(V);
-	float distToIntersectionFromViewOrigin = max(t, 0.0) * distToVertexFromViewOrigin;
+	bool inFog = ((dot(viewOrigin, fogPlane.xyz) - fogPlane.w) >= 0.0) || !hasPlane;
+	bool intersects = (t > 0.0 && t <= 1.0);
 
-	float distOutsideFog = max(distToVertexFromViewOrigin - distToIntersectionFromViewOrigin, 0.0);
-	float distThroughFog = mix(distToVertexFromViewOrigin, distOutsideFog, !inFog);
+	// this is valid only when t > 0.0. When t < 0.0, then intersection point is behind
+	// the camera, meaning we're facing away from the fog plane, which probably means
+	// we're inside the fog volume.
+	vec3 intersectsAt = viewOrigin + t*V;
 
-	float z = fog.depthToOpaque * distThroughFog;
+	float distToVertexFromIntersection = distance(intersectsAt, position);
+	float distToVertexFromViewOrigin = distance(viewOrigin, position);
+
+	float distToVertex = mix(distToVertexFromViewOrigin,
+							 distToVertexFromIntersection,
+							 !inFog && intersects);
+
+	float z = depthToOpaque * distToVertex;
 	return 1.0 - clamp(exp(-(z * z)), 0.0, 1.0);
 }
 
 void main()
 {
-	Fog fog = u_Fogs[u_FogIndex];
-	float fogFactor = CalcFog(u_ViewOrigin, var_WSPosition, fog);
-	out_Color.rgb = fog.color.rgb;
-	out_Color.a = fogFactor;
+	float fog = CalcFog(u_ViewOrigin, var_WSPosition, u_FogPlane, u_FogDepthToOpaque, u_FogHasPlane);
+	out_Color.rgb = u_Color.rgb;
+	out_Color.a = sqrt(clamp(fog, 0.0, 1.0));
 
-#if defined(USE_ALPHA_TEST)
-	if (u_AlphaTestType == ALPHA_TEST_GT0)
-	{
-		if (out_Color.a == 0.0)
+	if (u_AlphaTestFunction == ATEST_CMP_GE){
+		if (out_Color.a < u_AlphaTestValue)
 			discard;
 	}
-	else if (u_AlphaTestType == ALPHA_TEST_LT128)
-	{
-		if (out_Color.a >= 0.5)
+	else if (u_AlphaTestFunction == ATEST_CMP_LT){
+		if (out_Color.a >= u_AlphaTestValue)
+			discard;
+	}	
+	else if (u_AlphaTestFunction == ATEST_CMP_GT){
+		if (out_Color.a <= u_AlphaTestValue)
 			discard;
 	}
-	else if (u_AlphaTestType == ALPHA_TEST_GE128)
-	{
-		if (out_Color.a < 0.5)
-			discard;
-	}
-	else if (u_AlphaTestType == ALPHA_TEST_GE192)
-	{
-		if (out_Color.a < 0.75)
-			discard;
-	}
-#endif
 
 #if defined(USE_GLOW_BUFFER)
 	out_Glow = out_Color;
 #else
-	out_Glow = vec4(0.0, 0.0, 0.0, out_Color.a);
+	out_Glow = vec4(0.0);
 #endif
 }
