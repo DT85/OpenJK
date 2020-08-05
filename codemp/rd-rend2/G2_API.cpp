@@ -2077,7 +2077,7 @@ qboolean G2API_GetBoltMatrix_SPMethod(
 			VectorNormalize((float *)use->matrix[1]);
 			VectorNormalize((float *)use->matrix[2]);
 
-			Mat3x4_Multiply(matrix, &worldMatrix, use);
+			Multiply_3x4Matrix(matrix, &worldMatrix, use);
 			return qtrue;
 		}
 	}
@@ -2171,7 +2171,7 @@ qboolean G2API_GetBoltMatrix(
 				VectorNormalize((float *)&bolt.matrix[1]);
 				VectorNormalize((float *)&bolt.matrix[2]);
 
-				Mat3x4_Multiply(matrix, &worldMatrix, &bolt);
+				Multiply_3x4Matrix(matrix, &worldMatrix, &bolt);
 #if G2API_DEBUG
 				for (int i = 0; i < 3; i++)
 				{
@@ -2193,7 +2193,7 @@ qboolean G2API_GetBoltMatrix(
 
 					// make the model space matrix we have for this bolt into a
 					// world matrix
-					Mat3x4_Multiply(&tempMatrix, &worldMatrix, &bolt);
+					Multiply_3x4Matrix(&tempMatrix, &worldMatrix, &bolt);
 					vec3_t origin;
 					origin[0] = tempMatrix.matrix[0][3];
 					origin[1] = tempMatrix.matrix[1][3];
@@ -2201,7 +2201,7 @@ qboolean G2API_GetBoltMatrix(
 					tempMatrix.matrix[0][3] =
 						tempMatrix.matrix[1][3] =
 						tempMatrix.matrix[2][3] = 0;
-					Mat3x4_Multiply(matrix, &tempMatrix, &rotMat);
+					Multiply_3x4Matrix(matrix, &tempMatrix, &rotMat);
 					matrix->matrix[0][3] = origin[0];
 					matrix->matrix[1][3] = origin[1];
 					matrix->matrix[2][3] = origin[2];
@@ -2219,7 +2219,7 @@ qboolean G2API_GetBoltMatrix(
 	{
 		G2WARNING(0, "G2API_GetBoltMatrix Failed on empty or bad model");
 	}
-	Mat3x4_Multiply(matrix, &worldMatrix, (mdxaBone_t *)&identityMatrix);
+	Multiply_3x4Matrix(matrix, &worldMatrix, (mdxaBone_t *)&identityMatrix);
 	return qfalse;
 }
 

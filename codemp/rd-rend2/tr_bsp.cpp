@@ -3016,7 +3016,7 @@ void R_LoadEnvironmentJson(const char *baseName)
 	}
 
 	tr.numRealTimeLights = JSON_ArrayGetIndex(environmentArrayJson, bufferEnd, NULL, 0);
-	tr.realTimeLights = (realTimeLight_t *)R_Hunk_Alloc(tr.numRealTimeLights * sizeof(*tr.realTimeLights), qtrue);
+	tr.realTimeLights = (realTimeLight_t *)ri.Hunk_Alloc(tr.numRealTimeLights * sizeof(*tr.realTimeLights), h_low);
 	memset(tr.realTimeLights, 0, tr.numRealTimeLights * sizeof(*tr.realTimeLights));
 
 	for (i = 0; i < tr.numRealTimeLights; i++)

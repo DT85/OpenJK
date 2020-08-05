@@ -306,8 +306,8 @@ void G2_Generate_Matrix(const model_t *mod, boneInfo_v &blist, int index, const 
 		offsets = (mdxaSkelOffsets_t *)((byte *)mdxa + sizeof(mdxaHeader_t));
 		skel = (mdxaSkel_t *)((byte *)mdxa + sizeof(mdxaHeader_t) + offsets->offsets[blist[index].boneNumber]);
 
-		Mat3x4_Multiply(&temp1,  boneOverride,&skel->BasePoseMatInv);
-		Mat3x4_Multiply(boneOverride,&skel->BasePoseMat, &temp1);
+		Multiply_3x4Matrix(&temp1,  boneOverride,&skel->BasePoseMatInv);
+		Multiply_3x4Matrix(boneOverride,&skel->BasePoseMat, &temp1);
 	
 	}
 	else
@@ -401,7 +401,7 @@ void G2_Generate_Matrix(const model_t *mod, boneInfo_v &blist, int index, const 
 			break;
 		}
 
-		Mat3x4_Multiply(boneOverride, &temp1,&permutation);
+		Multiply_3x4Matrix(boneOverride, &temp1,&permutation);
 
 	}
 
@@ -3359,7 +3359,7 @@ static inline void G2_RagGetWorldAnimMatrix(CGhoul2Info &ghoul2, boneInfo_t &bon
 
 	//Use params to multiply world coordinate/dir matrix into the
 	//bone matrix and give us a useable world position
-	Mat3x4_Multiply(&retMatrix, &worldMatrix, &baseBoneMatrix);
+	Multiply_3x4Matrix(&retMatrix, &worldMatrix, &baseBoneMatrix);
 
 	assert(!Q_isnan(retMatrix.matrix[2][3]));
 }
@@ -3393,7 +3393,7 @@ static inline void G2_RagGetPelvisLumbarOffsets(CGhoul2Info &ghoul2, CRagDollUpd
 	//G2_GetRagBoneMatrixLow(ghoul2, boneIndex, x);
 	int bolt = G2_Add_Bolt(&ghoul2, ghoul2.mBltlist, ghoul2.mSlist, "pelvis");
 	G2_GetBoltMatrixLow(ghoul2, bolt, params->scale, x);
-	Mat3x4_Multiply(&final, &worldMatrix, &x);
+	Multiply_3x4Matrix(&final, &worldMatrix, &x);
 	G2API_GiveMeVectorFromMatrix(&final, ORIGIN, pos);
 	G2API_GiveMeVectorFromMatrix(&final, POSITIVE_X, dir);
 #endif
@@ -4025,7 +4025,7 @@ static void G2_RagDollSolve(CGhoul2Info_v &ghoul2V,int g2Index,float decay,int f
 		Create_Matrix(tAngles,&curRot);  //dest 2nd arg
 		Inverse_Matrix(&curRot,&curRotInv);  // dest 2nd arg
 
-		Mat3x4_Multiply(&P,&ragBones[i],&curRotInv); //dest first arg
+		Multiply_3x4Matrix(&P,&ragBones[i],&curRotInv); //dest first arg
 
 
 
@@ -4067,8 +4067,8 @@ static void G2_RagDollSolve(CGhoul2Info_v &ghoul2V,int g2Index,float decay,int f
 				tAngles[k]+=0.5f;
 				Create_Matrix(tAngles,&temp2);  //dest 2nd arg
 				tAngles[k]-=0.5f;
-				Mat3x4_Multiply(&temp1,&P,&temp2); //dest first arg
-				Mat3x4_Multiply(&Gs[k],&temp1,&N); //dest first arg
+				Multiply_3x4Matrix(&temp1,&P,&temp2); //dest first arg
+				Multiply_3x4Matrix(&Gs[k],&temp1,&N); //dest first arg
 
 			}
 
@@ -4095,7 +4095,7 @@ static void G2_RagDollSolve(CGhoul2Info_v &ghoul2V,int g2Index,float decay,int f
 					numRagDep++;
 					for (k=0;k<3;k++)
 					{
-						Mat3x4_Multiply(&Enew[k],&Gs[k],&ragBones[depIndex]); //dest first arg
+						Multiply_3x4Matrix(&Enew[k],&Gs[k],&ragBones[depIndex]); //dest first arg
 						vec3_t tPosition;
 						tPosition[0]=Enew[k].matrix[0][3];
 						tPosition[1]=Enew[k].matrix[1][3];
@@ -4212,8 +4212,8 @@ static void G2_RagDollSolve(CGhoul2Info_v &ghoul2V,int g2Index,float decay,int f
 			}
 
 			Create_Matrix(bone.currentAngles,&temp1);
-			Mat3x4_Multiply(&temp2,&temp1,bone.baseposeInv);
-			Mat3x4_Multiply(&bone.ragOverrideMatrix,bone.basepose, &temp2);
+			Multiply_3x4Matrix(&temp2,&temp1,bone.baseposeInv);
+			Multiply_3x4Matrix(&bone.ragOverrideMatrix,bone.basepose, &temp2);
 			assert( !Q_isnan(bone.ragOverrideMatrix.matrix[2][3]));
 		}
 		G2_Generate_MatrixRag(blist,ragBlistIndex[bone.boneNumber]);
@@ -4302,7 +4302,7 @@ static void G2_IKSolve(CGhoul2Info_v &ghoul2V,int g2Index,float decay,int frameN
 		Create_Matrix(tAngles, &curRot);  //dest 2nd arg
 		Inverse_Matrix(&curRot, &curRotInv);  // dest 2nd arg
 
-		Mat3x4_Multiply(&P, &ragBones[i], &curRotInv); //dest first arg
+		Multiply_3x4Matrix(&P, &ragBones[i], &curRotInv); //dest first arg
 
 
 		vec3_t delAngles;
@@ -4313,8 +4313,8 @@ static void G2_IKSolve(CGhoul2Info_v &ghoul2V,int g2Index,float decay,int frameN
 			tAngles[k] += 0.5f;
 			Create_Matrix(tAngles, &temp2);  //dest 2nd arg
 			tAngles[k] -= 0.5f;
-			Mat3x4_Multiply(&temp1, &P, &temp2); //dest first arg
-			Mat3x4_Multiply(&Gs[k], &temp1, &N); //dest first arg
+			Multiply_3x4Matrix(&temp1, &P, &temp2); //dest first arg
+			Multiply_3x4Matrix(&Gs[k], &temp1, &N); //dest first arg
 		}
 
 		// fixme precompute this
@@ -4341,7 +4341,7 @@ static void G2_IKSolve(CGhoul2Info_v &ghoul2V,int g2Index,float decay,int frameN
 				numRagDep++;
 				for (k=0;k<3;k++)
 				{
-					Mat3x4_Multiply(&Enew[k],&Gs[k],&ragBones[depIndex]); //dest first arg
+					Multiply_3x4Matrix(&Enew[k],&Gs[k],&ragBones[depIndex]); //dest first arg
 					vec3_t tPosition;
 					tPosition[0]=Enew[k].matrix[0][3];
 					tPosition[1]=Enew[k].matrix[1][3];
@@ -4408,7 +4408,8 @@ static void G2_IKSolve(CGhoul2Info_v &ghoul2V,int g2Index,float decay,int frameN
 			}
 		}
 		Create_Matrix(bone.currentAngles, &temp1);
-		bone.ragOverrideMatrix = *bone.basepose * (temp1 * *bone.baseposeInv);
+		Multiply_3x4Matrix(&temp2, &temp1, bone.baseposeInv);
+		Multiply_3x4Matrix(&bone.ragOverrideMatrix, bone.basepose, &temp2);
 		assert( !Q_isnan(bone.ragOverrideMatrix.matrix[2][3]));
 
 		G2_Generate_MatrixRag(blist, ragBlistIndex[bone.boneNumber]);

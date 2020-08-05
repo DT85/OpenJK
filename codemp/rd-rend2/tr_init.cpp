@@ -1993,6 +1993,8 @@ qboolean stub_InitializeWireframeAutomap() { return qtrue; }
 void stub_RE_GetBModelVerts(int bModel, vec3_t *vec, float *normal) {}
 static void stub_RE_SetRefractionProperties(float distortionAlpha, float distortionStretch, qboolean distortionPrePost, qboolean distortionNegate) { }
 
+extern qhandle_t RE_RegisterServerSkin(const char *name);
+
 /*
 @@@@@@@@@@@@@@@@@@@@@
 GetRefAPI
