@@ -26,107 +26,107 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // Some matrix helper functions
 // FIXME: do these already exist in ioq3 and I don't know about them?
 
-void Matrix16Zero( matrix_t out )
+void Matrix16Zero(matrix_t out)
 {
-	out[ 0] = 0.0f; out[ 4] = 0.0f; out[ 8] = 0.0f; out[12] = 0.0f;
-	out[ 1] = 0.0f; out[ 5] = 0.0f; out[ 9] = 0.0f; out[13] = 0.0f;
-	out[ 2] = 0.0f; out[ 6] = 0.0f; out[10] = 0.0f; out[14] = 0.0f;
-	out[ 3] = 0.0f; out[ 7] = 0.0f; out[11] = 0.0f; out[15] = 0.0f;
+	out[0] = 0.0f; out[4] = 0.0f; out[8] = 0.0f; out[12] = 0.0f;
+	out[1] = 0.0f; out[5] = 0.0f; out[9] = 0.0f; out[13] = 0.0f;
+	out[2] = 0.0f; out[6] = 0.0f; out[10] = 0.0f; out[14] = 0.0f;
+	out[3] = 0.0f; out[7] = 0.0f; out[11] = 0.0f; out[15] = 0.0f;
 }
 
-void Matrix16Identity( matrix_t out )
+void Matrix16Identity(matrix_t out)
 {
-	out[ 0] = 1.0f; out[ 4] = 0.0f; out[ 8] = 0.0f; out[12] = 0.0f;
-	out[ 1] = 0.0f; out[ 5] = 1.0f; out[ 9] = 0.0f; out[13] = 0.0f;
-	out[ 2] = 0.0f; out[ 6] = 0.0f; out[10] = 1.0f; out[14] = 0.0f;
-	out[ 3] = 0.0f; out[ 7] = 0.0f; out[11] = 0.0f; out[15] = 1.0f;
+	out[0] = 1.0f; out[4] = 0.0f; out[8] = 0.0f; out[12] = 0.0f;
+	out[1] = 0.0f; out[5] = 1.0f; out[9] = 0.0f; out[13] = 0.0f;
+	out[2] = 0.0f; out[6] = 0.0f; out[10] = 1.0f; out[14] = 0.0f;
+	out[3] = 0.0f; out[7] = 0.0f; out[11] = 0.0f; out[15] = 1.0f;
 }
 
-void Matrix16Copy( const matrix_t in, matrix_t out )
+void Matrix16Copy(const matrix_t in, matrix_t out)
 {
-	out[ 0] = in[ 0]; out[ 4] = in[ 4]; out[ 8] = in[ 8]; out[12] = in[12]; 
-	out[ 1] = in[ 1]; out[ 5] = in[ 5]; out[ 9] = in[ 9]; out[13] = in[13]; 
-	out[ 2] = in[ 2]; out[ 6] = in[ 6]; out[10] = in[10]; out[14] = in[14]; 
-	out[ 3] = in[ 3]; out[ 7] = in[ 7]; out[11] = in[11]; out[15] = in[15]; 
+	out[0] = in[0]; out[4] = in[4]; out[8] = in[8]; out[12] = in[12];
+	out[1] = in[1]; out[5] = in[5]; out[9] = in[9]; out[13] = in[13];
+	out[2] = in[2]; out[6] = in[6]; out[10] = in[10]; out[14] = in[14];
+	out[3] = in[3]; out[7] = in[7]; out[11] = in[11]; out[15] = in[15];
 }
 
-void Matrix16Multiply( const matrix_t in1, const matrix_t in2, matrix_t out )
+void Matrix16Multiply(const matrix_t in1, const matrix_t in2, matrix_t out)
 {
-	out[ 0] = in1[ 0] * in2[ 0] + in1[ 4] * in2[ 1] + in1[ 8] * in2[ 2] + in1[12] * in2[ 3];
-	out[ 1] = in1[ 1] * in2[ 0] + in1[ 5] * in2[ 1] + in1[ 9] * in2[ 2] + in1[13] * in2[ 3];
-	out[ 2] = in1[ 2] * in2[ 0] + in1[ 6] * in2[ 1] + in1[10] * in2[ 2] + in1[14] * in2[ 3];
-	out[ 3] = in1[ 3] * in2[ 0] + in1[ 7] * in2[ 1] + in1[11] * in2[ 2] + in1[15] * in2[ 3];
+	out[0] = in1[0] * in2[0] + in1[4] * in2[1] + in1[8] * in2[2] + in1[12] * in2[3];
+	out[1] = in1[1] * in2[0] + in1[5] * in2[1] + in1[9] * in2[2] + in1[13] * in2[3];
+	out[2] = in1[2] * in2[0] + in1[6] * in2[1] + in1[10] * in2[2] + in1[14] * in2[3];
+	out[3] = in1[3] * in2[0] + in1[7] * in2[1] + in1[11] * in2[2] + in1[15] * in2[3];
 
-	out[ 4] = in1[ 0] * in2[ 4] + in1[ 4] * in2[ 5] + in1[ 8] * in2[ 6] + in1[12] * in2[ 7];
-	out[ 5] = in1[ 1] * in2[ 4] + in1[ 5] * in2[ 5] + in1[ 9] * in2[ 6] + in1[13] * in2[ 7];
-	out[ 6] = in1[ 2] * in2[ 4] + in1[ 6] * in2[ 5] + in1[10] * in2[ 6] + in1[14] * in2[ 7];
-	out[ 7] = in1[ 3] * in2[ 4] + in1[ 7] * in2[ 5] + in1[11] * in2[ 6] + in1[15] * in2[ 7];
+	out[4] = in1[0] * in2[4] + in1[4] * in2[5] + in1[8] * in2[6] + in1[12] * in2[7];
+	out[5] = in1[1] * in2[4] + in1[5] * in2[5] + in1[9] * in2[6] + in1[13] * in2[7];
+	out[6] = in1[2] * in2[4] + in1[6] * in2[5] + in1[10] * in2[6] + in1[14] * in2[7];
+	out[7] = in1[3] * in2[4] + in1[7] * in2[5] + in1[11] * in2[6] + in1[15] * in2[7];
 
-	out[ 8] = in1[ 0] * in2[ 8] + in1[ 4] * in2[ 9] + in1[ 8] * in2[10] + in1[12] * in2[11];
-	out[ 9] = in1[ 1] * in2[ 8] + in1[ 5] * in2[ 9] + in1[ 9] * in2[10] + in1[13] * in2[11];
-	out[10] = in1[ 2] * in2[ 8] + in1[ 6] * in2[ 9] + in1[10] * in2[10] + in1[14] * in2[11];
-	out[11] = in1[ 3] * in2[ 8] + in1[ 7] * in2[ 9] + in1[11] * in2[10] + in1[15] * in2[11];
+	out[8] = in1[0] * in2[8] + in1[4] * in2[9] + in1[8] * in2[10] + in1[12] * in2[11];
+	out[9] = in1[1] * in2[8] + in1[5] * in2[9] + in1[9] * in2[10] + in1[13] * in2[11];
+	out[10] = in1[2] * in2[8] + in1[6] * in2[9] + in1[10] * in2[10] + in1[14] * in2[11];
+	out[11] = in1[3] * in2[8] + in1[7] * in2[9] + in1[11] * in2[10] + in1[15] * in2[11];
 
-	out[12] = in1[ 0] * in2[12] + in1[ 4] * in2[13] + in1[ 8] * in2[14] + in1[12] * in2[15];
-	out[13] = in1[ 1] * in2[12] + in1[ 5] * in2[13] + in1[ 9] * in2[14] + in1[13] * in2[15];
-	out[14] = in1[ 2] * in2[12] + in1[ 6] * in2[13] + in1[10] * in2[14] + in1[14] * in2[15];
-	out[15] = in1[ 3] * in2[12] + in1[ 7] * in2[13] + in1[11] * in2[14] + in1[15] * in2[15];
+	out[12] = in1[0] * in2[12] + in1[4] * in2[13] + in1[8] * in2[14] + in1[12] * in2[15];
+	out[13] = in1[1] * in2[12] + in1[5] * in2[13] + in1[9] * in2[14] + in1[13] * in2[15];
+	out[14] = in1[2] * in2[12] + in1[6] * in2[13] + in1[10] * in2[14] + in1[14] * in2[15];
+	out[15] = in1[3] * in2[12] + in1[7] * in2[13] + in1[11] * in2[14] + in1[15] * in2[15];
 }
 
-void Matrix16Transform( const matrix_t in1, const vec4_t in2, vec4_t out )
+void Matrix16Transform(const matrix_t in1, const vec4_t in2, vec4_t out)
 {
-	out[ 0] = in1[ 0] * in2[ 0] + in1[ 4] * in2[ 1] + in1[ 8] * in2[ 2] + in1[12] * in2[ 3];
-	out[ 1] = in1[ 1] * in2[ 0] + in1[ 5] * in2[ 1] + in1[ 9] * in2[ 2] + in1[13] * in2[ 3];
-	out[ 2] = in1[ 2] * in2[ 0] + in1[ 6] * in2[ 1] + in1[10] * in2[ 2] + in1[14] * in2[ 3];
-	out[ 3] = in1[ 3] * in2[ 0] + in1[ 7] * in2[ 1] + in1[11] * in2[ 2] + in1[15] * in2[ 3];
+	out[0] = in1[0] * in2[0] + in1[4] * in2[1] + in1[8] * in2[2] + in1[12] * in2[3];
+	out[1] = in1[1] * in2[0] + in1[5] * in2[1] + in1[9] * in2[2] + in1[13] * in2[3];
+	out[2] = in1[2] * in2[0] + in1[6] * in2[1] + in1[10] * in2[2] + in1[14] * in2[3];
+	out[3] = in1[3] * in2[0] + in1[7] * in2[1] + in1[11] * in2[2] + in1[15] * in2[3];
 }
 
-qboolean Matrix16Compare( const matrix_t a, const matrix_t b )
+qboolean Matrix16Compare(const matrix_t a, const matrix_t b)
 {
-	return (qboolean)(!(a[ 0] != b[ 0] || a[ 4] != b[ 4] || a[ 8] != b[ 8] || a[12] != b[12] ||
-             a[ 1] != b[ 1] || a[ 5] != b[ 5] || a[ 9] != b[ 9] || a[13] != b[13] ||
-		     a[ 2] != b[ 2] || a[ 6] != b[ 6] || a[10] != b[10] || a[14] != b[14] ||
-		     a[ 3] != b[ 3] || a[ 7] != b[ 7] || a[11] != b[11] || a[15] != b[15]));
+	return (qboolean)(!(a[0] != b[0] || a[4] != b[4] || a[8] != b[8] || a[12] != b[12] ||
+		a[1] != b[1] || a[5] != b[5] || a[9] != b[9] || a[13] != b[13] ||
+		a[2] != b[2] || a[6] != b[6] || a[10] != b[10] || a[14] != b[14] ||
+		a[3] != b[3] || a[7] != b[7] || a[11] != b[11] || a[15] != b[15]));
 }
 
-void Matrix16Dump( const matrix_t in )
+void Matrix16Dump(const matrix_t in)
 {
-	ri.Printf(PRINT_ALL, "%3.5f %3.5f %3.5f %3.5f\n", in[ 0], in[ 4], in[ 8], in[12]);
-	ri.Printf(PRINT_ALL, "%3.5f %3.5f %3.5f %3.5f\n", in[ 1], in[ 5], in[ 9], in[13]);
-	ri.Printf(PRINT_ALL, "%3.5f %3.5f %3.5f %3.5f\n", in[ 2], in[ 6], in[10], in[14]);
-	ri.Printf(PRINT_ALL, "%3.5f %3.5f %3.5f %3.5f\n", in[ 3], in[ 7], in[11], in[15]);
+	ri.Printf(PRINT_ALL, "%3.5f %3.5f %3.5f %3.5f\n", in[0], in[4], in[8], in[12]);
+	ri.Printf(PRINT_ALL, "%3.5f %3.5f %3.5f %3.5f\n", in[1], in[5], in[9], in[13]);
+	ri.Printf(PRINT_ALL, "%3.5f %3.5f %3.5f %3.5f\n", in[2], in[6], in[10], in[14]);
+	ri.Printf(PRINT_ALL, "%3.5f %3.5f %3.5f %3.5f\n", in[3], in[7], in[11], in[15]);
 }
 
-void Matrix16Translation( vec3_t vec, matrix_t out )
+void Matrix16Translation(vec3_t vec, matrix_t out)
 {
-	out[ 0] = 1.0f; out[ 4] = 0.0f; out[ 8] = 0.0f; out[12] = vec[0];
-	out[ 1] = 0.0f; out[ 5] = 1.0f; out[ 9] = 0.0f; out[13] = vec[1];
-	out[ 2] = 0.0f; out[ 6] = 0.0f; out[10] = 1.0f; out[14] = vec[2];
-	out[ 3] = 0.0f; out[ 7] = 0.0f; out[11] = 0.0f; out[15] = 1.0f;
+	out[0] = 1.0f; out[4] = 0.0f; out[8] = 0.0f; out[12] = vec[0];
+	out[1] = 0.0f; out[5] = 1.0f; out[9] = 0.0f; out[13] = vec[1];
+	out[2] = 0.0f; out[6] = 0.0f; out[10] = 1.0f; out[14] = vec[2];
+	out[3] = 0.0f; out[7] = 0.0f; out[11] = 0.0f; out[15] = 1.0f;
 }
 
-void Matrix16Ortho( float left, float right, float bottom, float top, float znear, float zfar, matrix_t out )
+void Matrix16Ortho(float left, float right, float bottom, float top, float znear, float zfar, matrix_t out)
 {
-	out[ 0] = 2.0f / (right - left); out[ 4] = 0.0f;                  out[ 8] = 0.0f;                  out[12] = -(right + left) / (right - left);
-	out[ 1] = 0.0f;                  out[ 5] = 2.0f / (top - bottom); out[ 9] = 0.0f;                  out[13] = -(top + bottom) / (top - bottom);
-	out[ 2] = 0.0f;                  out[ 6] = 0.0f;                  out[10] = 2.0f / (zfar - znear); out[14] = -(zfar + znear) / (zfar - znear);
-	out[ 3] = 0.0f;                  out[ 7] = 0.0f;                  out[11] = 0.0f;                  out[15] = 1.0f;
+	out[0] = 2.0f / (right - left); out[4] = 0.0f;                  out[8] = 0.0f;                  out[12] = -(right + left) / (right - left);
+	out[1] = 0.0f;                  out[5] = 2.0f / (top - bottom); out[9] = 0.0f;                  out[13] = -(top + bottom) / (top - bottom);
+	out[2] = 0.0f;                  out[6] = 0.0f;                  out[10] = 2.0f / (zfar - znear); out[14] = -(zfar + znear) / (zfar - znear);
+	out[3] = 0.0f;                  out[7] = 0.0f;                  out[11] = 0.0f;                  out[15] = 1.0f;
 }
 
 void Matrix16View(vec3_t axes[3], vec3_t origin, matrix_t out)
 {
-	out[0]  = axes[0][0];
-	out[1]  = axes[1][0];
-	out[2]  = axes[2][0];
-	out[3]  = 0;
+	out[0] = axes[0][0];
+	out[1] = axes[1][0];
+	out[2] = axes[2][0];
+	out[3] = 0;
 
-	out[4]  = axes[0][1];
-	out[5]  = axes[1][1];
-	out[6]  = axes[2][1];
-	out[7]  = 0;
+	out[4] = axes[0][1];
+	out[5] = axes[1][1];
+	out[6] = axes[2][1];
+	out[7] = 0;
 
-	out[8]  = axes[0][2];
-	out[9]  = axes[1][2];
+	out[8] = axes[0][2];
+	out[9] = axes[1][2];
 	out[10] = axes[2][2];
 	out[11] = 0;
 
@@ -136,27 +136,176 @@ void Matrix16View(vec3_t axes[3], vec3_t origin, matrix_t out)
 	out[15] = 1;
 }
 
-void Matrix16SimpleInverse( const matrix_t in, matrix_t out)
+void Matrix16SimpleInverse(const matrix_t in, matrix_t out)
 {
 	vec3_t v;
 	float invSqrLen;
- 
+
 	VectorCopy(in + 0, v);
 	invSqrLen = 1.0f / DotProduct(v, v); VectorScale(v, invSqrLen, v);
-	out[ 0] = v[0]; out[ 4] = v[1]; out[ 8] = v[2]; out[12] = -DotProduct(v, &in[12]);
+	out[0] = v[0]; out[4] = v[1]; out[8] = v[2]; out[12] = -DotProduct(v, &in[12]);
 
 	VectorCopy(in + 4, v);
 	invSqrLen = 1.0f / DotProduct(v, v); VectorScale(v, invSqrLen, v);
-	out[ 1] = v[0]; out[ 5] = v[1]; out[ 9] = v[2]; out[13] = -DotProduct(v, &in[12]);
+	out[1] = v[0]; out[5] = v[1]; out[9] = v[2]; out[13] = -DotProduct(v, &in[12]);
 
 	VectorCopy(in + 8, v);
 	invSqrLen = 1.0f / DotProduct(v, v); VectorScale(v, invSqrLen, v);
-	out[ 2] = v[0]; out[ 6] = v[1]; out[10] = v[2]; out[14] = -DotProduct(v, &in[12]);
+	out[2] = v[0]; out[6] = v[1]; out[10] = v[2]; out[14] = -DotProduct(v, &in[12]);
 
-	out[ 3] = 0.0f; out[ 7] = 0.0f; out[11] = 0.0f; out[15] = 1.0f;
+	out[3] = 0.0f; out[7] = 0.0f; out[11] = 0.0f; out[15] = 1.0f;
+}
+void Matrix16Transpose(const matrix_t m, matrix_t out)
+{
+	out[0] = m[0];
+	out[1] = m[4];
+	out[2] = m[8];
+	out[3] = m[12];
+	out[4] = m[1];
+	out[5] = m[5];
+	out[6] = m[9];
+	out[7] = m[13];
+	out[8] = m[2];
+	out[9] = m[6];
+	out[10] = m[10];
+	out[11] = m[14];
+	out[12] = m[3];
+	out[13] = m[7];
+	out[14] = m[11];
+	out[15] = m[15];
 }
 
-void VectorLerp( vec3_t a, vec3_t b, float lerp, vec3_t c)
+void Matrix16Inverse(const matrix_t m, matrix_t out)
+{
+	float inv[16], det;
+	int i;
+
+	inv[0] = m[5] * m[10] * m[15] -
+		m[5] * m[11] * m[14] -
+		m[9] * m[6] * m[15] +
+		m[9] * m[7] * m[14] +
+		m[13] * m[6] * m[11] -
+		m[13] * m[7] * m[10];
+
+	inv[4] = -m[4] * m[10] * m[15] +
+		m[4] * m[11] * m[14] +
+		m[8] * m[6] * m[15] -
+		m[8] * m[7] * m[14] -
+		m[12] * m[6] * m[11] +
+		m[12] * m[7] * m[10];
+
+	inv[8] = m[4] * m[9] * m[15] -
+		m[4] * m[11] * m[13] -
+		m[8] * m[5] * m[15] +
+		m[8] * m[7] * m[13] +
+		m[12] * m[5] * m[11] -
+		m[12] * m[7] * m[9];
+
+	inv[12] = -m[4] * m[9] * m[14] +
+		m[4] * m[10] * m[13] +
+		m[8] * m[5] * m[14] -
+		m[8] * m[6] * m[13] -
+		m[12] * m[5] * m[10] +
+		m[12] * m[6] * m[9];
+
+	inv[1] = -m[1] * m[10] * m[15] +
+		m[1] * m[11] * m[14] +
+		m[9] * m[2] * m[15] -
+		m[9] * m[3] * m[14] -
+		m[13] * m[2] * m[11] +
+		m[13] * m[3] * m[10];
+
+	inv[5] = m[0] * m[10] * m[15] -
+		m[0] * m[11] * m[14] -
+		m[8] * m[2] * m[15] +
+		m[8] * m[3] * m[14] +
+		m[12] * m[2] * m[11] -
+		m[12] * m[3] * m[10];
+
+	inv[9] = -m[0] * m[9] * m[15] +
+		m[0] * m[11] * m[13] +
+		m[8] * m[1] * m[15] -
+		m[8] * m[3] * m[13] -
+		m[12] * m[1] * m[11] +
+		m[12] * m[3] * m[9];
+
+	inv[13] = m[0] * m[9] * m[14] -
+		m[0] * m[10] * m[13] -
+		m[8] * m[1] * m[14] +
+		m[8] * m[2] * m[13] +
+		m[12] * m[1] * m[10] -
+		m[12] * m[2] * m[9];
+
+	inv[2] = m[1] * m[6] * m[15] -
+		m[1] * m[7] * m[14] -
+		m[5] * m[2] * m[15] +
+		m[5] * m[3] * m[14] +
+		m[13] * m[2] * m[7] -
+		m[13] * m[3] * m[6];
+
+	inv[6] = -m[0] * m[6] * m[15] +
+		m[0] * m[7] * m[14] +
+		m[4] * m[2] * m[15] -
+		m[4] * m[3] * m[14] -
+		m[12] * m[2] * m[7] +
+		m[12] * m[3] * m[6];
+
+	inv[10] = m[0] * m[5] * m[15] -
+		m[0] * m[7] * m[13] -
+		m[4] * m[1] * m[15] +
+		m[4] * m[3] * m[13] +
+		m[12] * m[1] * m[7] -
+		m[12] * m[3] * m[5];
+
+	inv[14] = -m[0] * m[5] * m[14] +
+		m[0] * m[6] * m[13] +
+		m[4] * m[1] * m[14] -
+		m[4] * m[2] * m[13] -
+		m[12] * m[1] * m[6] +
+		m[12] * m[2] * m[5];
+
+	inv[3] = -m[1] * m[6] * m[11] +
+		m[1] * m[7] * m[10] +
+		m[5] * m[2] * m[11] -
+		m[5] * m[3] * m[10] -
+		m[9] * m[2] * m[7] +
+		m[9] * m[3] * m[6];
+
+	inv[7] = m[0] * m[6] * m[11] -
+		m[0] * m[7] * m[10] -
+		m[4] * m[2] * m[11] +
+		m[4] * m[3] * m[10] +
+		m[8] * m[2] * m[7] -
+		m[8] * m[3] * m[6];
+
+	inv[11] = -m[0] * m[5] * m[11] +
+		m[0] * m[7] * m[9] +
+		m[4] * m[1] * m[11] -
+		m[4] * m[3] * m[9] -
+		m[8] * m[1] * m[7] +
+		m[8] * m[3] * m[5];
+
+	inv[15] = m[0] * m[5] * m[10] -
+		m[0] * m[6] * m[9] -
+		m[4] * m[1] * m[10] +
+		m[4] * m[2] * m[9] +
+		m[8] * m[1] * m[6] -
+		m[8] * m[2] * m[5];
+
+	det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+	if (det == 0)
+		return;
+
+	det = 1.0 / det;
+
+	for (i = 0; i < 16; i++)
+		out[i] = inv[i] * det;
+
+	return;
+}
+
+void VectorLerp(vec3_t a, vec3_t b, float lerp, vec3_t c)
 {
 	c[0] = a[0] * (1.0f - lerp) + b[0] * lerp;
 	c[1] = a[1] * (1.0f - lerp) + b[1] * lerp;
@@ -167,7 +316,7 @@ qboolean SpheresIntersect(vec3_t origin1, float radius1, vec3_t origin2, float r
 {
 	float radiusSum = radius1 + radius2;
 	vec3_t diff;
-	
+
 	VectorSubtract(origin1, origin2, diff);
 
 	if (DotProduct(diff, diff) <= radiusSum * radiusSum)
@@ -202,7 +351,7 @@ int NextPowerOfTwo(int in)
 unsigned short FloatToHalf(float in)
 {
 	unsigned short out;
-	
+
 	union
 	{
 		float f;
@@ -214,9 +363,9 @@ unsigned short FloatToHalf(float in)
 
 	f32.f = in;
 
-	sign       = (f32.i & 0x80000000) >> 31;
+	sign = (f32.i & 0x80000000) >> 31;
 	inExponent = (f32.i & 0x7F800000) >> 23;
-	inFraction =  f32.i & 0x007FFFFF;
+	inFraction = f32.i & 0x007FFFFF;
 
 	outExponent = CLAMP(inExponent - 127, -15, 16) + 15;
 
@@ -249,12 +398,46 @@ uint32_t ReverseBits(uint32_t v)
 	return v;
 }
 
-float GSmithCorrelated(float roughness, float NdotV, float NdotL)
+float GSmithCorrelated(float roughness, float ndotv, float ndotl)
 {
-	const float m = roughness * roughness;
-	const float m2 = m * m;
-	const float visV = NdotL * sqrtf(NdotV * (NdotV - NdotV * m2) + m2);
-	const float visL = NdotV * sqrtf(NdotL * (NdotL - NdotL * m2) + m2);
-
+	float m = roughness * roughness;
+	float m2 = m * m;
+	float visV = ndotl * sqrt(ndotv * (ndotv - ndotv * m2) + m2);
+	float visL = ndotv * sqrt(ndotl * (ndotl - ndotl * m2) + m2);
 	return 0.5f / (visV + visL);
+}
+
+void GetSHBasis(vec3_t normal, float out[9])
+{
+	out[0] = 0.282095f;														//Y00
+	out[1] = 0.488603f * normal[0];											//Y11
+	out[2] = 0.488603f * normal[2];											//Y10
+	out[3] = 0.488603f * normal[1];											//Y1_1
+	out[4] = 1.092548f * normal[0] * normal[2];								//Y21
+	out[5] = 1.092548f * normal[1] * normal[2];								//Y2_1
+	out[6] = 1.092548f * normal[1] * normal[1];								//Y2_2
+	out[7] = 0.946176f * normal[2] * normal[2] - 0.315392f;					//Y20
+	out[8] = 0.546274f * (normal[0] * normal[0] - normal[1] * normal[1]);	//Y22
+}
+
+void GetTextureAngle(vec2_t uv, int index, vec3_t normal)
+{
+	float tempUv[2];
+	tempUv[0] = (uv[0] - 0.5f) * 2.0;
+	tempUv[1] = (uv[1] - 0.5f) * 2.0;
+	// from http://www.codinglabs.net/article_physically_based_rendering.aspx
+
+	VectorSet(normal, tempUv[0], tempUv[1], 1.0f);
+	if (index == 2)
+		VectorSet(normal, tempUv[0], 1.0f, -tempUv[1]);
+	else if (index == 3)
+		VectorSet(normal, tempUv[0], -1.0f, tempUv[1]);
+	else if (index == 0)
+		VectorSet(normal, 1.0f, tempUv[1], -tempUv[0]);
+	else if (index == 1)
+		VectorSet(normal, -1.0f, tempUv[1], tempUv[0]);
+	else if (index == 5)
+		VectorSet(normal, -tempUv[0], tempUv[1], -1.0f);
+	//VectorInverse(normal);
+	VectorNormalize(normal);
 }

@@ -410,6 +410,10 @@ extern PFNGLISBUFFERPROC qglIsBuffer;
 
 // Texturing
 extern PFNGLACTIVETEXTUREPROC qglActiveTexture;
+extern PFNGLTEXBUFFERPROC qglTexBuffer;
+extern PFNGLTEXIMAGE3DPROC qglTexImage3D;
+extern PFNGLTEXSUBIMAGE3DPROC qglTexSubImage3D;
+extern PFNGLTEXIMAGE2DMULTISAMPLEPROC qglTexImage2DMultisample;
 
 // Shader objects
 extern PFNGLCREATESHADERPROC qglCreateShader;
@@ -539,6 +543,7 @@ extern PFNGLBINDFRAMEBUFFERPROC qglBindFramebuffer;
 extern PFNGLDELETEFRAMEBUFFERSPROC qglDeleteFramebuffers;
 extern PFNGLGENFRAMEBUFFERSPROC qglGenFramebuffers;
 extern PFNGLCHECKFRAMEBUFFERSTATUSPROC qglCheckFramebufferStatus;
+extern PFNGLFRAMEBUFFERTEXTUREPROC qglFramebufferTexture;
 extern PFNGLFRAMEBUFFERTEXTURE1DPROC qglFramebufferTexture1D;
 extern PFNGLFRAMEBUFFERTEXTURE2DPROC qglFramebufferTexture2D;
 extern PFNGLFRAMEBUFFERTEXTURE3DPROC qglFramebufferTexture3D;

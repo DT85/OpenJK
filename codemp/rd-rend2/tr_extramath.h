@@ -26,22 +26,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 typedef float matrix_t[16];
 typedef float mat4x3_t[12];
-typedef float mat3x4_t[12];
 typedef int vec2i_t[2];
 typedef int vec3i_t[3];
 typedef int vec4i_t[4];
 
-void Matrix16Zero( matrix_t out );
-void Matrix16Identity( matrix_t out );
-void Matrix16Copy( const matrix_t in, matrix_t out );
-void Matrix16Multiply( const matrix_t in1, const matrix_t in2, matrix_t out );
-void Matrix16Transform( const matrix_t in1, const vec4_t in2, vec4_t out );
+void Matrix16Zero(matrix_t out);
+void Matrix16Identity(matrix_t out);
+void Matrix16Copy(const matrix_t in, matrix_t out);
+void Matrix16Multiply(const matrix_t in1, const matrix_t in2, matrix_t out);
+void Matrix16Transform(const matrix_t in1, const vec4_t in2, vec4_t out);
 qboolean Matrix16Compare(const matrix_t a, const matrix_t b);
-void Matrix16Dump( const matrix_t in );
-void Matrix16Translation( vec3_t vec, matrix_t out );
-void Matrix16Ortho( float left, float right, float bottom, float top, float znear, float zfar, matrix_t out );
+void Matrix16Dump(const matrix_t in);
+void Matrix16Translation(vec3_t vec, matrix_t out);
+void Matrix16Ortho(float left, float right, float bottom, float top, float znear, float zfar, matrix_t out);
 void Matrix16View(vec3_t axes[3], vec3_t origin, matrix_t out);
-void Matrix16SimpleInverse( const matrix_t in, matrix_t out);
+void Matrix16Transpose(const matrix_t m, matrix_t out);
+void Matrix16Inverse(const matrix_t m, matrix_t out);
+void Matrix16SimpleInverse(const matrix_t in, matrix_t out);
 
 #define VectorCopy2(a,b)		((b)[0]=(a)[0],(b)[1]=(a)[1])
 #define VectorSet2(v,x,y)       ((v)[0]=(x),(v)[1]=(y));
@@ -63,7 +64,7 @@ void Matrix16SimpleInverse( const matrix_t in, matrix_t out);
 
 QINLINE int VectorCompare4(const vec4_t v1, const vec4_t v2)
 {
-	if(v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2] || v1[3] != v2[3])
+	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2] || v1[3] != v2[3])
 	{
 		return 0;
 	}
@@ -72,14 +73,14 @@ QINLINE int VectorCompare4(const vec4_t v1, const vec4_t v2)
 
 QINLINE int VectorCompare5(const vec5_t v1, const vec5_t v2)
 {
-	if(v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2] || v1[3] != v2[3] || v1[4] != v2[4])
+	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2] || v1[3] != v2[3] || v1[4] != v2[4])
 	{
 		return 0;
 	}
 	return 1;
 }
 
-void VectorLerp( vec3_t a, vec3_t b, float lerp, vec3_t c);
+void VectorLerp(vec3_t a, vec3_t b, float lerp, vec3_t c);
 
 
 qboolean SpheresIntersect(vec3_t origin1, float radius1, vec3_t origin2, float radius2);
@@ -105,5 +106,7 @@ int NextPowerOfTwo(int in);
 unsigned short FloatToHalf(float in);
 uint32_t ReverseBits(uint32_t v);
 float GSmithCorrelated(float roughness, float ndotv, float ndotl);
+void GetTextureAngle(vec2_t uv, int index, vec3_t normal);
+void GetSHBasis(vec3_t normal, float out[9]);
 
 #endif
