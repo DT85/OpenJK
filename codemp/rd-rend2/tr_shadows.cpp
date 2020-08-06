@@ -23,6 +23,80 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 /*
 =================
+RB_ShadowTessEnd
+
+=================
+*/
+void RB_ShadowTessEnd(shaderCommands_t *input, const VertexArraysProperties *vertexArrays) {
+
+	if (glConfig.stencilBits < 4) {
+		ri.Printf(PRINT_ALL, "no stencil bits for stencil writing\n");
+		return;
+	}
+
+	if (!input->numVertexes || !input->numIndexes || input->useInternalVBO)
+	{
+		return;
+	}
+
+	vertexAttribute_t attribs[ATTR_INDEX_MAX] = {};
+	GL_VertexArraysToAttribs(attribs, ARRAY_LEN(attribs), vertexArrays);
+	GL_VertexAttribPointers(vertexArrays->numVertexArrays, attribs);
+
+	cullType_t cullType = CT_TWO_SIDED;
+	UniformDataWriter uniformDataWriter;
+	int stateBits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO | GLS_DEPTHFUNC_LESS;
+
+	uniformDataWriter.Start(&tr.volumeShadowShader);
+	uniformDataWriter.SetUniformMatrix4x4(UNIFORM_MODELVIEWPROJECTIONMATRIX, glState.modelviewProjection);
+	uniformDataWriter.SetUniformMatrix4x3(UNIFORM_BONE_MATRICES, &glState.boneMatrices[0][0], glState.numBones);
+
+	vec4_t lightDir;
+	VectorCopy(backEnd.currentEntity->modelLightDir, lightDir);
+	lightDir[3] = 300.0f;
+	if (r_shadows->integer == 2)
+	{
+		lightDir[2] = 0.0f;
+		VectorNormalize(lightDir);
+		VectorSet(lightDir, lightDir[0] * 0.3f, lightDir[1] * 0.3f, 1.0f);
+		lightDir[3] = backEnd.currentEntity->e.lightingOrigin[2] - backEnd.currentEntity->e.shadowPlane + 64.0f;
+	}
+	uniformDataWriter.SetUniformVec4(UNIFORM_LIGHTORIGIN, lightDir);
+
+	DrawItem item = {};
+	item.renderState.stateBits = stateBits;
+	item.renderState.cullType = cullType;
+	DepthRange range = { 0.0f, 1.0f };
+	item.renderState.depthRange = range;
+	item.program = &tr.volumeShadowShader;
+	item.ibo = input->externalIBO ? input->externalIBO : backEndData->currentFrame->dynamicIbo;
+
+	item.numAttributes = vertexArrays->numVertexArrays;
+	item.attributes = ojkAllocArray<vertexAttribute_t>(
+		*backEndData->perFrameMemory, vertexArrays->numVertexArrays);
+	memcpy(item.attributes, attribs, sizeof(*item.attributes)* vertexArrays->numVertexArrays);
+
+	item.uniformData = uniformDataWriter.Finish(*backEndData->perFrameMemory);
+
+	RB_FillDrawCommand(item.draw, GL_TRIANGLES, 1, input);
+
+	//uint32_t key = RB_CreateSortKey(item, 15, 15);
+	//RB_AddDrawItem(backEndData->currentPass, key, item);
+
+	qglColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	qglDepthMask(GL_FALSE);
+	qglEnable(GL_STENCIL_TEST);
+	qglStencilFunc(GL_ALWAYS, 0, 0xff);
+	qglStencilOpSeparate(GL_FRONT, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+	qglStencilOpSeparate(GL_BACK, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+	RB_AddDrawItem(NULL, 0, item);
+	qglDisable(GL_STENCIL_TEST);
+	qglColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+}
+
+
+/*
+=================
 RB_ShadowFinish
 
 Darken everything that is is a shadow volume.
@@ -38,14 +112,15 @@ void RB_ShadowFinish(void) {
 	if (glConfig.stencilBits < 4) {
 		return;
 	}
+	qglEnable(GL_STENCIL_TEST);
+	qglStencilFunc(GL_NOTEQUAL, 0, 0xff);
 
 	GL_Cull(CT_TWO_SIDED);
 
 	GL_BindToTMU(tr.whiteImage, TB_COLORMAP);
 
-	GL_State(GLS_STENCILTEST_ENABLE | GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO);
+	GL_State(GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO);
 
-	qglStencilFunc(GL_NOTEQUAL, 0, 0xff);
 	qglViewport(0, 0, glConfig.vidWidth, glConfig.vidHeight);
 	qglScissor(0, 0, glConfig.vidWidth, glConfig.vidHeight);
 	matrix_t projection;
@@ -70,7 +145,7 @@ void RB_ShadowFinish(void) {
 
 	RB_InstantQuad2(quadVerts, texCoords);
 
-	qglStencilFunc(GL_ALWAYS, 0, 0xff);
+	qglDisable(GL_STENCIL_TEST);
 }
 
 
@@ -80,7 +155,7 @@ RB_ProjectionShadowDeform
 
 =================
 */
-void RB_ProjectionShadowDeform( void ) {
+void RB_ProjectionShadowDeform(void) {
 	float	*xyz;
 	int		i;
 	float	h;
@@ -90,7 +165,7 @@ void RB_ProjectionShadowDeform( void ) {
 	float	d;
 	vec3_t	lightDir;
 
-	xyz = ( float * ) tess.xyz;
+	xyz = (float *)tess.xyz;
 
 	ground[0] = backEnd.ori.axis[0][2];
 	ground[1] = backEnd.ori.axis[1][2];
@@ -98,12 +173,12 @@ void RB_ProjectionShadowDeform( void ) {
 
 	groundDist = backEnd.ori.origin[2] - backEnd.currentEntity->e.shadowPlane;
 
-	VectorCopy( backEnd.currentEntity->modelLightDir, lightDir );
-	d = DotProduct( lightDir, ground );
+	VectorCopy(backEnd.currentEntity->modelLightDir, lightDir);
+	d = DotProduct(lightDir, ground);
 	// don't let the shadows get too long or go negative
-	if ( d < 0.5 ) {
-		VectorMA( lightDir, (0.5 - d), ground, lightDir );
-		d = DotProduct( lightDir, ground );
+	if (d < 0.5) {
+		VectorMA(lightDir, (0.5 - d), ground, lightDir);
+		d = DotProduct(lightDir, ground);
 	}
 	d = 1.0 / d;
 
@@ -111,8 +186,8 @@ void RB_ProjectionShadowDeform( void ) {
 	light[1] = lightDir[1] * d;
 	light[2] = lightDir[2] * d;
 
-	for ( i = 0; i < tess.numVertexes; i++, xyz += 4 ) {
-		h = DotProduct( xyz, ground ) + groundDist;
+	for (i = 0; i < tess.numVertexes; i++, xyz += 4) {
+		h = DotProduct(xyz, ground) + groundDist;
 
 		xyz[0] -= light[0] * h;
 		xyz[1] -= light[1] * h;
