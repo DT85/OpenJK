@@ -1549,18 +1549,6 @@ typedef struct {
 	stereoFrame_t	stereoFrame;
 } viewParms_t;
 
-// skins allow models to be retextured without modifying the model file
-typedef struct {
-	char		name[MAX_QPATH];
-	shader_t	*shader;
-} skinSurface_t;
-
-typedef struct skin_s {
-	char		name[MAX_QPATH];		// game path, including extension
-	int			numSurfaces;
-	skinSurface_t	*surfaces[128];
-} skin_t;
-
 /*
 ==============================================================================
 

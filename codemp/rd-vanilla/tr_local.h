@@ -146,7 +146,7 @@ typedef struct orientationr_s {
 
 typedef struct image_s {
 	char		imgName[MAX_QPATH];		// game path, including extension
-	word		width, height;	// after power of two and picmip but not including clamp to MAX_TEXTURE_SIZE
+	word		width, height, depth;	// after power of two and picmip but not including clamp to MAX_TEXTURE_SIZE
 	GLuint		texnum;					// gl texture binding
 
 	int			frameUsed;			// for texture usage in frame statistics
@@ -1389,7 +1389,7 @@ void    	R_Init( void );
 
 image_t		*R_FindImageFile( const char *name, qboolean mipmap, qboolean allowPicmip, qboolean allowTC, int glWrapClampMode );
 
-image_t		*R_CreateImage( const char *name, const byte *pic, int width, int height, GLenum format, qboolean mipmap, qboolean allowPicmip, qboolean allowTC, int wrapClampMode, bool bRectangle = false );
+image_t		*R_CreateImage( const char *name, const byte *pic, int width, int height, int bitDepth, GLenum format, qboolean mipmap, qboolean allowPicmip, qboolean allowTC, int wrapClampMode, bool bRectangle = false );
 
 qboolean	R_GetModeInfo( int *width, int *height, int mode );
 

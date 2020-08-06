@@ -976,7 +976,7 @@ R_CreateImage
 This is the only way any image_t are created
 ================
 */
-image_t *R_CreateImage( const char *name, const byte *pic, int width, int height,
+image_t *R_CreateImage( const char *name, const byte *pic, int width, int height, int bitDepth,
 					   GLenum format, qboolean mipmap, qboolean allowPicmip, qboolean allowTC, int glWrapClampMode, bool bRectangle )
 {
 	image_t		*image;
@@ -1082,7 +1082,7 @@ Returns NULL if it fails, not a default image.
 */
 image_t	*R_FindImageFile( const char *name, qboolean mipmap, qboolean allowPicmip, qboolean allowTC, int glWrapClampMode ) {
 	image_t	*image;
-	int		width, height;
+	int		width, height, bppc;
 	byte	*pic;
 
 	if (!name || ri.Cvar_VariableIntegerValue( "dedicated" ) )	// stop ghoul2 horribleness as regards image loading from server
@@ -1105,7 +1105,7 @@ image_t	*R_FindImageFile( const char *name, qboolean mipmap, qboolean allowPicmi
 	//
 	// load the pic from disk
 	//
-	R_LoadImage( name, &pic, &width, &height );
+	R_LoadImage( name, &pic, &width, &height, &bppc);
 	if ( pic == NULL ) {                                    // if we dont get a successful load
 		return NULL;                                        // bail
 	}
@@ -1119,7 +1119,7 @@ image_t	*R_FindImageFile( const char *name, qboolean mipmap, qboolean allowPicmi
 		return NULL;
 	}
 
-	image = R_CreateImage( ( char * ) name, pic, width, height, GL_RGBA, mipmap, allowPicmip, allowTC, glWrapClampMode );
+	image = R_CreateImage( ( char * ) name, pic, width, height, bppc, GL_RGBA, mipmap, allowPicmip, allowTC, glWrapClampMode );
 	Z_Free( pic );
 	return image;
 }
@@ -1133,13 +1133,13 @@ R_CreateDlightImage
 #define	DLIGHT_SIZE	16
 static void R_CreateDlightImage( void )
 {
-	int		width, height;
+	int		width, height, bppc;
 	byte	*pic;
 
-	R_LoadImage("gfx/2d/dlight", &pic, &width, &height);
+	R_LoadImage("gfx/2d/dlight", &pic, &width, &height, &bppc);
 	if (pic)
 	{
-		tr.dlightImage = R_CreateImage("*dlight", pic, width, height, GL_RGBA, qfalse, qfalse, qfalse, GL_CLAMP );
+		tr.dlightImage = R_CreateImage("*dlight", pic, width, height, bppc, GL_RGBA, qfalse, qfalse, qfalse, GL_CLAMP );
 		Z_Free(pic);
 	}
 	else
@@ -1167,7 +1167,7 @@ static void R_CreateDlightImage( void )
 				data[y][x][3] = 255;
 			}
 		}
-		tr.dlightImage = R_CreateImage("*dlight", (byte *)data, DLIGHT_SIZE, DLIGHT_SIZE, GL_RGBA, qfalse, qfalse, qfalse, GL_CLAMP );
+		tr.dlightImage = R_CreateImage("*dlight", (byte *)data, DLIGHT_SIZE, DLIGHT_SIZE, bppc, GL_RGBA, qfalse, qfalse, qfalse, GL_CLAMP );
 	}
 }
 
@@ -1255,7 +1255,7 @@ static void R_CreateFogImage( void ) {
 	// standard openGL clamping doesn't really do what we want -- it includes
 	// the border color at the edges.  OpenGL 1.2 has clamp-to-edge, which does
 	// what we want.
-	tr.fogImage = R_CreateImage("*fog", (byte *)data, FOG_S, FOG_T, GL_RGBA, qfalse, qfalse, qfalse, GL_CLAMP );
+	tr.fogImage = R_CreateImage("*fog", (byte *)data, FOG_S, FOG_T, 8, GL_RGBA, qfalse, qfalse, qfalse, GL_CLAMP );
 	Hunk_FreeTempMemory( data );
 
 	borderColor[0] = 1.0;
@@ -1299,7 +1299,7 @@ static void R_CreateDefaultImage( void ) {
 		data[x][DEFAULT_SIZE-1][2] =
 		data[x][DEFAULT_SIZE-1][3] = 255;
 	}
-	tr.defaultImage = R_CreateImage("*default", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, GL_RGBA, qtrue, qfalse, qfalse, GL_REPEAT );
+	tr.defaultImage = R_CreateImage("*default", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, 8, GL_RGBA, qtrue, qfalse, qfalse, GL_REPEAT );
 }
 
 /*
@@ -1315,9 +1315,9 @@ void R_CreateBuiltinImages( void ) {
 
 	// we use a solid white image instead of disabling texturing
 	memset( data, 255, sizeof( data ) );
-	tr.whiteImage = R_CreateImage("*white", (byte *)data, 8, 8, GL_RGBA, qfalse, qfalse, qfalse, GL_REPEAT);
+	tr.whiteImage = R_CreateImage("*white", (byte *)data, 8, 8, 8, GL_RGBA, qfalse, qfalse, qfalse, GL_REPEAT);
 
-	tr.screenImage = R_CreateImage("*screen", (byte *)data, 8, 8, GL_RGBA, qfalse, qfalse, qfalse, GL_REPEAT );
+	tr.screenImage = R_CreateImage("*screen", (byte *)data, 8, 8, 8, GL_RGBA, qfalse, qfalse, qfalse, GL_REPEAT );
 
 	// Create the scene glow image. - AReis
 	tr.screenGlow = 1024 + giTextureBindNum++;
@@ -1384,11 +1384,11 @@ void R_CreateBuiltinImages( void ) {
 		}
 	}
 
-	tr.identityLightImage = R_CreateImage("*identityLight", (byte *)data, 8, 8, GL_RGBA, qfalse, qfalse, qfalse, GL_REPEAT);
+	tr.identityLightImage = R_CreateImage("*identityLight", (byte *)data, 8, 8, 0, GL_RGBA, qfalse, qfalse, qfalse, GL_REPEAT);
 
 	for(x=0;x<NUM_SCRATCH_IMAGES;x++) {
 		// scratchimage is usually used for cinematic drawing
-		tr.scratchImage[x] = R_CreateImage(va("*scratch%d",x), (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, GL_RGBA, qfalse, qtrue, qfalse, GL_CLAMP);
+		tr.scratchImage[x] = R_CreateImage(va("*scratch%d",x), (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, 0, GL_RGBA, qfalse, qtrue, qfalse, GL_CLAMP);
 	}
 
 	R_CreateDlightImage();

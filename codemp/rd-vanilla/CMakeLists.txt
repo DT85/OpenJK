@@ -83,6 +83,7 @@ set(MPVanillaRendererFiles ${MPVanillaRendererFiles} ${MPVanillaRendererGhoul2Fi
 
 set(MPVanillaRendererRdCommonFiles
 	"${MPDir}/rd-common/mdx_format.h"
+	"${MPDir}/rd-common/stb_image.h"
 	"${MPDir}/rd-common/tr_common.h"
 	"${MPDir}/rd-common/tr_font.cpp"
 	"${MPDir}/rd-common/tr_font.h"
@@ -90,6 +91,7 @@ set(MPVanillaRendererRdCommonFiles
 	"${MPDir}/rd-common/tr_image_jpg.cpp"
 	"${MPDir}/rd-common/tr_image_tga.cpp"
 	"${MPDir}/rd-common/tr_image_png.cpp"
+	"${MPDir}/rd-common/tr_image_stb.cpp"
 	"${MPDir}/rd-common/tr_noise.cpp"
 	"${MPDir}/rd-common/tr_public.h"
 	"${MPDir}/rd-common/tr_types.h")
