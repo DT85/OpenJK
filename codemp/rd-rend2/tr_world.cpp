@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 
 
+
 static world_t *R_GetWorld(int worldIndex)
 {
 	if (worldIndex == -1)
@@ -32,6 +33,7 @@ static world_t *R_GetWorld(int worldIndex)
 	{
 		return tr.bspModels[worldIndex];
 	}
+
 }
 
 /*
@@ -42,12 +44,12 @@ Tries to cull surfaces before they are lighted or
 added to the sorting list.
 ================
 */
-static qboolean	R_CullSurface( msurface_t *surf, int entityNum ) {
-	if ( r_nocull->integer || surf->cullinfo.type == CULLINFO_NONE) {
+static qboolean	R_CullSurface(msurface_t *surf, int entityNum) {
+	if (r_nocull->integer || surf->cullinfo.type == CULLINFO_NONE) {
 		return qfalse;
 	}
 
-	if ( *surf->data == SF_GRID && r_nocurves->integer ) {
+	if (*surf->data == SF_GRID && r_nocurves->integer) {
 		return qtrue;
 	}
 
@@ -57,7 +59,7 @@ static qboolean	R_CullSurface( msurface_t *surf, int entityNum ) {
 		float			d;
 		cullType_t ct;
 
-		if ( !r_facePlaneCull->integer ) {
+		if (!r_facePlaneCull->integer) {
 			return qfalse;
 		}
 
@@ -77,7 +79,7 @@ static qboolean	R_CullSurface( msurface_t *surf, int entityNum ) {
 		*/
 
 		// shadowmaps draw back surfaces
-		if ( tr.viewParms.flags & (VPF_SHADOWMAP | VPF_DEPTHSHADOW) )
+		if (tr.viewParms.flags & (VPF_SHADOWMAP | VPF_DEPTHSHADOW))
 		{
 			if (ct == CT_FRONT_SIDED)
 			{
@@ -92,27 +94,29 @@ static qboolean	R_CullSurface( msurface_t *surf, int entityNum ) {
 		// do proper cull for orthographic projection
 		if (tr.viewParms.flags & VPF_ORTHOGRAPHIC) {
 			d = DotProduct(tr.viewParms.ori.axis[0], surf->cullinfo.plane.normal);
-			if ( ct == CT_FRONT_SIDED ) {
+			if (ct == CT_FRONT_SIDED) {
 				if (d > 0)
 					return qtrue;
-			} else {
+			}
+			else {
 				if (d < 0)
 					return qtrue;
 			}
 			return qfalse;
 		}
 
-		d = DotProduct (tr.ori.viewOrigin, surf->cullinfo.plane.normal);
+		d = DotProduct(tr.ori.viewOrigin, surf->cullinfo.plane.normal);
 
 		// don't cull exactly on the plane, because there are levels of rounding
 		// through the BSP, ICD, and hardware that may cause pixel gaps if an
 		// epsilon isn't allowed here 
-		if ( ct == CT_FRONT_SIDED ) {
-			if ( d < surf->cullinfo.plane.dist - 8 ) {
+		if (ct == CT_FRONT_SIDED) {
+			if (d < surf->cullinfo.plane.dist - 8) {
 				return qtrue;
 			}
-		} else {
-			if ( d > surf->cullinfo.plane.dist + 8 ) {
+		}
+		else {
+			if (d > surf->cullinfo.plane.dist + 8) {
 				return qtrue;
 			}
 		}
@@ -124,13 +128,14 @@ static qboolean	R_CullSurface( msurface_t *surf, int entityNum ) {
 	{
 		int 	sphereCull;
 
-		if ( entityNum != REFENTITYNUM_WORLD ) {
-			sphereCull = R_CullLocalPointAndRadius( surf->cullinfo.localOrigin, surf->cullinfo.radius );
-		} else {
-			sphereCull = R_CullPointAndRadius( surf->cullinfo.localOrigin, surf->cullinfo.radius );
+		if (entityNum != REFENTITYNUM_WORLD) {
+			sphereCull = R_CullLocalPointAndRadius(surf->cullinfo.localOrigin, surf->cullinfo.radius);
+		}
+		else {
+			sphereCull = R_CullPointAndRadius(surf->cullinfo.localOrigin, surf->cullinfo.radius);
 		}
 
-		if ( sphereCull == CULL_OUT )
+		if (sphereCull == CULL_OUT)
 		{
 			return qtrue;
 		}
@@ -140,13 +145,14 @@ static qboolean	R_CullSurface( msurface_t *surf, int entityNum ) {
 	{
 		int boxCull;
 
-		if ( entityNum != REFENTITYNUM_WORLD ) {
-			boxCull = R_CullLocalBox( surf->cullinfo.bounds );
-		} else {
-			boxCull = R_CullBox( surf->cullinfo.bounds );
+		if (entityNum != REFENTITYNUM_WORLD) {
+			boxCull = R_CullLocalBox(surf->cullinfo.bounds);
+		}
+		else {
+			boxCull = R_CullBox(surf->cullinfo.bounds);
 		}
 
-		if ( boxCull == CULL_OUT )
+		if (boxCull == CULL_OUT)
 		{
 			return qtrue;
 		}
@@ -165,77 +171,78 @@ that is touched by one or more dlights, so try to throw out
 more dlights if possible.
 ====================
 */
-static int R_DlightSurface( msurface_t *surf, int dlightBits ) {
+static int R_DlightSurface(msurface_t *surf, int dlightBits) {
 	float       d;
 	int         i;
 	dlight_t    *dl;
-	
-	if ( surf->cullinfo.type & CULLINFO_PLANE )
+
+	if (surf->cullinfo.type & CULLINFO_PLANE)
 	{
-		for ( i = 0 ; i < tr.refdef.num_dlights ; i++ ) {
-			if ( ! ( dlightBits & ( 1 << i ) ) ) {
+		for (i = 0; i < tr.refdef.num_dlights; i++) {
+			if (!(dlightBits & (1 << i))) {
 				continue;
 			}
 			dl = &tr.refdef.dlights[i];
-			d = DotProduct( dl->origin, surf->cullinfo.plane.normal ) - surf->cullinfo.plane.dist;
-			if ( d < -dl->radius || d > dl->radius ) {
+			d = DotProduct(dl->origin, surf->cullinfo.plane.normal) - surf->cullinfo.plane.dist;
+			if (d < -dl->radius || d > dl->radius) {
 				// dlight doesn't reach the plane
-				dlightBits &= ~( 1 << i );
-			}
-		}
-	}
-	
-	if ( surf->cullinfo.type & CULLINFO_BOX )
-	{
-		for ( i = 0 ; i < tr.refdef.num_dlights ; i++ ) {
-			if ( ! ( dlightBits & ( 1 << i ) ) ) {
-				continue;
-			}
-			dl = &tr.refdef.dlights[i];
-			if ( dl->origin[0] - dl->radius > surf->cullinfo.bounds[1][0]
-				|| dl->origin[0] + dl->radius < surf->cullinfo.bounds[0][0]
-				|| dl->origin[1] - dl->radius > surf->cullinfo.bounds[1][1]
-				|| dl->origin[1] + dl->radius < surf->cullinfo.bounds[0][1]
-				|| dl->origin[2] - dl->radius > surf->cullinfo.bounds[1][2]
-				|| dl->origin[2] + dl->radius < surf->cullinfo.bounds[0][2] ) {
-				// dlight doesn't reach the bounds
-				dlightBits &= ~( 1 << i );
+				dlightBits &= ~(1 << i);
 			}
 		}
 	}
 
-	if ( surf->cullinfo.type & CULLINFO_SPHERE )
+	if (surf->cullinfo.type & CULLINFO_BOX)
 	{
-		for ( i = 0 ; i < tr.refdef.num_dlights ; i++ ) {
-			if ( ! ( dlightBits & ( 1 << i ) ) ) {
+		for (i = 0; i < tr.refdef.num_dlights; i++) {
+			if (!(dlightBits & (1 << i))) {
+				continue;
+			}
+			dl = &tr.refdef.dlights[i];
+			if (dl->origin[0] - dl->radius > surf->cullinfo.bounds[1][0]
+				|| dl->origin[0] + dl->radius < surf->cullinfo.bounds[0][0]
+				|| dl->origin[1] - dl->radius > surf->cullinfo.bounds[1][1]
+				|| dl->origin[1] + dl->radius < surf->cullinfo.bounds[0][1]
+				|| dl->origin[2] - dl->radius > surf->cullinfo.bounds[1][2]
+				|| dl->origin[2] + dl->radius < surf->cullinfo.bounds[0][2]) {
+				// dlight doesn't reach the bounds
+				dlightBits &= ~(1 << i);
+			}
+		}
+	}
+
+	if (surf->cullinfo.type & CULLINFO_SPHERE)
+	{
+		for (i = 0; i < tr.refdef.num_dlights; i++) {
+			if (!(dlightBits & (1 << i))) {
 				continue;
 			}
 			dl = &tr.refdef.dlights[i];
 			if (!SpheresIntersect(dl->origin, dl->radius, surf->cullinfo.localOrigin, surf->cullinfo.radius))
 			{
 				// dlight doesn't reach the bounds
-				dlightBits &= ~( 1 << i );
+				dlightBits &= ~(1 << i);
 			}
 		}
 	}
 
-	switch(*surf->data)
+	switch (*surf->data)
 	{
-		case SF_FACE:
-		case SF_GRID:
-		case SF_TRIANGLES:
-		case SF_VBO_MESH:
-			((srfBspSurface_t *)surf->data)->dlightBits = dlightBits;
-			break;
+	case SF_FACE:
+	case SF_GRID:
+	case SF_TRIANGLES:
+	case SF_VBO_MESH:
+		((srfBspSurface_t *)surf->data)->dlightBits = dlightBits;
+		break;
 
-		default:
-			dlightBits = 0;
-			break;
+	default:
+		dlightBits = 0;
+		break;
 	}
 
-	if ( dlightBits ) {
+	if (dlightBits) {
 		tr.pc.c_dlightSurfaces++;
-	} else {
+	}
+	else {
 		tr.pc.c_dlightSurfacesCulled++;
 	}
 
@@ -249,77 +256,77 @@ R_PshadowSurface
 Just like R_DlightSurface, cull any we can
 ====================
 */
-static int R_PshadowSurface( msurface_t *surf, int pshadowBits ) {
+static int R_PshadowSurface(msurface_t *surf, int pshadowBits) {
 	float       d;
 	int         i;
 	pshadow_t    *ps;
-	
-	if ( surf->cullinfo.type & CULLINFO_PLANE )
+
+	if (surf->cullinfo.type & CULLINFO_PLANE)
 	{
-		for ( i = 0 ; i < tr.refdef.num_pshadows ; i++ ) {
-			if ( ! ( pshadowBits & ( 1 << i ) ) ) {
+		for (i = 0; i < tr.refdef.num_pshadows; i++) {
+			if (!(pshadowBits & (1 << i))) {
 				continue;
 			}
 			ps = &tr.refdef.pshadows[i];
-			d = DotProduct( ps->lightOrigin, surf->cullinfo.plane.normal ) - surf->cullinfo.plane.dist;
-			if ( d < -ps->lightRadius || d > ps->lightRadius ) {
+			d = DotProduct(ps->lightOrigin, surf->cullinfo.plane.normal) - surf->cullinfo.plane.dist;
+			if (d < -ps->lightRadius || d > ps->lightRadius) {
 				// pshadow doesn't reach the plane
-				pshadowBits &= ~( 1 << i );
+				pshadowBits &= ~(1 << i);
 			}
 		}
 	}
-	
-	if ( surf->cullinfo.type & CULLINFO_BOX )
+
+	if (surf->cullinfo.type & CULLINFO_BOX)
 	{
-		for ( i = 0 ; i < tr.refdef.num_pshadows ; i++ ) {
-			if ( ! ( pshadowBits & ( 1 << i ) ) ) {
+		for (i = 0; i < tr.refdef.num_pshadows; i++) {
+			if (!(pshadowBits & (1 << i))) {
 				continue;
 			}
 			ps = &tr.refdef.pshadows[i];
-			if ( ps->lightOrigin[0] - ps->lightRadius > surf->cullinfo.bounds[1][0]
+			if (ps->lightOrigin[0] - ps->lightRadius > surf->cullinfo.bounds[1][0]
 				|| ps->lightOrigin[0] + ps->lightRadius < surf->cullinfo.bounds[0][0]
 				|| ps->lightOrigin[1] - ps->lightRadius > surf->cullinfo.bounds[1][1]
 				|| ps->lightOrigin[1] + ps->lightRadius < surf->cullinfo.bounds[0][1]
 				|| ps->lightOrigin[2] - ps->lightRadius > surf->cullinfo.bounds[1][2]
-				|| ps->lightOrigin[2] + ps->lightRadius < surf->cullinfo.bounds[0][2] 
-				|| BoxOnPlaneSide(surf->cullinfo.bounds[0], surf->cullinfo.bounds[1], &ps->cullPlane) == 2 ) {
+				|| ps->lightOrigin[2] + ps->lightRadius < surf->cullinfo.bounds[0][2]
+				|| BoxOnPlaneSide(surf->cullinfo.bounds[0], surf->cullinfo.bounds[1], &ps->cullPlane) == 2) {
 				// pshadow doesn't reach the bounds
-				pshadowBits &= ~( 1 << i );
+				pshadowBits &= ~(1 << i);
 			}
 		}
 	}
 
-	if ( surf->cullinfo.type & CULLINFO_SPHERE )
+	if (surf->cullinfo.type & CULLINFO_SPHERE)
 	{
-		for ( i = 0 ; i < tr.refdef.num_pshadows ; i++ ) {
-			if ( ! ( pshadowBits & ( 1 << i ) ) ) {
+		for (i = 0; i < tr.refdef.num_pshadows; i++) {
+			if (!(pshadowBits & (1 << i))) {
 				continue;
 			}
 			ps = &tr.refdef.pshadows[i];
 			if (!SpheresIntersect(ps->viewOrigin, ps->viewRadius, surf->cullinfo.localOrigin, surf->cullinfo.radius)
-				|| DotProduct( surf->cullinfo.localOrigin, ps->cullPlane.normal ) - ps->cullPlane.dist < -surf->cullinfo.radius)
+				|| DotProduct(surf->cullinfo.localOrigin, ps->cullPlane.normal) - ps->cullPlane.dist < -surf->cullinfo.radius)
 			{
 				// pshadow doesn't reach the bounds
-				pshadowBits &= ~( 1 << i );
+				pshadowBits &= ~(1 << i);
 			}
 		}
 	}
 
-	switch(*surf->data)
+	switch (*surf->data)
 	{
-		case SF_FACE:
-		case SF_GRID:
-		case SF_TRIANGLES:
-		case SF_VBO_MESH:
-			((srfBspSurface_t *)surf->data)->pshadowBits = pshadowBits;
-			break;
+	case SF_FACE:
+	case SF_GRID:
+	case SF_TRIANGLES:
+	case SF_VBO_MESH:
+		((srfBspSurface_t *)surf->data)->pshadowBits = pshadowBits;
+		break;
 
-		default:
-			pshadowBits = 0;
-			break;
+	default:
+		pshadowBits = 0;
+		break;
 	}
 
-	if ( pshadowBits ) {
+	if (pshadowBits) {
 		//tr.pc.c_dlightSurfaces++;
 	}
 
@@ -342,37 +349,49 @@ static void R_AddWorldSurface(
 	// FIXME: bmodel fog?
 
 	// try to cull before dlighting or adding
-	if ( R_CullSurface( surf, entityNum ) ) {
+	if (R_CullSurface(surf, entityNum)) {
 		return;
 	}
 
 	// check for dlighting
-	if ( dlightBits ) {
-		dlightBits = R_DlightSurface( surf, dlightBits );
-		dlightBits = ( dlightBits != 0 );
+	if (dlightBits) {
+		dlightBits = R_DlightSurface(surf, dlightBits);
+		dlightBits = (dlightBits != 0);
 	}
 
-	// set pshadows
-	if ( pshadowBits && r_shadows->integer == 4 ) {
-		R_PshadowSurface( surf, pshadowBits );
+	// check for pshadows
+	if (pshadowBits)
+	{
+		pshadowBits = R_PshadowSurface(surf, pshadowBits);
+		pshadowBits = (pshadowBits != 0);
 	}
+
+	vec3_t transformed;
+	if (entityNum != REFENTITYNUM_WORLD) {
+		R_LocalPointToWorld(surf->cullinfo.localOrigin, transformed);
+		VectorSubtract(transformed, tr.refdef.vieworg, transformed);
+	}
+	else {
+		VectorSubtract(surf->cullinfo.localOrigin, tr.refdef.vieworg, transformed);
+	}
+	float distance = VectorLength(transformed);
 
 	bool isPostRenderEntity = false;
-	if ( entityNum != REFENTITYNUM_WORLD )
+	if (entityNum != REFENTITYNUM_WORLD)
 	{
 		assert(entity);
 		isPostRenderEntity = R_IsPostRenderEntity(entity);
 	}
 
-	R_AddDrawSurf( surf->data, entityNum, surf->shader, surf->fogIndex,
-			dlightBits, isPostRenderEntity, surf->cubemapIndex );
+	R_AddDrawSurf(surf->data, entityNum, surf->shader, surf->fogIndex,
+		dlightBits, isPostRenderEntity, surf->cubemapIndex, distance);
 
-	for ( int i = 0, numSprites = surf->numSurfaceSprites; 
-			i < numSprites; ++i )
+	for (int i = 0, numSprites = surf->numSurfaceSprites;
+		i < numSprites; ++i)
 	{
 		srfSprites_t *sprites = surf->surfaceSprites + i;
 		R_AddDrawSurf((surfaceType_t *)sprites, entityNum, sprites->shader,
-				surf->fogIndex, dlightBits, isPostRenderEntity, 0);
+			surf->fogIndex, dlightBits, isPostRenderEntity, 0, distance);
 	}
 }
 
@@ -389,18 +408,19 @@ static void R_AddWorldSurface(
 R_AddBrushModelSurfaces
 =================
 */
-void R_AddBrushModelSurfaces ( trRefEntity_t *ent, int entityNum ) {
-	model_t *pModel = R_GetModelByHandle( ent->e.hModel );
+void R_AddBrushModelSurfaces(trRefEntity_t *ent, int entityNum) {
+	model_t *pModel = R_GetModelByHandle(ent->e.hModel);
 	bmodel_t *bmodel = pModel->data.bmodel;
-	int clip = R_CullLocalBox( bmodel->bounds );
-	if ( clip == CULL_OUT ) {
+	int clip = R_CullLocalBox(bmodel->bounds);
+
+	if (clip == CULL_OUT) {
 		return;
 	}
-	
-	R_SetupEntityLighting( &tr.refdef, ent );
-	R_DlightBmodel( bmodel, ent );
 
-	for ( int i = 0 ; i < bmodel->numSurfaces ; i++ ) {
+	R_SetupEntityLighting(&tr.refdef, ent);
+	R_DlightBmodel(bmodel, ent);
+
+	for (int i = 0; i < bmodel->numSurfaces; i++) {
 		int surf = bmodel->firstSurface + i;
 		world_t *world = R_GetWorld(bmodel->worldIndex);
 
@@ -412,7 +432,7 @@ void R_AddBrushModelSurfaces ( trRefEntity_t *ent, int entityNum ) {
 	}
 }
 
-void RE_SetRangedFog ( float range )
+void RE_SetRangedFog(float range)
 {
 	tr.rangedFog = range;
 }
@@ -432,77 +452,76 @@ void RE_SetRangedFog ( float range )
 R_RecursiveWorldNode
 ================
 */
-static void R_RecursiveWorldNode( mnode_t *node, int planeBits, int dlightBits, int pshadowBits )
-{
+static void R_RecursiveWorldNode(mnode_t *node, int planeBits, int dlightBits, int pshadowBits) {
+
 	do {
 		int			newDlights[2];
 		unsigned int newPShadows[2];
 
 		// if the node wasn't marked as potentially visible, exit
 		// pvs is skipped for depth shadows
-		if (!(tr.viewParms.flags & VPF_DEPTHSHADOW) &&
-				node->visCounts[tr.visIndex] != tr.visCounts[tr.visIndex]) {
+		if (!(tr.viewParms.flags & VPF_DEPTHSHADOW) && node->visCounts[tr.visIndex] != tr.visCounts[tr.visIndex]) {
 			return;
 		}
 
 		// if the bounding volume is outside the frustum, nothing
 		// inside can be visible OPTIMIZE: don't do this all the way to leafs?
 
-		if ( !r_nocull->integer ) {
+		if (!r_nocull->integer) {
 			int		r;
 
-			if ( planeBits & 1 ) {
+			if (planeBits & 1) {
 				r = BoxOnPlaneSide(node->mins, node->maxs, &tr.viewParms.frustum[0]);
 				if (r == 2) {
 					return;						// culled
 				}
-				if ( r == 1 ) {
+				if (r == 1) {
 					planeBits &= ~1;			// all descendants will also be in front
 				}
 			}
 
-			if ( planeBits & 2 ) {
+			if (planeBits & 2) {
 				r = BoxOnPlaneSide(node->mins, node->maxs, &tr.viewParms.frustum[1]);
 				if (r == 2) {
 					return;						// culled
 				}
-				if ( r == 1 ) {
+				if (r == 1) {
 					planeBits &= ~2;			// all descendants will also be in front
 				}
 			}
 
-			if ( planeBits & 4 ) {
+			if (planeBits & 4) {
 				r = BoxOnPlaneSide(node->mins, node->maxs, &tr.viewParms.frustum[2]);
 				if (r == 2) {
 					return;						// culled
 				}
-				if ( r == 1 ) {
+				if (r == 1) {
 					planeBits &= ~4;			// all descendants will also be in front
 				}
 			}
 
-			if ( planeBits & 8 ) {
+			if (planeBits & 8) {
 				r = BoxOnPlaneSide(node->mins, node->maxs, &tr.viewParms.frustum[3]);
 				if (r == 2) {
 					return;						// culled
 				}
-				if ( r == 1 ) {
+				if (r == 1) {
 					planeBits &= ~8;			// all descendants will also be in front
 				}
 			}
 
-			if ( planeBits & 16 ) {
+			if (planeBits & 16) {
 				r = BoxOnPlaneSide(node->mins, node->maxs, &tr.viewParms.frustum[4]);
 				if (r == 2) {
 					return;						// culled
 				}
-				if ( r == 1 ) {
+				if (r == 1) {
 					planeBits &= ~16;			// all descendants will also be in front
 				}
 			}
 		}
 
-		if ( node->contents != -1 ) {
+		if (node->contents != -1) {
 			break;
 		}
 
@@ -512,53 +531,58 @@ static void R_RecursiveWorldNode( mnode_t *node, int planeBits, int dlightBits, 
 		// determine which dlights are needed
 		newDlights[0] = 0;
 		newDlights[1] = 0;
-		if ( dlightBits ) {
-			for ( int i = 0 ; i < tr.refdef.num_dlights ; i++ ) {
-				if ( !(dlightBits & (1 << i)) ) {
-					continue;
-				}
+		if (dlightBits) {
+			int	i;
 
-				dlight_t *dl = &tr.refdef.dlights[i];
-				float dist = DotProduct(dl->origin, node->plane->normal) - node->plane->dist;
-				
-				if ( dist > -dl->radius ) {
-					newDlights[0] |= ( 1 << i );
-				}
-				if ( dist < dl->radius ) {
-					newDlights[1] |= ( 1 << i );
+			for (i = 0; i < tr.refdef.num_dlights; i++) {
+				dlight_t	*dl;
+				float		dist;
+
+				if (dlightBits & (1 << i)) {
+					dl = &tr.refdef.dlights[i];
+					dist = DotProduct(dl->origin, node->plane->normal) - node->plane->dist;
+
+					if (dist > -dl->radius) {
+						newDlights[0] |= (1 << i);
+					}
+					if (dist < dl->radius) {
+						newDlights[1] |= (1 << i);
+					}
 				}
 			}
 		}
 
 		newPShadows[0] = 0;
 		newPShadows[1] = 0;
-		if ( pshadowBits ) {
-			for ( int i = 0 ; i < tr.refdef.num_pshadows ; i++ ) {
-				if ( !(pshadowBits & (1 << i)) ) {
-					continue;
-				}
+		if (pshadowBits) {
+			int	i;
 
-				pshadow_t *shadow = &tr.refdef.pshadows[i];
-				float dist = DotProduct(shadow->lightOrigin, node->plane->normal) - node->plane->dist;
-				
-				if ( dist > -shadow->lightRadius ) {
-					newPShadows[0] |= ( 1 << i );
-				}
+			for (i = 0; i < tr.refdef.num_pshadows; i++) {
+				pshadow_t	*shadow;
+				float		dist;
 
-				if ( dist < shadow->lightRadius ) {
-					newPShadows[1] |= ( 1 << i );
+				if (pshadowBits & (1 << i)) {
+					shadow = &tr.refdef.pshadows[i];
+					dist = DotProduct(shadow->lightOrigin, node->plane->normal) - node->plane->dist;
+
+					if (dist > -shadow->lightRadius) {
+						newPShadows[0] |= (1 << i);
+					}
+					if (dist < shadow->lightRadius) {
+						newPShadows[1] |= (1 << i);
+					}
 				}
 			}
 		}
 
 		// recurse down the children, front side first
-		R_RecursiveWorldNode (node->children[0], planeBits, newDlights[0], newPShadows[0] );
+		R_RecursiveWorldNode(node->children[0], planeBits, newDlights[0], newPShadows[0]);
 
 		// tail recurse
 		node = node->children[1];
 		dlightBits = newDlights[1];
 		pshadowBits = newPShadows[1];
-	} while ( 1 );
+	} while (1);
 
 	{
 		// leaf node, so add mark surfaces
@@ -590,7 +614,7 @@ static void R_RecursiveWorldNode( mnode_t *node, int planeBits, int dlightBits, 
 			{
 				if (tr.world->mergedSurfacesViewCount[-surf - 1] != tr.viewCount)
 				{
-					tr.world->mergedSurfacesViewCount[-surf - 1]  = tr.viewCount;
+					tr.world->mergedSurfacesViewCount[-surf - 1] = tr.viewCount;
 					tr.world->mergedSurfacesDlightBits[-surf - 1] = dlightBits;
 					tr.world->mergedSurfacesPshadowBits[-surf - 1] = pshadowBits;
 				}
@@ -626,29 +650,30 @@ static void R_RecursiveWorldNode( mnode_t *node, int planeBits, int dlightBits, 
 R_PointInLeaf
 ===============
 */
-static mnode_t *R_PointInLeaf( const vec3_t p ) {
+static mnode_t *R_PointInLeaf(const vec3_t p) {
 	mnode_t		*node;
 	float		d;
 	cplane_t	*plane;
-	
-	if ( !tr.world ) {
-		ri.Error (ERR_DROP, "R_PointInLeaf: bad model");
+
+	if (!tr.world) {
+		ri.Error(ERR_DROP, "R_PointInLeaf: bad model");
 	}
 
 	node = tr.world->nodes;
-	while( 1 ) {
+	while (1) {
 		if (node->contents != -1) {
 			break;
 		}
 		plane = node->plane;
-		d = DotProduct (p,plane->normal) - plane->dist;
+		d = DotProduct(p, plane->normal) - plane->dist;
 		if (d > 0) {
 			node = node->children[0];
-		} else {
+		}
+		else {
 			node = node->children[1];
 		}
 	}
-	
+
 	return node;
 }
 
@@ -657,9 +682,9 @@ static mnode_t *R_PointInLeaf( const vec3_t p ) {
 R_ClusterPVS
 ==============
 */
-static const byte *R_ClusterPVS (int cluster) {
-	if (!tr.world->vis || cluster < 0 || cluster >= tr.world->numClusters ) {
-		return tr.world->novis;
+static const byte *R_ClusterPVS(int cluster) {
+	if (!tr.world->vis || cluster < 0 || cluster >= tr.world->numClusters) {
+		return NULL;
 	}
 
 	return tr.world->vis + cluster * tr.world->clusterBytes;
@@ -670,21 +695,17 @@ static const byte *R_ClusterPVS (int cluster) {
 R_inPVS
 =================
 */
-qboolean R_inPVS( const vec3_t p1, const vec3_t p2, byte *mask ) {
-	int		leafnum;
-	int		cluster;
+qboolean R_inPVS(vec3_t p1, vec3_t p2) {
+	mnode_t *leaf;
+	byte	*vis;
 
-	leafnum = ri.CM_PointLeafnum (p1);
-	cluster = ri.CM_LeafCluster (leafnum);
+	leaf = R_PointInLeaf(p1);
+	vis = ri.CM_ClusterPVS(leaf->cluster);
+	leaf = R_PointInLeaf(p2);
 
-	//agh, the damn snapshot mask doesn't work for this
-	mask = (byte *) ri.CM_ClusterPVS (cluster);
-
-	leafnum = ri.CM_PointLeafnum (p2);
-	cluster = ri.CM_LeafCluster (leafnum);
-	if ( !(mask[cluster>>3] & (1<<(cluster&7))) )
+	if (!(vis[leaf->cluster >> 3] & (1 << (leaf->cluster & 7)))) {
 		return qfalse;
-
+	}
 	return qtrue;
 }
 
@@ -696,22 +717,26 @@ Mark the leaves and nodes that are in the PVS for the current
 cluster
 ===============
 */
-static void R_MarkLeaves( void )
-{
+static void R_MarkLeaves(void) {
+	const byte	*vis;
+	mnode_t	*leaf, *parent;
+	int		i;
+	int		cluster;
+
 	// lockpvs lets designers walk around to determine the
 	// extent of the current pvs
-	if ( r_lockpvs->integer ) {
+	if (r_lockpvs->integer) {
 		return;
 	}
 
 	// current viewcluster
-	mnode_t	*leaf = R_PointInLeaf(tr.viewParms.pvsOrigin);
-	int cluster = leaf->cluster;
+	leaf = R_PointInLeaf(tr.viewParms.pvsOrigin);
+	cluster = leaf->cluster;
 
 	// if the cluster is the same and the area visibility matrix
 	// hasn't changed, we don't need to mark everything again
 
-	for (int i = 0; i < MAX_VISCOUNTS; i++)
+	for (i = 0; i < MAX_VISCOUNTS; i++)
 	{
 		// if the areamask or r_showcluster was modified, invalidate all visclusters
 		// this caused doors to open into undrawn areas
@@ -723,10 +748,8 @@ static void R_MarkLeaves( void )
 		{
 			if (tr.visClusters[i] != tr.visClusters[tr.visIndex] && r_showcluster->integer)
 			{
-				ri.Printf(PRINT_ALL, "found cluster:%i  area:%i  index:%i\n",
-					cluster, leaf->area, i);
+				ri.Printf(PRINT_ALL, "found cluster:%i  area:%i  index:%i\n", cluster, leaf->area, i);
 			}
-
 			tr.visIndex = i;
 			return;
 		}
@@ -736,38 +759,35 @@ static void R_MarkLeaves( void )
 	tr.visCounts[tr.visIndex]++;
 	tr.visClusters[tr.visIndex] = cluster;
 
-	if ( r_showcluster->modified || r_showcluster->integer ) {
+	if (r_showcluster->modified || r_showcluster->integer) {
 		r_showcluster->modified = qfalse;
-		if ( r_showcluster->integer ) {
-			ri.Printf( PRINT_ALL, "cluster:%i  area:%i\n", cluster, leaf->area );
+		if (r_showcluster->integer) {
+			ri.Printf(PRINT_ALL, "cluster:%i  area:%i\n", cluster, leaf->area);
 		}
 	}
 
-	const byte *vis = R_ClusterPVS(tr.visClusters[tr.visIndex]);
-	
-	int i;
+	vis = R_ClusterPVS(tr.visClusters[tr.visIndex]);
+
 	for (i = 0, leaf = tr.world->nodes; i < tr.world->numnodes; i++, leaf++) {
 		cluster = leaf->cluster;
-		if ( cluster < 0 || cluster >= tr.world->numClusters ) {
+		if (cluster < 0 || cluster >= tr.world->numClusters) {
 			continue;
 		}
 
 		// check general pvs
-		if ( !(vis[cluster>>3] & (1<<(cluster&7))) ) {
+		if (vis && !(vis[cluster >> 3] & (1 << (cluster & 7)))) {
 			continue;
 		}
 
 		// check for door connection
-		if ( (tr.refdef.areamask[leaf->area>>3] & (1<<(leaf->area&7)) ) ) {
+		if ((tr.refdef.areamask[leaf->area >> 3] & (1 << (leaf->area & 7)))) {
 			continue;		// not visible
 		}
 
-		mnode_t *parent = leaf;
+		parent = leaf;
 		do {
-			if (parent->visCounts[tr.visIndex] == tr.visCounts[tr.visIndex]) {
+			if (parent->visCounts[tr.visIndex] == tr.visCounts[tr.visIndex])
 				break;
-			}
-
 			parent->visCounts[tr.visIndex] = tr.visCounts[tr.visIndex];
 			parent = parent->parent;
 		} while (parent);
@@ -780,44 +800,43 @@ static void R_MarkLeaves( void )
 R_AddWorldSurfaces
 =============
 */
-void R_AddWorldSurfaces( viewParms_t *viewParms, trRefdef_t *refdef ) {
+void R_AddWorldSurfaces(viewParms_t *viewParms, trRefdef_t *refdef) {
 	int planeBits, dlightBits, pshadowBits;
 
-	if ( !r_drawworld->integer ) {
+	if (!r_drawworld->integer) {
 		return;
 	}
 
-	if ( refdef->rdflags & RDF_NOWORLDMODEL ) {
+	if (refdef->rdflags & RDF_NOWORLDMODEL) {
 		return;
 	}
 
 	// determine which leaves are in the PVS / areamask
-	if (!(viewParms->flags & VPF_DEPTHSHADOW)) {
+	if (!(viewParms->flags & VPF_DEPTHSHADOW))
 		R_MarkLeaves();
-	}
 
 	// clear out the visible min/max
-	ClearBounds(viewParms->visBounds[0], viewParms->visBounds[1]);
+	ClearBounds(viewParms->visBounds[0], tr.viewParms.visBounds[1]);
 
 	// perform frustum culling and flag all the potentially visible surfaces
-	refdef->num_dlights = Q_min(refdef->num_dlights, 32);
-	refdef->num_pshadows = Q_min(refdef->num_pshadows, 32);
+	refdef->num_dlights = Q_min(tr.refdef.num_dlights, 32);
+	refdef->num_pshadows = Q_min(tr.refdef.num_pshadows, 32);
 
 	planeBits = (viewParms->flags & VPF_FARPLANEFRUSTUM) ? 31 : 15;
 
-	if ( viewParms->flags & VPF_DEPTHSHADOW )
+	if (viewParms->flags & VPF_DEPTHSHADOW)
 	{
 		dlightBits = 0;
 		pshadowBits = 0;
 	}
-	else if ( !(viewParms->flags & VPF_SHADOWMAP) )
+	else if (!(viewParms->flags & VPF_SHADOWMAP))
 	{
-		dlightBits = ( 1 << refdef->num_dlights ) - 1;
-		pshadowBits = ( 1 << refdef->num_pshadows ) - 1;
+		dlightBits = (1 << refdef->num_dlights) - 1;
+		pshadowBits = (1 << refdef->num_pshadows) - 1;
 	}
 	else
 	{
-		dlightBits = ( 1 << refdef->num_dlights ) - 1;
+		dlightBits = (1 << refdef->num_dlights) - 1;
 		pshadowBits = 0;
 	}
 
@@ -825,6 +844,7 @@ void R_AddWorldSurfaces( viewParms_t *viewParms, trRefdef_t *refdef ) {
 
 	// now add all the potentially visible surfaces
 	// also mask invisible dlights for next frame
+
 	refdef->dlightMask = 0;
 
 	for (int i = 0; i < tr.world->numWorldSurfaces; i++)
@@ -832,9 +852,8 @@ void R_AddWorldSurfaces( viewParms_t *viewParms, trRefdef_t *refdef ) {
 		if (tr.world->surfacesViewCount[i] != tr.viewCount)
 			continue;
 
-		R_AddWorldSurface(
-			tr.world->surfaces + i,
-			nullptr,
+		R_AddWorldSurface(tr.world->surfaces + i,
+			NULL,
 			REFENTITYNUM_WORLD,
 			tr.world->surfacesDlightBits[i],
 			tr.world->surfacesPshadowBits[i]);
@@ -848,7 +867,7 @@ void R_AddWorldSurfaces( viewParms_t *viewParms, trRefdef_t *refdef ) {
 
 		R_AddWorldSurface(
 			tr.world->mergedSurfaces + i,
-			nullptr,
+			NULL,
 			REFENTITYNUM_WORLD,
 			tr.world->mergedSurfacesDlightBits[i],
 			tr.world->mergedSurfacesPshadowBits[i]);
@@ -856,4 +875,5 @@ void R_AddWorldSurfaces( viewParms_t *viewParms, trRefdef_t *refdef ) {
 	}
 
 	refdef->dlightMask = ~refdef->dlightMask;
+
 }
