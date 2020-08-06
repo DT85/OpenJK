@@ -61,6 +61,7 @@ set(MPRend2Files
 	"${MPDir}/rd-rend2/tr_stl.h"
 	"${MPDir}/rd-rend2/tr_subs.cpp"
 	"${MPDir}/rd-rend2/tr_surface.cpp"
+	"${MPDir}/rd-rend2/tr_tbo.cpp"
 	"${MPDir}/rd-rend2/tr_vbo.cpp"
 	"${MPDir}/rd-rend2/tr_world.cpp"
 	"${MPDir}/rd-rend2/tr_worldeffects.cpp"
