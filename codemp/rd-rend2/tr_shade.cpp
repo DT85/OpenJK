@@ -1634,7 +1634,6 @@ static void RB_IterateStagesGeneric(shaderCommands_t *input, const VertexArraysP
 				!strcmp(input->shader->name, "SFX_Sabers/black_trail"))
 				renderPass = backEndData->currentPostPass;
 
-			//FIXME: causes crash @ line 2015 due to forceRefraction being true....
 			if ((input->shader == tr.distortionShader) || (backEnd.currentEntity && (backEnd.currentEntity->e.renderfx & RF_DISTORTION)))
 			{
 				forceRefraction = true;
