@@ -2031,7 +2031,7 @@ int R_LerpTag(orientation_t *tag, qhandle_t handle, int startFrame, int endFrame
 
 			AxisClear(tag->axis);
 			VectorClear(tag->origin);
-			return;
+			return qfalse;
 
 		}
 	}
@@ -2042,7 +2042,7 @@ int R_LerpTag(orientation_t *tag, qhandle_t handle, int startFrame, int endFrame
 		if (!start || !end) {
 			AxisClear(tag->axis);
 			VectorClear(tag->origin);
-			return;
+			return qfalse;
 		}
 	}
 
@@ -2058,6 +2058,7 @@ int R_LerpTag(orientation_t *tag, qhandle_t handle, int startFrame, int endFrame
 	VectorNormalize(tag->axis[0]);
 	VectorNormalize(tag->axis[1]);
 	VectorNormalize(tag->axis[2]);
+	return qtrue;
 }
 
 

@@ -520,26 +520,6 @@ void R_SetColorMode(GLboolean *rgba, stereoFrame_t stereoFrame, int colormode)
 
 /*
 =============
-RE_Scissor
-=============
-*/
-void RE_Scissor(float x, float y, float w, float h)
-{
-	scissorCommand_t	*cmd;
-
-	cmd = (scissorCommand_t *)R_GetCommandBuffer(sizeof(*cmd));
-	if (!cmd) {
-		return;
-	}
-	cmd->commandId = RC_SCISSOR;
-	cmd->x = x;
-	cmd->y = y;
-	cmd->w = w;
-	cmd->h = h;
-}
-
-/*
-=============
 RE_RenderWorldEffects
 =============
 */

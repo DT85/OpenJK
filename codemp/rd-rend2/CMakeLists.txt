@@ -38,6 +38,7 @@ set(MPRend2Files
 	"${MPDir}/rd-rend2/tr_glsl.cpp"
 	"${MPDir}/rd-rend2/tr_glsl_parse.cpp"
 	"${MPDir}/rd-rend2/tr_image.cpp"
+	"${MPDir}/rd-rend2/tr_image_dds.cpp"
 	"${MPDir}/rd-rend2/tr_init.cpp"
 	"${MPDir}/rd-rend2/tr_light.cpp"
 	"${MPDir}/rd-rend2/tr_local.h"
@@ -83,6 +84,7 @@ set(MPRend2Files ${MPRend2Files} ${MPRend2Ghoul2Files})
 
 set(MPRend2RdCommonFiles
 	"${MPDir}/rd-common/mdx_format.h"
+	"${MPDir}/rd-common/stb_image.h"
 	"${MPDir}/rd-common/tr_common.h"
 	"${MPDir}/rd-common/tr_font.cpp"
 	"${MPDir}/rd-common/tr_font.h"
@@ -90,6 +92,7 @@ set(MPRend2RdCommonFiles
 	"${MPDir}/rd-common/tr_image_jpg.cpp"
 	"${MPDir}/rd-common/tr_image_tga.cpp"
 	"${MPDir}/rd-common/tr_image_png.cpp"
+	"${MPDir}/rd-common/tr_image_stb.cpp"
 	"${MPDir}/rd-common/tr_noise.cpp"
 	"${MPDir}/rd-common/tr_public.h"
 	"${MPDir}/rd-common/tr_types.h")

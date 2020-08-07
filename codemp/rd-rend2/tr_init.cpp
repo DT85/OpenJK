@@ -150,10 +150,10 @@ cvar_t	*r_noServerGhoul2;
 cvar_t	*r_Ghoul2AnimSmooth = 0;
 cvar_t	*r_Ghoul2UnSqashAfterSmooth = 0;
 //cvar_t	*r_Ghoul2UnSqash;
-//cvar_t	*r_Ghoul2TimeBase = 0;
+//cvar_t	*r_Ghoul2TimeBase=0; from single player
 //cvar_t	*r_Ghoul2NoLerp;
 //cvar_t	*r_Ghoul2NoBlend;
-//cvar_t	*r_Ghoul2BlendMultiplier = 0;
+//cvar_t	*r_Ghoul2BlendMultiplier=0;
 cvar_t	*broadsword = 0;
 cvar_t	*broadsword_kickbones = 0;
 cvar_t	*broadsword_kickorigin = 0;
@@ -1580,11 +1580,6 @@ void R_Register(void)
 #endif
 	r_noServerGhoul2 = ri.Cvar_Get("r_noserverghoul2", "0", CVAR_CHEAT, "");
 	r_Ghoul2AnimSmooth = ri.Cvar_Get("r_ghoul2animsmooth", "0.25", 0, "");
-	//r_Ghoul2UnSqash = ri.Cvar_Get("r_ghoul2unsquash", "1", 0, "");
-	//r_Ghoul2TimeBase = ri.Cvar_Get("r_ghoul2timebase", "2", 0, "");
-	//r_Ghoul2NoLerp = ri.Cvar_Get("r_ghoul2nolerp", "0", 0, "");
-	//r_Ghoul2NoBlend = ri.Cvar_Get("r_ghoul2noblend", "0", 0, "");
-	//r_Ghoul2BlendMultiplier = ri.Cvar_Get("r_ghoul2blendmultiplier", "1", 0, "");
 	r_Ghoul2UnSqashAfterSmooth = ri.Cvar_Get("r_ghoul2unsquashaftersmooth", "1", 0, "");
 	broadsword = ri.Cvar_Get("broadsword", "0", CVAR_ARCHIVE, "");
 	broadsword_kickbones = ri.Cvar_Get("broadsword_kickbones", "1", 0, "");

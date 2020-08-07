@@ -169,7 +169,7 @@ void CModelCacheManager::DeleteAll(void)
  * Scans the cache for assets which don't match the checksum, and dumps
  * those that don't match.
  */
- /*void CModelCacheManager::DumpNonPure( void )
+ void CModelCacheManager::DumpNonPure( void )
  {
 	 ri.Printf( PRINT_DEVELOPER,  "CCacheManager::DumpNonPure():\n");
 
@@ -184,7 +184,7 @@ void CModelCacheManager::DeleteAll(void)
 			 ri.Printf( PRINT_DEVELOPER, "Dumping none pure model \"%s\"", it->path );
 
 			 if( it->pDiskImage )
-				 R_Free( it->pDiskImage );
+				 Z_Free( it->pDiskImage );
 
 			 it = files.erase(it);
 		 }
@@ -195,7 +195,7 @@ void CModelCacheManager::DeleteAll(void)
 	 }
 
 	 ri.Printf( PRINT_DEVELOPER, "CCacheManager::DumpNonPure(): Ok\n");
- }*/
+ }
 
 CModelCacheManager::AssetCache::iterator CModelCacheManager::FindAsset(const char *path)
 {

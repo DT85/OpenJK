@@ -194,7 +194,7 @@ bool RE_SplitSkins(const char *INname, char *skinhead, char *skintorso, char *sk
 qhandle_t RE_RegisterIndividualSkin(const char *name, qhandle_t hSkin)
 {
 	skin_t		*skin;
-	skinSurface_t	*surf;
+	_skinSurface_t	*surf;
 	char		*text, *text_p;
 	char		*token;
 	char		surfName[MAX_QPATH];
@@ -248,7 +248,7 @@ qhandle_t RE_RegisterIndividualSkin(const char *name, qhandle_t hSkin)
 			ri.Printf(PRINT_WARNING, "WARNING: RE_RegisterSkin( '%s' ) more than %u surfaces!\n", name, (unsigned int)ARRAY_LEN(skin->surfaces));
 			break;
 		}
-		surf = skin->surfaces[skin->numSurfaces] = (skinSurface_t *)Hunk_Alloc(sizeof(*skin->surfaces[0]), h_low);
+		surf = skin->surfaces[skin->numSurfaces] = (_skinSurface_t *)Hunk_Alloc(sizeof(*skin->surfaces[0]), h_low);
 		Q_strncpyz(surf->name, surfName, sizeof(surf->name));
 
 		if (gServerSkinHack)
@@ -393,7 +393,7 @@ void	R_InitSkins(void) {
 	skin = tr.skins[0] = (skin_t*)ri.Hunk_Alloc(sizeof(skin_t), h_low);
 	Q_strncpyz(skin->name, "<default skin>", sizeof(skin->name));
 	skin->numSurfaces = 1;
-	skin->surfaces[0] = (skinSurface_t *)ri.Hunk_Alloc(sizeof(*skin->surfaces[0]), h_low);
+	skin->surfaces[0] = (_skinSurface_t *)ri.Hunk_Alloc(sizeof(*skin->surfaces[0]), h_low);
 	skin->surfaces[0]->shader = tr.defaultShader;
 }
 
@@ -425,7 +425,7 @@ void	R_SkinList_f(void) {
 		ri.Printf(PRINT_ALL, "%3i:%s\n", i, skin->name);
 		for (j = 0; j < skin->numSurfaces; j++) {
 			ri.Printf(PRINT_ALL, "       %s = %s\n",
-				skin->surfaces[j]->name, skin->surfaces[j]->shader->name);
+				skin->surfaces[j]->name, ((shader_t* )skin->surfaces[j]->shader)->name);
 		}
 	}
 	ri.Printf(PRINT_ALL, "------------------\n");

@@ -184,11 +184,6 @@ extern cvar_t	*r_noPrecacheGLA;
 extern cvar_t	*r_noServerGhoul2;
 extern cvar_t	*r_Ghoul2AnimSmooth;
 extern cvar_t	*r_Ghoul2UnSqashAfterSmooth;
-//extern cvar_t	*r_Ghoul2UnSqash;
-//extern cvar_t	*r_Ghoul2NoLerp;
-//extern cvar_t	*r_Ghoul2NoBlend;
-//extern cvar_t	*r_Ghoul2TimeBase=0; from single player
-//extern cvar_t	*r_Ghoul2BlendMultiplier=0;
 extern cvar_t	*broadsword;
 extern cvar_t	*broadsword_kickbones;
 extern cvar_t	*broadsword_kickorigin;
@@ -3310,7 +3305,6 @@ typedef enum {
 	RC_END_OF_LIST,
 	RC_SET_COLOR,
 	RC_STRETCH_PIC,
-	RC_SCISSOR,
 	RC_ROTATE_PIC,
 	RC_ROTATE_PIC2,
 	RC_ROTATE_PIC2_RATIOFIX,

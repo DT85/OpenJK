@@ -3121,6 +3121,8 @@ static const void	*RB_SwapBuffers(const void *data) {
 
 	backEnd.framePostProcessed = qfalse;
 	backEnd.projection2D = qfalse;
+
+	return (const void *)(cmd + 1);
 }
 
 const void	*RB_WorldEffects(const void *data)
@@ -3723,9 +3725,6 @@ void RB_ExecuteRenderCommands(const void *data) {
 			break;
 		case RC_ROTATE_PIC2_RATIOFIX:
 			data = RB_RotatePic2RatioFix(data);
-			break;
-		case RC_SCISSOR:
-			data = RB_Scissor(data);
 			break;
 		case RC_DRAW_SURFS:
 			data = RB_DrawSurfs(data);

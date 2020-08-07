@@ -71,16 +71,13 @@ void G2Time_ReportTimers(void)
 #include <float.h>
 //rww - RAGDOLL_END
 
-extern	cvar_t	*r_Ghoul2UnSqash;
 extern	cvar_t	*r_Ghoul2AnimSmooth;
-extern	cvar_t	*r_Ghoul2NoLerp;
-extern	cvar_t	*r_Ghoul2NoBlend;
 extern	cvar_t	*r_Ghoul2UnSqashAfterSmooth;
 
 bool HackadelicOnClient = false; // means this is a render traversal
 
-bool G2_SetupModelPointers(CGhoul2Info_v &ghoul2); // returns true if any model is properly set up
-bool G2_SetupModelPointers(CGhoul2Info *ghlInfo); // returns true if the model is properly set up
+qboolean G2_SetupModelPointers(CGhoul2Info_v &ghoul2); // returns true if any model is properly set up
+qboolean G2_SetupModelPointers(CGhoul2Info *ghlInfo); // returns true if the model is properly set up
 
 // I hate doing this, but this is the simplest way to get this into the routines it needs to be
 mdxaBone_t		worldMatrix;
@@ -88,6 +85,30 @@ mdxaBone_t		worldMatrixInv;
 #ifdef _G2_GORE
 qhandle_t		goreShader = -1;
 #endif
+
+class CConstructBoneList
+{
+public:
+	int				surfaceNum;
+	int				*boneUsedList;
+	surfaceInfo_v	&rootSList;
+	model_t			*currentModel;
+	boneInfo_v		&boneList;
+
+	CConstructBoneList(
+		int				initsurfaceNum,
+		int				*initboneUsedList,
+		surfaceInfo_v	&initrootSList,
+		model_t			*initcurrentModel,
+		boneInfo_v		&initboneList) :
+
+		surfaceNum(initsurfaceNum),
+		boneUsedList(initboneUsedList),
+		rootSList(initrootSList),
+		currentModel(initcurrentModel),
+		boneList(initboneList) { }
+
+};
 
 const static mdxaBone_t		identityMatrix =
 {
@@ -1133,7 +1154,7 @@ void G2_TimingModel(boneInfo_t &bone, int currentTime, int numFramesInFile, int 
 //off which will give us the desired settling position given the frame in the skeleton
 //that should be used -rww
 int G2_Add_Bone(const model_t *mod, boneInfo_v &blist, const char *boneName);
-int G2_Find_Bone(CGhoul2Info *ghlInfo, boneInfo_v &blist, const char *boneName);
+int G2_Find_Bone(const model_t *mod, boneInfo_v &blist, const char *boneName);
 void G2_RagGetAnimMatrix(CGhoul2Info &ghoul2, const int boneNum, mdxaBone_t &matrix, const int frame)
 {
 	mdxaBone_t animMatrix;
@@ -1160,7 +1181,7 @@ void G2_RagGetAnimMatrix(CGhoul2Info &ghoul2, const int boneNum, mdxaBone_t &mat
 	}
 	else
 	{
-		bListIndex = G2_Find_Bone(&ghoul2, ghoul2.mBlist, skel->name);
+		bListIndex = G2_Find_Bone(ghoul2.animModel, ghoul2.mBlist, skel->name);
 		if (bListIndex == -1)
 		{
 #ifdef _RAG_PRINT_TEST
@@ -1199,7 +1220,7 @@ void G2_RagGetAnimMatrix(CGhoul2Info &ghoul2, const int boneNum, mdxaBone_t &mat
 		}
 		else
 		{
-			parentBlistIndex = G2_Find_Bone(&ghoul2, ghoul2.mBlist, pskel->name);
+			parentBlistIndex = G2_Find_Bone(ghoul2.animModel, ghoul2.mBlist, pskel->name);
 			if (parentBlistIndex == -1)
 			{
 				parentBlistIndex = G2_Add_Bone(ghoul2.animModel, ghoul2.mBlist, pskel->name);
@@ -1305,7 +1326,7 @@ void G2_TransformBone(int child, CBoneCache &BC)
 				TB.blendMode = false;
 			}
 		}
-		else if (r_Ghoul2NoBlend->integer || ((boneList[boneListIndex].flags) & (BONE_ANIM_OVERRIDE_LOOP | BONE_ANIM_OVERRIDE)))
+		else if (/*r_Ghoul2NoBlend->integer || */((boneList[boneListIndex].flags) & (BONE_ANIM_OVERRIDE_LOOP | BONE_ANIM_OVERRIDE)))
 			// turn off blending if we are just doing a straing animation override
 		{
 			TB.blendMode = false;
@@ -1319,10 +1340,12 @@ void G2_TransformBone(int child, CBoneCache &BC)
 #if DEBUG_G2_TIMING
 		printTiming = true;
 #endif
+		/*
 		if ((r_Ghoul2NoLerp->integer) || ((boneList[boneListIndex].flags) & (BONE_ANIM_NO_LERP)))
 		{
 			TB.backlerp = 0.0f;
 		}
+		*/
 	}
 	// figure out where the location of the bone animation data is
 	assert(TB.newFrame >= 0 && TB.newFrame < BC.header->numFrames);
@@ -1747,6 +1770,7 @@ void G2_TransformBone(int child, CBoneCache &BC)
 			Multiply_3x4Matrix(&BC.mFinalBones[child].boneMatrix, &tempMatrix, &boneList[boneListIndex].matrix);
 		}
 	}
+	/*
 	if (r_Ghoul2UnSqash->integer)
 	{
 		mdxaBone_t tempMatrix;
@@ -1762,7 +1786,7 @@ void G2_TransformBone(int child, CBoneCache &BC)
 		VectorScale(&tempMatrix.matrix[2][0], maxl, &tempMatrix.matrix[2][0]);
 		Multiply_3x4Matrix(&BC.mFinalBones[child].boneMatrix, &tempMatrix, &skel->BasePoseMatInv);
 	}
-
+	*/
 }
 
 
@@ -2087,6 +2111,34 @@ void G2_ProcessSurfaceBolt2(CBoneCache &boneCache, const mdxmSurface_t *surface,
 
 }
 
+void *G2_FindSurface_BC(const model_s *mod, int index, int lod)
+{
+	mdxmHeader_t *mdxm = mod->data.glm->header;
+	assert(mod);
+	assert(mdxm);
+
+	// point at first lod list
+	byte	*current = (byte*)((intptr_t)mdxm + (intptr_t)mdxm->ofsLODs);
+	int i;
+
+	//walk the lods
+	assert(lod >= 0 && lod < mdxm->numLODs);
+	for (i = 0; i < lod; i++)
+	{
+		mdxmLOD_t *lodData = (mdxmLOD_t *)current;
+		current += lodData->ofsEnd;
+	}
+
+	// avoid the lod pointer data structure
+	current += sizeof(mdxmLOD_t);
+
+	mdxmLODSurfOffset_t *indexes = (mdxmLODSurfOffset_t *)current;
+	// we are now looking at the offset array
+	assert(index >= 0 && index < mdxm->numSurfaces);
+	current += indexes->offsets[index];
+
+	return (void *)current;
+}
 
 void G2_GetBoltMatrixLow(CGhoul2Info &ghoul2, int boltNum, const vec3_t scale, mdxaBone_t &retMatrix)
 {
@@ -2189,7 +2241,7 @@ void RenderSurfaces(CRenderSurface &RS, const trRefEntity_t *ent, int entityNum)
 				// the names have both been lowercased
 				if (!strcmp(RS.skin->surfaces[j]->name, surfInfo->name))
 				{
-					shader = RS.skin->surfaces[j]->shader;
+					shader = (shader_t*)RS.skin->surfaces[j]->shader;
 					break;
 				}
 			}
@@ -2346,6 +2398,87 @@ void RenderSurfaces(CRenderSurface &RS, const trRefEntity_t *ent, int entityNum)
 }
 
 
+// build the used bone list so when doing bone transforms we can determine if we need to do it or not
+void G2_ConstructUsedBoneList(CConstructBoneList &CBL)
+{
+	int	 		i, j;
+	int			offFlags = 0;
+
+	// back track and get the surfinfo struct for this surface
+	const mdxmSurface_t			*surface = (mdxmSurface_t *)G2_FindSurface((void *)CBL.currentModel, CBL.surfaceNum, 0);
+	const mdxmHierarchyOffsets_t	*surfIndexes = (mdxmHierarchyOffsets_t *)((byte *)CBL.currentModel->data.glm->header + sizeof(mdxmHeader_t));
+	const mdxmSurfHierarchy_t	*surfInfo = (mdxmSurfHierarchy_t *)((byte *)surfIndexes + surfIndexes->offsets[surface->thisSurfaceIndex]);
+	const model_t				*mod_a = R_GetModelByHandle(CBL.currentModel->data.glm->header->animIndex);
+	const mdxaSkelOffsets_t		*offsets = (mdxaSkelOffsets_t *)((byte *)mod_a->data.gla + sizeof(mdxaHeader_t));
+	const mdxaSkel_t			*skel, *childSkel;
+
+	// see if we have an override surface in the surface list
+	const surfaceInfo_t	*surfOverride = G2_FindOverrideSurface(CBL.surfaceNum, CBL.rootSList);
+
+	// really, we should use the default flags for this surface unless it's been overriden
+	offFlags = surfInfo->flags;
+
+	// set the off flags if we have some
+	if (surfOverride)
+	{
+		offFlags = surfOverride->offFlags;
+	}
+
+	// if this surface is not off, add it to the shader render list
+	if (!(offFlags & G2SURFACEFLAG_OFF))
+	{
+		int	*bonesReferenced = (int *)((byte*)surface + surface->ofsBoneReferences);
+		// now whip through the bones this surface uses
+		for (i = 0; i < surface->numBoneReferences; i++)
+		{
+			int iBoneIndex = bonesReferenced[i];
+			CBL.boneUsedList[iBoneIndex] = 1;
+
+			// now go and check all the descendant bones attached to this bone and see if any have the always flag on them. If so, activate them
+			skel = (mdxaSkel_t *)((byte *)mod_a->data.gla + sizeof(mdxaHeader_t) + offsets->offsets[iBoneIndex]);
+
+			// for every child bone...
+			for (j = 0; j < skel->numChildren; j++)
+			{
+				// get the skel data struct for each child bone of the referenced bone
+				childSkel = (mdxaSkel_t *)((byte *)mod_a->data.gla + sizeof(mdxaHeader_t) + offsets->offsets[skel->children[j]]);
+
+				// does it have the always on flag on?
+				if (childSkel->flags & G2BONEFLAG_ALWAYSXFORM)
+				{
+					// yes, make sure it's in the list of bones to be transformed.
+					CBL.boneUsedList[skel->children[j]] = 1;
+				}
+			}
+
+			// now we need to ensure that the parents of this bone are actually active...
+			//
+			int iParentBone = skel->parent;
+			while (iParentBone != -1)
+			{
+				if (CBL.boneUsedList[iParentBone])	// no need to go higher
+					break;
+				CBL.boneUsedList[iParentBone] = 1;
+				skel = (mdxaSkel_t *)((byte *)mod_a->data.gla + sizeof(mdxaHeader_t) + offsets->offsets[iParentBone]);
+				iParentBone = skel->parent;
+			}
+		}
+	}
+	else
+		// if we are turning off all descendants, then stop this recursion now
+		if (offFlags & G2SURFACEFLAG_NODESCENDANTS)
+		{
+			return;
+		}
+
+	// now recursively call for the children
+	for (i = 0; i < surfInfo->numChildren; i++)
+	{
+		CBL.surfaceNum = surfInfo->childIndexes[i];
+		G2_ConstructUsedBoneList(CBL);
+	}
+}
+
 // sort all the ghoul models in this list so if they go in reference order. This will ensure the bolt on's are attached to the right place
 // on the previous model, since it ensures the model being attached to is built and rendered first.
 
@@ -2408,35 +2541,6 @@ static void G2_Sort_Models(CGhoul2Info_v &ghoul2, int * const modelList, int * c
 		startPoint = endPoint;
 		endPoint = *modelCount;
 	}
-}
-
-void *G2_FindSurface_BC(const model_s *mod, int index, int lod)
-{
-	mdxmHeader_t *mdxm = mod->data.glm->header;
-	assert(mod);
-	assert(mdxm);
-
-	// point at first lod list
-	byte	*current = (byte*)((intptr_t)mdxm + (intptr_t)mdxm->ofsLODs);
-	int i;
-
-	//walk the lods
-	assert(lod >= 0 && lod < mdxm->numLODs);
-	for (i = 0; i < lod; i++)
-	{
-		mdxmLOD_t *lodData = (mdxmLOD_t *)current;
-		current += lodData->ofsEnd;
-	}
-
-	// avoid the lod pointer data structure
-	current += sizeof(mdxmLOD_t);
-
-	mdxmLODSurfOffset_t *indexes = (mdxmLODSurfOffset_t *)current;
-	// we are now looking at the offset array
-	assert(index >= 0 && index < mdxm->numSurfaces);
-	current += indexes->offsets[index];
-
-	return (void *)current;
 }
 
 static void RootMatrix(CGhoul2Info_v &ghoul2, int time, const vec3_t scale, mdxaBone_t &retMatrix)
