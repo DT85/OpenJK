@@ -4181,8 +4181,8 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 		vec3_t *bitangentsf;
 
 		// +1 to add total vertex count
-		int *baseVertexes = (int *)Z_Malloc(sizeof(int)* (mdxm->numSurfaces + 1), TAG_TEMP_WORKSPACE, qfalse);
-		int *indexOffsets = (int *)Z_Malloc(sizeof(int)* mdxm->numSurfaces, TAG_TEMP_WORKSPACE, qfalse);
+		int *baseVertexes = (int *)ri.Hunk_AllocateTempMemory(sizeof(int) * (mdxm->numSurfaces + 1));
+		int *indexOffsets = (int *)ri.Hunk_AllocateTempMemory(sizeof(int) * mdxm->numSurfaces);
 
 		vboModel->numVBOMeshes = mdxm->numSurfaces;
 
@@ -4207,8 +4207,8 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 
 		baseVertexes[mdxm->numSurfaces] = numVerts;
 
-		tangentsf = (vec3_t *)Z_Malloc(sizeof(vec3_t)* numVerts, TAG_TEMP_WORKSPACE, qtrue);
-		bitangentsf = (vec3_t *)Z_Malloc(sizeof(vec3_t)* numVerts, TAG_TEMP_WORKSPACE, qtrue);
+		tangentsf = (vec3_t *)ri.Hunk_AllocateTempMemory(sizeof(vec3_t) * numVerts);
+		bitangentsf = (vec3_t *)ri.Hunk_AllocateTempMemory(sizeof(vec3_t) * numVerts);
 
 		dataSize += numVerts * sizeof(*verts);
 		dataSize += numVerts * sizeof(*normals);
@@ -4218,7 +4218,7 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 		dataSize += numVerts * sizeof(*tangents);
 
 		// Allocate and write to memory
-		data = (byte *)Z_Malloc(dataSize, TAG_TEMP_WORKSPACE, qfalse);
+		data = (byte *)ri.Hunk_AllocateTempMemory(dataSize);
 
 		verts = (vec3_t *)(data + stride);
 		ofsPosition = stride;
@@ -4381,9 +4381,9 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 
 		VBO_t *vbo = R_CreateVBO(data, dataSize, VBO_USAGE_STATIC);
 
-		Z_Free(data);
-		Z_Free(tangentsf);
-		Z_Free(bitangentsf);
+		ri.Hunk_FreeTempMemory(data);
+		ri.Hunk_FreeTempMemory(tangentsf);
+		ri.Hunk_FreeTempMemory(bitangentsf);
 
 		vbo->offsets[ATTR_INDEX_POSITION] = ofsPosition;
 		vbo->offsets[ATTR_INDEX_NORMAL] = ofsNormals;
@@ -4407,7 +4407,7 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 		vbo->sizes[ATTR_INDEX_TANGENT] = sizeof(*tangents);
 
 		// Fill in the index buffer
-		glIndex_t *indices = (glIndex_t *)Z_Malloc(sizeof(glIndex_t)* numTriangles * 3, TAG_TEMP_WORKSPACE, qfalse);
+		glIndex_t *indices = (glIndex_t *)ri.Hunk_AllocateTempMemory(sizeof(glIndex_t) * numTriangles * 3);
 		glIndex_t *index = indices;
 
 		surf = (mdxmSurface_t *)((byte *)lod + sizeof(mdxmLOD_t) + (mdxm->numSurfaces * sizeof(mdxmLODSurfOffset_t)));
@@ -4435,7 +4435,7 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 
 		IBO_t *ibo = R_CreateIBO((byte *)indices, sizeof(glIndex_t) * numTriangles * 3, VBO_USAGE_STATIC);
 
-		Z_Free(indices);
+		ri.Hunk_FreeTempMemory(indices);
 
 		surf = (mdxmSurface_t *)((byte *)lod + sizeof(mdxmLOD_t) + (mdxm->numSurfaces * sizeof(mdxmLODSurfOffset_t)));
 
@@ -4462,8 +4462,8 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 		assert(vboModel->vbo);
 		assert(vboModel->ibo);
 
-		Z_Free(indexOffsets);
-		Z_Free(baseVertexes);
+		ri.Hunk_FreeTempMemory(indexOffsets);
+		ri.Hunk_FreeTempMemory(baseVertexes);
 
 		lod = (mdxmLOD_t *)((byte *)lod + lod->ofsEnd);
 	}
@@ -4727,16 +4727,16 @@ qboolean R_LoadMDXA(model_t *mod, void *buffer, const char *mod_name, qboolean &
 	size += (childNumber*(CHILD_PADDING * 8)); //Allocate us some extra space so we can shift memory down.
 #endif //CREATE_LIMB_HIERARCHY
 
-	mdxa = mod->data.gla = (mdxaHeader_t*) //Hunk_Alloc( size );
-		CModelCache->Allocate(size,
+	mdxa = (mdxaHeader_t *)CModelCache->Allocate(
+		size, buffer, mod_name, &bAlreadyFound, TAG_MODEL_GLA);
+	mod->data.gla = mdxa;
 #ifdef CREATE_LIMB_HIERARCHY
-			NULL,	// I think this'll work, can't really test on PC
+	NULL,	// I think this'll work, can't really test on PC
 #else
-			buffer,
+	buffer,
 #endif
-			mod_name, &bAlreadyFound, TAG_MODEL_GLA);
 
-	assert(bAlreadyCached == bAlreadyFound);	// I should probably eliminate 'bAlreadyFound', but wtf?
+		assert(bAlreadyCached == bAlreadyFound);	// I should probably eliminate 'bAlreadyFound', but wtf?
 
 	if (!bAlreadyFound)
 	{
