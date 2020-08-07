@@ -4016,13 +4016,13 @@ If found, it will return a valid shader
 =====================
 */
 static const char *FindShaderInShaderText(const char *shadername) {
+
+#ifdef USE_STL_FOR_SHADER_LOOKUPS
 	char *p = s_shaderText;
 
 	if (!p) {
 		return NULL;
 	}
-
-#ifdef USE_STL_FOR_SHADER_LOOKUPS
 
 	char sLowerCaseName[MAX_QPATH];
 	Q_strncpyz(sLowerCaseName, shadername, sizeof(sLowerCaseName));
@@ -4033,27 +4033,40 @@ static const char *FindShaderInShaderText(const char *shadername) {
 #else
 
 	char *token;
+	const char *p;
+
+	int i, hash;
+
+	hash = generateHashValue(shadername, MAX_SHADERTEXT_HASH);
+
+	if ( shaderTextHashTable[hash] ) {
+		for (i = 0; shaderTextHashTable[hash][i]; i++) {
+			p = shaderTextHashTable[hash][i];
+			token = COM_ParseExt(&p, qtrue);
+			if ( !Q_stricmp( token, shadername ) )
+				return p;
+		}
+	}
+
+	p = s_shaderText;
+
+	if ( !p ) {
+		return NULL;
+	}
 
 	// look for label
-	// note that this could get confused if a shader name is used inside
-	// another shader definition
-	while (1) {
-
-		token = COM_ParseExt(&p, qtrue);
-		if (token[0] == 0) {
+	while ( 1 ) {
+		token = COM_ParseExt( &p, qtrue );
+		if ( token[0] == 0 ) {
 			break;
 		}
 
-		if (token[0] == '{') {
-			// skip the definition
-			SkipBracedSection(&p);
-		}
-		else if (!Q_stricmp(token, shadername)) {
+		if ( !Q_stricmp( token, shadername ) ) {
 			return p;
 		}
 		else {
-			// skip to end of line
-			SkipRestOfLine(&p);
+			// skip the definition
+			SkipBracedSection( &p, 0 );
 		}
 	}
 
@@ -4653,7 +4666,7 @@ static void SetupShaderEntryPtrs(void)
 
 		if (token[0] == '{')	// '}'	// counterbrace for matching
 		{
-			SkipBracedSection(&p, 0);
+			SkipBracedSection(&p, 1);
 		}
 		else
 		{
