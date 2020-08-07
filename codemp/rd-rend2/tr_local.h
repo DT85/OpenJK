@@ -3419,7 +3419,7 @@ Ghoul2 Insert Start
 */
 // tr_model_ghoul2.cpp
 void Create_Matrix(const float *angle, mdxaBone_t *matrix);
-void Multiply_3x4Matrix(mdxaBone_t *out, const mdxaBone_t *in2, const mdxaBone_t *in);
+void Multiply_3x4Matrix(mdxaBone_t *out, mdxaBone_t *in2, mdxaBone_t *in);
 extern qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *name, qboolean &bAlreadyCached);
 extern qboolean R_LoadMDXA(model_t *mod, void *buffer, const char *name, qboolean &bAlreadyCached);
 /*
