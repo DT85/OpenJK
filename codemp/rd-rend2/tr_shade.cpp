@@ -1635,11 +1635,11 @@ static void RB_IterateStagesGeneric(shaderCommands_t *input, const VertexArraysP
 				renderPass = backEndData->currentPostPass;
 
 			//FIXME: causes crash @ line 2015 due to forceRefraction being true....
-			/*if ((input->shader == tr.distortionShader) || (backEnd.currentEntity && (backEnd.currentEntity->e.renderfx & RF_DISTORTION)))
+			if ((input->shader == tr.distortionShader) || (backEnd.currentEntity && (backEnd.currentEntity->e.renderfx & RF_DISTORTION)))
 			{
 				forceRefraction = true;
 				renderPass = backEndData->currentPostPass;
-			}*/
+			}
 
 			if (backEnd.currentEntity && (backEnd.currentEntity->e.renderfx & RF_FORCE_ENT_ALPHA))
 			{
@@ -2007,8 +2007,10 @@ static void RB_IterateStagesGeneric(shaderCommands_t *input, const VertexArraysP
 			cullType = CT_TWO_SIDED;
 			vec4_t viewInfo;
 			float alpha = 0;
+
 			if (backEnd.currentEntity->e.shaderRGBA[3] > 10)
 				alpha = (backEnd.currentEntity->e.shaderRGBA[3]) / 255.0f;
+
 			float zmax = backEnd.viewParms.zFar;
 			float zmin = r_znear->value;
 			float x = tr.prevRenderImage->width;
