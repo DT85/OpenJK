@@ -1,22 +1,23 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
+Copyright (C) 1999 - 2005, Id Software, Inc.
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
 
-This file is part of Quake III Arena source code.
+This file is part of the OpenJK source code.
 
-Quake III Arena source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
+OpenJK is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
 
-Quake III Arena source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
 // tr_image.c
@@ -1604,7 +1605,7 @@ static void RawImage_ScaleToPower2(byte **data, int *inout_width, int *inout_hei
 		int finalwidth, finalheight;
 		//int startTime, endTime;
 
-		//startTime = ri->Milliseconds();
+		//startTime = ri.Milliseconds();
 
 		finalwidth = scaled_width << r_imageUpsample->integer;
 		finalheight = scaled_height << r_imageUpsample->integer;
@@ -1621,7 +1622,7 @@ static void RawImage_ScaleToPower2(byte **data, int *inout_width, int *inout_hei
 			finalheight >>= 1;
 		}
 
-		*resampledBuffer = (byte *)Z_Malloc(finalwidth * finalheight * 4, TAG_TEMP_WORKSPACE, qfalse);
+		*resampledBuffer = (byte *)ri.Hunk_AllocateTempMemory(finalwidth * finalheight * 4);
 
 		if (scaled_width != width || scaled_height != height)
 		{
@@ -2733,8 +2734,8 @@ void R_CreateDiffuseAndSpecMapsFromBaseColorAndRMO(shaderStage_t *stage, const c
 			return;
 		}
 
-		specGlossPic = (byte *)Z_Malloc(width * height * 4, TAG_TEMP_WORKSPACE, qfalse);
-		diffusePic = (byte *)Z_Malloc(width * height * 4, TAG_TEMP_WORKSPACE, qfalse);
+		specGlossPic = (byte *)ri.Hunk_AllocateTempMemory(width * height * 4);
+		diffusePic = (byte *)ri.Hunk_AllocateTempMemory(width * height * 4);
 
 		float baseSpecular;
 
@@ -2812,8 +2813,8 @@ void R_CreateDiffuseAndSpecMapsFromBaseColorAndRMO(shaderStage_t *stage, const c
 	}
 	else
 	{
-		specGlossPic = (byte *)Z_Malloc(width * height * 4, TAG_TEMP_WORKSPACE, qfalse);
-		diffusePic = (byte *)Z_Malloc(width * height * 4, TAG_TEMP_WORKSPACE, qfalse);
+		specGlossPic = (byte *)ri.Hunk_AllocateTempMemory(width * height * 4);
+		diffusePic = (byte *)ri.Hunk_AllocateTempMemory(width * height * 4);
 
 		for (int i = 0; i < width * height * 4; i += 4)
 		{
@@ -2843,8 +2844,8 @@ void R_CreateDiffuseAndSpecMapsFromBaseColorAndRMO(shaderStage_t *stage, const c
 	stage->bundle[TB_COLORMAP].image[0] = R_CreateImage(diffuseName, diffusePic, width, height, bppc, IMGTYPE_COLORALPHA, flags, 0);
 	stage->bundle[TB_SPECULARMAP].image[0] = R_CreateImage(specularName, specGlossPic, width, height, bppc, IMGTYPE_COLORALPHA, flags, 0);
 
-	Z_Free(diffusePic);
-	Z_Free(specGlossPic);
+	ri.Hunk_FreeTempMemory(diffusePic);
+	ri.Hunk_FreeTempMemory(specGlossPic);
 	Z_Free(baseColorPic);
 	if (type != SPEC_METALNESS)
 		Z_Free(rmoPic);
@@ -3521,6 +3522,7 @@ void R_CreateBuiltinImages(void) {
 	}
 }
 
+
 /*
 ===============
 R_SetColorMappings
@@ -3662,3 +3664,4 @@ void R_DeleteTextures(void) {
 	GL_SelectTexture(0);
 	qglBindTexture(GL_TEXTURE_2D, 0);
 }
+
