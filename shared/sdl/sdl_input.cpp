@@ -271,6 +271,9 @@ static fakeAscii_t IN_TranslateSDLToJKKey( SDL_Keysym *keysym, qboolean down ) {
 
 		switch( keysym->sym )
 		{
+#ifdef MACOS_X
+            case 0xa7:              key = A_SECTION;        break; // added § symbols for laptop keyboards
+#endif
 			case SDLK_PAGEUP:       key = A_PAGE_UP;       break;
 			case SDLK_KP_9:         key = A_KP_9;          break;
 			case SDLK_PAGEDOWN:     key = A_PAGE_DOWN;     break;
