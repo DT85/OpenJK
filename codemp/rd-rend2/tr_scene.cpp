@@ -286,6 +286,10 @@ void RE_AddAdditiveLightToScene( const vec3_t org, float intensity, float r, flo
 
 void RE_BeginScene(const refdef_t *fd)
 {
+#ifdef VANILLA_WEATHER
+	static	int		lastTime = 0;
+#endif
+
 	Com_Memcpy( tr.refdef.text, fd->text, sizeof( tr.refdef.text ) );
 
 	tr.refdef.x = fd->x;
@@ -301,6 +305,9 @@ void RE_BeginScene(const refdef_t *fd)
 	VectorCopy( fd->viewaxis[2], tr.refdef.viewaxis[2] );
 
 	tr.refdef.time = fd->time;
+#ifdef VANILLA_WEATHER
+	tr.refdef.frametime = fd->time - lastTime;
+#endif
 	tr.refdef.rdflags = fd->rdflags;
 
 	// copy the areamask data over and note if it has changed, which
@@ -440,6 +447,23 @@ void RE_BeginScene(const refdef_t *fd)
 	{
 		tr.world->skyboxportal = 1;
 	}
+#ifdef VANILLA_WEATHER
+	else
+	{
+		// pasted this from SP
+		// cdr - only change last time for the real render, not the portal
+		lastTime = fd->time;
+	}
+
+	if (tr.refdef.frametime > 500)
+	{
+		tr.refdef.frametime = 500;
+	}
+	else if (tr.refdef.frametime < 0)
+	{
+		tr.refdef.frametime = 0;
+	}
+#endif
 
 	// a single frame may have multiple scenes draw inside it --
 	// a 3D game view, 3D status bar renderings, 3D menus, etc.
@@ -470,6 +494,9 @@ Rendering a scene may require multiple views to be rendered
 to handle mirrors,
 @@@@@@@@@@@@@@@@@@@@@
 */
+#ifdef VANILLA_WEATHER
+void RE_RenderWorldEffects(void);
+#endif
 void RE_RenderScene( const refdef_t *fd ) {
 	viewParms_t		parms;
 	int				startTime;
@@ -566,6 +593,10 @@ void RE_RenderScene( const refdef_t *fd ) {
 	qhandle_t timer = R_BeginTimedBlockCmd( "Main Render" );
 	R_RenderView( &parms );
 	R_EndTimedBlockCmd( timer );
+
+#ifdef VANILLA_WEATHER
+	RE_RenderWorldEffects();
+#endif
 
 	if(!( fd->rdflags & RDF_NOWORLDMODEL ))
 	{

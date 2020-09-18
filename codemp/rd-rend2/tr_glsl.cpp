@@ -2111,6 +2111,29 @@ static int GLSL_LoadGPUProgramSurfaceSprites(
 	return numPrograms;
 }
 
+#ifdef VANILLA_WEATHER
+static int GLSL_LoadGPUProgramVanillaWeather(
+	ShaderProgramBuilder& builder,
+	Allocator& scratchAlloc )
+{
+	GLSL_LoadGPUProgramBasic(
+		builder,
+		scratchAlloc,
+		&tr.vanilla_weatherShader,
+		"vanilla_weather",
+		fallback_vanilla_weatherProgram);
+
+	GLSL_InitUniforms(&tr.vanilla_weatherShader);
+
+	qglUseProgram(tr.vanilla_weatherShader.program);
+	GLSL_SetUniformInt(&tr.vanilla_weatherShader, UNIFORM_TEXTUREMAP, TB_DIFFUSEMAP);
+	qglUseProgram(0);
+
+	GLSL_FinishGPUShader(&tr.vanilla_weatherShader);
+
+	return 1;
+}
+#else
 static int GLSL_LoadGPUProgramWeather(
 	ShaderProgramBuilder& builder,
 	Allocator& scratchAlloc )
@@ -2140,6 +2163,7 @@ static int GLSL_LoadGPUProgramWeather(
 
 	return 2;
 }
+#endif
 
 void GLSL_LoadGPUShaders()
 {
@@ -2227,7 +2251,11 @@ void GLSL_LoadGPUShaders()
 	numEtcShaders += GLSL_LoadGPUProgramDynamicGlowUpsample(builder, allocator);
 	numEtcShaders += GLSL_LoadGPUProgramDynamicGlowDownsample(builder, allocator);
 	numEtcShaders += GLSL_LoadGPUProgramSurfaceSprites(builder, allocator);
+#ifdef VANILLA_WEATHER
+	numEtcShaders += GLSL_LoadGPUProgramVanillaWeather(builder, allocator);
+#else
 	numEtcShaders += GLSL_LoadGPUProgramWeather(builder, allocator);
+#endif
 
 	ri.Printf(PRINT_ALL, "loaded %i GLSL shaders (%i gen %i light %i etc) in %5.2f seconds\n", 
 		numGenShaders + numLightShaders + numEtcShaders, numGenShaders, numLightShaders, 
@@ -2290,8 +2318,12 @@ void GLSL_ShutdownGPUShaders(void)
 	for (i = 0; i < SSDEF_COUNT; ++i)
 		GLSL_DeleteGPUShader(&tr.spriteShader[i]);
 
+#ifdef VANILLA_WEATHER
+	GLSL_DeleteGPUShader(&tr.vanilla_weatherShader);
+#else
 	GLSL_DeleteGPUShader(&tr.weatherUpdateShader);
 	GLSL_DeleteGPUShader(&tr.weatherShader);
+#endif
 
 	glState.currentProgram = 0;
 	qglUseProgram(0);

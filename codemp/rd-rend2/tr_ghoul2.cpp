@@ -1103,7 +1103,8 @@ static int G2_GetBonePoolIndex(	const mdxaHeader_t *pMDXAHeader, int iFrame, int
 		(mdxaIndex_t *)((byte*)pMDXAHeader + pMDXAHeader->ofsFrames + iOffsetToIndex);
 
 	// this will cause problems for big-endian machines... ;-)
-	return pIndex->iIndex & 0x00FFFFFF;	
+	//return pIndex->iIndex & 0x00FFFFFF;	
+	return (pIndex->iIndex[2] << 16) + (pIndex->iIndex[1] << 8) + (pIndex->iIndex[0]);
 }
 
 /*static inline*/ void UnCompressBone(

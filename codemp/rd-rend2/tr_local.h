@@ -63,6 +63,8 @@ typedef unsigned int glIndex_t;
 #define CUBE_MAP_MIPS      8
 #define CUBE_MAP_SIZE      (1 << CUBE_MAP_MIPS)
 
+#define VANILLA_WEATHER
+
 /*
 =====================================================
 
@@ -1315,6 +1317,9 @@ typedef struct {
 	stereoFrame_t	stereoFrame;
 
 	int			time;				// time in milliseconds for shader effects and other time dependent rendering issues
+#ifdef VANILLA_WEATHER
+	int			frametime;
+#endif
 	int			rdflags;			// RDF_NOWORLDMODEL, etc
 
 	// 1 bits will prevent the associated area from rendering at all
@@ -1436,7 +1441,9 @@ typedef enum surfaceType_e
 	SF_VBO_MESH,
 	SF_VBO_MDVMESH,
 	SF_SPRITES,
+#ifndef VANILLA_WEATHER
 	SF_WEATHER,
+#endif
 
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
@@ -1511,10 +1518,12 @@ struct srfSprites_t
 	vertexAttribute_t *attributes;
 };
 
+#ifndef VANILLA_WEATHER
 struct srfWeather_t
 {
 	surfaceType_t surfaceType;
 };
+#endif
 
 typedef struct
 {
@@ -2173,7 +2182,9 @@ typedef struct {
 ** but may read fields that aren't dynamically modified
 ** by the frontend.
 */
+#ifndef VANILLA_WEATHER
 struct weatherSystem_t;
+#endif
 typedef struct trGlobals_s {
 	qboolean				registered;		// cleared at shutdown, set at beginRegistration
 
@@ -2232,7 +2243,9 @@ typedef struct trGlobals_s {
 	image_t                 *prefilterEnvMapImage;
 	image_t					*envBrdfImage;
 	image_t					*textureDepthImage;
+#ifndef VANILLA_WEATHER
 	image_t					*weatherDepthImage;
+#endif
 
 	FBO_t					*renderFbo;
 	FBO_t					*glowFboScaled[6];
@@ -2251,13 +2264,17 @@ typedef struct trGlobals_s {
 	FBO_t					*hdrDepthFbo;
 	FBO_t                   *renderCubeFbo;
 	FBO_t					*preFilterEnvMapFbo;
+#ifndef VANILLA_WEATHER
 	FBO_t					*weatherDepthFbo;
+#endif
 
 	shader_t				*defaultShader;
 	shader_t				*shadowShader;
 	shader_t				*distortionShader;
 	shader_t				*projectionShadowShader;
+#ifndef VANILLA_WEATHER
 	shader_t				*weatherInternalShader;
+#endif
 
 	shader_t				*flareShader;
 	shader_t				*sunShader;
@@ -2277,7 +2294,9 @@ typedef struct trGlobals_s {
 	trRefEntity_t			worldEntity;		// point currentEntity at this when rendering world
 	model_t					*currentModel;
 
+#ifndef VANILLA_WEATHER
 	weatherSystem_t			*weatherSystem;
+#endif
 
 	//
 	// GPU shader programs
@@ -2305,8 +2324,12 @@ typedef struct trGlobals_s {
 	shaderProgram_t dglowDownsample;
 	shaderProgram_t dglowUpsample;
 	shaderProgram_t spriteShader[SSDEF_COUNT];
+#ifdef VANILLA_WEATHER
+	shaderProgram_t vanilla_weatherShader;
+#else
 	shaderProgram_t weatherUpdateShader;
 	shaderProgram_t weatherShader;
+#endif
 
 	// -----------------------------------------
 
@@ -2573,7 +2596,9 @@ extern cvar_t	*r_dynamicGlowWidth;
 extern cvar_t	*r_dynamicGlowHeight;
 
 extern cvar_t	*r_debugContext;
+#ifndef VANILLA_WEATHER
 extern cvar_t	*r_debugWeather;
+#endif
 
 //====================================================================
 
@@ -3324,6 +3349,9 @@ typedef enum {
 	RC_SWAP_BUFFERS,
 	RC_SCREENSHOT,
 	RC_VIDEOFRAME,
+#ifdef VANILLA_WEATHER
+	RC_WORLD_EFFECTS,
+#endif
 	RC_COLORMASK,
 	RC_CLEARDEPTH,
 	RC_CONVOLVECUBEMAP,
@@ -3427,6 +3455,9 @@ void RE_SetColor( const float *rgba );
 void RE_StretchPic ( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader );
 void RE_RotatePic ( float x, float y, float w, float h, float s1, float t1, float s2, float t2, float a, qhandle_t hShader );
 void RE_RotatePic2 ( float x, float y, float w, float h, float s1, float t1, float s2, float t2,float a, qhandle_t hShader );
+#ifdef VANILLA_WEATHER
+void RE_RenderWorldEffects(void);
+#endif
 void RE_BeginFrame( stereoFrame_t stereoFrame );
 void RE_EndFrame( int *frontEndMsec, int *backEndMsec );
 void RE_TakeVideoFrame( int width, int height,

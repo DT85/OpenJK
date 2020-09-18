@@ -21,6 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 #include "tr_allocator.h"
+#ifdef VANILLA_WEATHER
+#include "tr_weather.h"
+#endif
 #include "glext.h"
 #include <algorithm>
 
@@ -494,8 +497,11 @@ static void RB_Hyperspace( void ) {
 	qglClearBufferfv( GL_COLOR, 0, v );
 }
 
-
+#ifdef VANILLA_WEATHER
+void SetViewportAndScissor( void ) {
+#else
 static void SetViewportAndScissor( void ) {
+#endif
 	GL_SetProjectionMatrix( backEnd.viewParms.projectionMatrix );
 
 	// set the window clipping
@@ -2514,6 +2520,30 @@ static const void	*RB_SwapBuffers( const void *data ) {
 	return (const void *)(cmd + 1);
 }
 
+#ifdef VANILLA_WEATHER
+const void	*RB_WorldEffects(const void *data)
+{
+	const drawBufferCommand_t	*cmd;
+
+	cmd = (const drawBufferCommand_t *)data;
+
+	// Always flush the tess buffer
+	if (tess.shader && tess.numIndexes)
+	{
+		RB_EndSurface();
+	}
+
+	RB_RenderWorldEffects();
+
+	if (tess.shader)
+	{
+		RB_BeginSurface(tess.shader, tess.fogNum, 0);
+	}
+
+	return (const void *)(cmd + 1);
+}
+#endif
+
 /*
 =============
 RB_PostProcess
@@ -2625,10 +2655,12 @@ const void *RB_PostProcess(const void *data)
 	if (1)
 		RB_BokehBlur(NULL, srcBox, NULL, dstBox, backEnd.refdef.blurFactor);
 
+#ifndef VANILLA_WEATHER
 	if (r_debugWeather->integer == 2)
 	{
 		FBO_BlitFromTexture(tr.weatherDepthImage, NULL, NULL, NULL, nullptr, NULL, NULL, 0);
 	}
+#endif
 
 	if (0 && r_sunlightMode->integer)
 	{
@@ -2787,6 +2819,11 @@ void RB_ExecuteRenderCommands( const void *data ) {
 		case RC_VIDEOFRAME:
 			data = RB_TakeVideoFrameCmd( data );
 			break;
+#ifdef VANILLA_WEATHER
+		case RC_WORLD_EFFECTS:
+			data = RB_WorldEffects(data);
+			break;
+#endif
 		case RC_COLORMASK:
 			data = RB_ColorMask(data);
 			break;

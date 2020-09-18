@@ -3359,6 +3359,7 @@ void R_CreateBuiltinImages( void ) {
 			hdrFormat);
 	}
 
+#ifndef VANILLA_WEATHER
 	tr.weatherDepthImage = R_CreateImage(
 		"*weatherDepth",
 		nullptr,
@@ -3367,6 +3368,7 @@ void R_CreateBuiltinImages( void ) {
 		IMGTYPE_COLORALPHA,
 		IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE,
 		GL_DEPTH_COMPONENT24);
+#endif
 }
 
 

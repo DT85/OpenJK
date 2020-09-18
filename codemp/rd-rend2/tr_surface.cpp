@@ -21,7 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // tr_surf.c
 #include "tr_local.h"
+#ifndef VANILLA_WEATHER
 #include "tr_weather.h"
+#endif
 
 /*
 
@@ -2229,5 +2231,7 @@ void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_SurfaceVBOMesh,	    // SF_VBO_MESH,
 	(void(*)(void*))RB_SurfaceVBOMDVMesh,   // SF_VBO_MDVMESH
 	(void(*)(void*))RB_SurfaceSprites,      // SF_SPRITES
+#ifndef VANILLA_WEATHER
 	(void(*)(void*))RB_SurfaceWeather,      // SF_WEATHER
+#endif
 };

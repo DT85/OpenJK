@@ -28,7 +28,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #undef JSON_IMPLEMENTATION
 
 #include "tr_cache.h"
+#ifndef VANILLA_WEATHER
 #include "tr_weather.h"
+#endif
 #include <vector>
 
 #include <cmath>
@@ -3928,5 +3930,7 @@ void RE_LoadWorldMap( const char *name ) {
 		R_RenderAllCubemaps();
 	}
 
+#ifndef VANILLA_WEATHER
 	R_InitWeatherForMap();
+#endif
 }

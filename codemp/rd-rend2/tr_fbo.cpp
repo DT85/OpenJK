@@ -655,6 +655,7 @@ void FBO_Init(void)
 		R_CheckFBO(tr.preFilterEnvMapFbo);
 	}
 
+#ifndef VANILLA_WEATHER
 	if (tr.weatherDepthImage != nullptr)
 	{
 		tr.weatherDepthFbo = FBO_Create(
@@ -668,6 +669,7 @@ void FBO_Init(void)
 
 		R_CheckFBO(tr.weatherDepthFbo);
 	}
+#endif
 
 	GL_CheckErrors();
 

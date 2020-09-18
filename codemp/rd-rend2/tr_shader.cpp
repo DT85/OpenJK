@@ -3441,6 +3441,9 @@ static void FixRenderCommandList( int newShader ) {
 					break;
 					}
 				case RC_DRAW_BUFFER:
+#ifdef VANILLA_WEATHER
+				case RC_WORLD_EFFECTS:
+#endif
 					{
 					const drawBufferCommand_t *db_cmd = (const drawBufferCommand_t *)curCmd;
 					curCmd = (const void *)(db_cmd + 1);
@@ -4787,10 +4790,12 @@ static void CreateInternalShaders( void ) {
 	tr.distortionShader = FinishShader();
 	shader.defaultShader = qtrue;
 
+#ifndef VANILLA_WEATHER
 	// weather shader placeholder
 	Q_strncpyz(shader.name, "<weather>", sizeof(shader.name));
 	shader.sort = SS_SEE_THROUGH;
 	tr.weatherInternalShader = FinishShader();
+#endif
 }
 
 static void CreateExternalShaders( void ) {
