@@ -37,6 +37,7 @@ option(BuildPortableVersion "Build portable version (does not read or write file
 
 option(BuildMPEngine "Whether to create projects for the MP client (openjk.exe)" ON)
 option(BuildMPRdVanilla "Whether to create projects for the MP default renderer (rd-vanilla_x86.dll)" ON)
+option(BuildMPRend2 "Whether to create projects for the EXPERIMENTAL MP rend2 renderer (rd-rend2_x86.dll)" ON)
 option(BuildMPDed "Whether to create projects for the MP dedicated server (openjkded.exe)" ON)
 option(BuildMPGame "Whether to create projects for the MP server-side gamecode (jampgamex86.dll)" OFF)
 option(BuildMPCGame "Whether to create projects for the MP clientside gamecode (cgamex86.dll)" OFF)
