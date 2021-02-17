@@ -48,6 +48,7 @@ set(MPGameGameFiles
 	"${MPDir}/game/FighterNPC.c"
 	"${MPDir}/game/g_active.c"
 	"${MPDir}/game/g_bot.c"
+	"${MPDir}/game/g_bullet.cpp"
 	"${MPDir}/game/g_client.c"
 	"${MPDir}/game/g_cmds.c"
 	"${MPDir}/game/g_combat.c"

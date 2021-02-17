@@ -175,6 +175,7 @@ void SP_info_jedimaster_start( gentity_t *ent );
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 	vmCvar_t	mapname;
+	char		mapNameBullet[128];
 	vmCvar_t	ckSum;
 	char serverinfo[MAX_INFO_STRING] = {0};
 
@@ -320,6 +321,11 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// parse the key/value pairs and spawn gentities
 	G_SpawnEntitiesFromString(qfalse);
 
+	// Init Bullet Physics
+	trap->Cvar_VariableStringBuffer("mapname", mapNameBullet, sizeof(mapNameBullet));
+	G_InitBullet();
+	G_LoadMap(mapNameBullet);
+
 	// general initialization
 	G_FindTeams();
 
@@ -440,6 +446,9 @@ void G_ShutdownGame( int restart ) {
 	gentity_t *ent;
 
 //	trap->Print ("==== ShutdownGame ====\n");
+
+	// Shutdown Bullet Physics
+	G_ShudownBullet();
 
 	G_CleanAllFakeClients(); //get rid of dynamically allocated fake client structs.
 
@@ -3056,7 +3065,8 @@ void G_RunFrame( int levelTime ) {
 	// get any cvar changes
 	G_UpdateCvars();
 
-
+	// Run Bullet Physics
+	G_RunPhysics();
 
 #ifdef _G_FRAME_PERFANAL
 	trap->PrecisionTimer_Start(&timer_ItemRun);

@@ -1358,6 +1358,14 @@ void ClientEndFrame			( gentity_t *ent );
 void G_RunClient			( gentity_t *ent );
 
 //
+// g_bullet.cpp
+//
+void G_InitBullet			();
+void G_ShudownBullet		();
+void G_RunPhysics			();
+void G_LoadMap				( const char *mapName );
+
+//
 // g_team.c
 //
 qboolean OnSameTeam( gentity_t *ent1, gentity_t *ent2 );
