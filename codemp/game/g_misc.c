@@ -478,21 +478,190 @@ void misc_model_breakable_init( gentity_t *ent )
 "model"		arbitrary .glm file to display
 */
 void SP_misc_G2model( gentity_t *ent ) {
-
 #if 0
 	char name1[200] = "models/players/kyle/modelmp.glm";
 	trap->G2API_InitGhoul2Model(&ent->s, name1, G_ModelIndex( name1 ), 0, 0, 0, 0);
-	trap->G2API_SetBoneAnim(ent->s.ghoul2, 0, "model_root", 0, 12, BONE_ANIM_OVERRIDE_LOOP, 1.0f, level.time, -1, -1);
-	ent->s.radius = 150;
+	trap->G2API_SetBoneAnim(ent->s.modelGhoul2, 0, "model_root", 0, 12, BONE_ANIM_OVERRIDE_LOOP, 1.0f, level.time, -1, -1);
+	ent->s.g2radius = 150;
 //	VectorSet (ent->r.mins, -16, -16, -16);
 //	VectorSet (ent->r.maxs, 16, 16, 16);
 	trap->LinkEntity ((sharedEntity_t *)ent);
 
 	G_SetOrigin( ent, ent->s.origin );
 	VectorCopy( ent->s.angles, ent->s.apos.trBase );
+
 #else
-	G_FreeEntity( ent );
+#if 1
+	ent->s.modelindex = G_ModelIndex( ent->model );
+	ent->s.modelGhoul2 = 1;
+	ent->s.g2radius = 120;
+	int g2Model = trap->G2API_InitGhoul2Model(&ent->ghoul2, ent->model, ent->s.modelindex, NULL_HANDLE, NULL_HANDLE, 0, 0);
+
+	if (!ent->ghoul2)
+	{ //should not happen, but just to be safe.
+		G_FreeEntity(ent);
+		Com_Printf(S_COLOR_RED "Failed to load 'misc_g2model' - %s\n", ent->model);
+	}
+
+	/*if (ent->playerModel >= 0)
+	{
+		ent->rootBone = trap->G2API_GetBoneIndex(&ent->ghoul2, "model_root", qtrue);
+	}*/
+
+	G_SpawnInt("renderRadius", "120", &ent->s.g2radius);
+	//DT EDIT: misc_model_ghoul edits - END
+
+	G_SetOrigin( ent, ent->s.origin );
+	G_SetAngles( ent, ent->s.angles );
+
+	qboolean bHasScale = G_SpawnVector( "modelscale_vec", "1 1 1", ent->modelScale );
+	if ( !bHasScale ) {
+		float temp;
+
+		G_SpawnFloat( "modelscale", "0", &temp );
+		if ( temp != 0.0f ) {
+			ent->modelScale[0] = ent->modelScale[1] = ent->modelScale[2] = temp;
+			bHasScale = qtrue;
+		}
+	}
+	if ( bHasScale ) {
+		//scale the x axis of the bbox up.
+		ent->r.maxs[0] *= ent->modelScale[0];
+		ent->r.mins[0] *= ent->modelScale[0];
+
+		//scale the y axis of the bbox up.
+		ent->r.maxs[1] *= ent->modelScale[1];
+		ent->r.mins[1] *= ent->modelScale[1];
+
+		//scale the z axis of the bbox up and adjust origin accordingly
+		float oldMins2 = ent->r.mins[2];
+
+		ent->r.maxs[2] *= ent->modelScale[2];
+		ent->r.mins[2] *= ent->modelScale[2];
+		ent->s.origin[2] += (oldMins2 - ent->r.mins[2]);
+	}
+
+	//DT EDIT: misc_model_ghoul edits - START
+	if (ent->spawnflags & 1) //SOLID
+	{
+		ent->r.contents = CONTENTS_BODY;
+		ent->clipmask = MASK_NPCSOLID;
+	}
+
+	//if (ent->spawnflags & 4)
+	{
+		animation_t	*animations = bgAllAnims[ent->localAnimIndex].anims;
+		int startFrame = 0;
+		int endFrame = 0;	
+
+		//G_SpawnInt("startframe", "0", &startFrame);
+		//G_SpawnInt("endframe", "0", &endFrame);
+		startFrame = animations->firstFrame;
+		endFrame = /*(*/animations->numFrames/* - 1) + animations->firstFrame*/;
+		//G_SpawnInt("startframe", "0", &startFrame);
+		//G_SpawnInt("endframe", "0", &endFrame);
+
+		//set info on the entity so it knows to start the anim on the client next snapshot.
+		ent->s.eFlags |= EF_G2ANIMATING;
+
+		/*if (ent->s.torsoAnim == startFrame && ent->s.legsAnim == endFrame)
+		{ //already playing this anim, let's flag it to restart
+			ent->s.torsoFlip = !ent->s.torsoFlip;
+		}
+		else
+		{
+			ent->s.torsoAnim = startFrame;
+			ent->s.legsAnim = endFrame;
+		}*/
+
+		char *root_boneName;
+		G_SpawnString("rootbone", "model_root", &root_boneName);
+
+		assert(ent->ghoul2);
+		trap->G2API_SetBoneAnim(ent->ghoul2, g2Model, root_boneName, startFrame, endFrame, BONE_ANIM_OVERRIDE_LOOP, 1.0f, level.time, -1, -1);
+		//trap->G2API_SetBoneAnim(ent->ghoul2, 0, root_boneName, startFrame, endFrame, BONE_ANIM_OVERRIDE_FREEZE | BONE_ANIM_BLEND, 1.0f, level.time, -1, 100);
+
+		//ent->endFrame = 0; // don't allow it to do anything with the animation function in G_main
+	}
+
+	//if (ent->spawnflags & 2)
+	{
+		char *skinName;
+		G_SpawnString("skin", "models/players/kyle/model_default.skin", &skinName);
+		
+		int skin = trap->R_RegisterSkin(skinName);
+		trap->G2API_SetSkin(ent->ghoul2, g2Model, 0, skin);
+	}
+
+	//char Model[MAX_QPATH];
+
+	//trap->G2API_PrecacheGhoul2Model(Model);
+	trap->LinkEntity((sharedEntity_t *)ent);
+#else
+	char name1[200] = "models/players/kyle/model.glm";
+	ent->s.modelindex = G_ModelIndex( name1 );
+
+	gi.G2API_InitGhoul2Model(ent->ghoul2, name1, ent->s.modelindex);
+	ent->s.radius = 150;
+
+			// we found the model ok - load it's animation config
+	temp_animFileIndex = G_ParseAnimFileSet("_humanoid", "kyle");
+ 	if ( temp_animFileIndex<0 )
+ 	{
+ 		Com_Printf( S_COLOR_RED"Failed to load animation file set models/players/jedi/animation.cfg\n");
+ 	}
+
+
+	ent->s.angles[0] = 0;
+	ent->s.angles[1] = 90;
+	ent->s.angles[2] = 0;
+
+	ent->s.origin[2] = 20;
+	ent->s.origin[1] = 80;
+//	ent->s.modelScale[0] = ent->s.modelScale[1] = ent->s.modelScale[2] = 0.8f;
+
+	VectorSet (ent->mins, -16, -16, -37);
+	VectorSet (ent->maxs, 16, 16, 32);
+//#if _DEBUG
+//loadsavecrash
+//	VectorCopy(ent->mins, ent->s.mins);
+//	VectorCopy(ent->maxs, ent->s.maxs);
+//#endif
+	ent->contents = CONTENTS_BODY;
+	ent->clipmask = MASK_NPCSOLID;
+
+	G_SetOrigin( ent, ent->s.origin );
+	VectorCopy( ent->s.angles, ent->s.apos.trBase );
+	ent->health = 1000;
+
+//	ent->s.modelindex = G_ModelIndex( "models/weapons2/blaster_r/g2blaster_w.glm" );
+//	gi.G2API_InitGhoul2Model(ent->ghoul2, "models/weapons2/blaster_r/g2blaster_w.glm", ent->s.modelindex);
+//	gi.G2API_AddBolt(&ent->ghoul2[0], "*weapon");
+//	gi.G2API_AttachG2Model(&ent->ghoul2[1],&ent->ghoul2[0], 0, 0);
+
+	gi.linkentity (ent);
+
+	animation_t *animations = level.knownAnimFileSets[temp_animFileIndex].animations;
+	int anim = BOTH_STAND3;
+	float animSpeed = 50.0f / animations[anim].frameLerp;
+	gi.G2API_SetBoneAnim(&ent->ghoul2[0], "model_root", animations[anim].firstFrame,
+					(animations[anim].numFrames -1 )+ animations[anim].firstFrame,
+					BONE_ANIM_OVERRIDE_FREEZE , animSpeed, cg.time);
+
+//	int test = gi.G2API_GetSurfaceRenderStatus(&ent->ghoul2[0], "l_hand");
+//	gi.G2API_SetSurfaceOnOff(&ent->ghoul2[0], "l_arm",0x00000100);
+//	test = gi.G2API_GetSurfaceRenderStatus(&ent->ghoul2[0], "l_hand");
+
+//	gi.G2API_SetNewOrigin(&ent->ghoul2[0], gi.G2API_AddBolt(&ent->ghoul2[0], "rhang_tag_bone"));
+//	ent->s.apos.trDelta[1] = 10;
+//	ent->s.apos.trType = TR_LINEAR;
+
+
+	ent->nextthink = level.time + 1000;
+	ent->e_ThinkFunc = thinkF_set_MiscAnim;
 #endif
+#endif
+	//G_FreeEntity( ent );
 }
 
 //===========================================================
