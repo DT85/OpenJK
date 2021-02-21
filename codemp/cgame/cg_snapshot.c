@@ -51,6 +51,12 @@ static void CG_ResetEntity( centity_t *cent ) {
 		cent->pe.legs.animationNumber = -1;
 	}
 
+	if (cent->currentState.eFlags & EF_G2MODEL)
+	{ //reset the animation state
+		cent->pe.torso.animationNumber = -1;
+		cent->pe.legs.animationNumber = -1;
+	}
+
 #if 0
 	if (cent->isRagging && (cent->currentState.eFlags & EF_DEAD))
 	{

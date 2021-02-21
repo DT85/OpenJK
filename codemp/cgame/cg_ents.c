@@ -1009,6 +1009,22 @@ static void CG_General( centity_t *cent ) {
 		}
 	}
 
+	if ((cent->currentState.eFlags & EF_G2MODEL) && cent->ghoul2)
+	{ //mini-animation routine for general objects that want to play quick ghoul2 anims
+		//obviously lacks much of the functionality contained in player/npc animation.
+		//we actually use torsoAnim as the start frame and legsAnim as the end frame and
+		//always play the anim on the root bone.
+		if (cent->currentState.torsoAnim != cent->pe.torso.animationNumber ||
+			cent->currentState.legsAnim != cent->pe.legs.animationNumber)
+		{
+			trap->G2API_SetBoneAnim(cent->ghoul2, 0, "model_root", cent->currentState.torsoAnim,
+				cent->currentState.legsAnim, BONE_ANIM_OVERRIDE_LOOP, 1.0f, cg.time, -1, -1);
+
+			cent->pe.torso.animationNumber = cent->currentState.torsoAnim;
+			cent->pe.legs.animationNumber = cent->currentState.legsAnim;
+		}
+	}
+
 	memset (&ent, 0, sizeof(ent));
 
 	ent.shaderRGBA[0] = cent->currentState.customRGBA[0];
