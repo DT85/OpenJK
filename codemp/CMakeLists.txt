@@ -43,11 +43,6 @@ if(BuildMPRdVanilla)
 	add_subdirectory("${MPDir}/rd-vanilla")
 endif(BuildMPRdVanilla)
 
-#	Add rend2 JKA Renderer Project
-if(BuildMPRend2)
-	add_subdirectory("${MPDir}/rd-rend2")
-endif(BuildMPRend2)
-
 #    Common things between Engine and Dedicated Server
 if(BuildMPEngine OR BuildMPDed)
 
@@ -180,7 +175,7 @@ if(BuildMPEngine OR BuildMPDed)
 	endif(WIN32)
 
 	# Include directories
-	set(MPEngineAndDedIncludeDirectories ${MPDir} ${SharedDir} ${GSLIncludeDirectory}) # codemp folder, since includes are not always relative in the files
+	set(MPEngineAndDedIncludeDirectories ${MPDir} ${SharedDir} ${GSLIncludeDirectory} ${CMAKE_BINARY_DIR}/shared)
 
 	# Transparently use our bundled minizip.
 	list(APPEND MPEngineAndDedIncludeDirectories ${MINIZIP_INCLUDE_DIRS})
@@ -402,6 +397,11 @@ if(BuildMPEngine)
 			)
 	else()
 		find_package(SDL2 REQUIRED CONFIG)
+		if (TARGET SDL2::SDL2)
+			set(SDL2_INCLUDE_DIRS "")
+			set(SDL2_LIBRARIES SDL2::SDL2)
+		endif()
+		string(STRIP ${SDL2_LIBRARIES} SDL2_LIBRARIES)
 		set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${SDL2_INCLUDE_DIRS})
 		set(MPEngineLibraries ${MPEngineLibraries} ${SDL2_LIBRARIES})
 	endif()
@@ -554,9 +554,9 @@ if(BuildMPEngine)
 	if(MakeApplicationBundles)
 		set(MACOSX_BUNDLE_BUNDLE_NAME ${MPEngine})
 		set(MACOSX_BUNDLE_DISPLAY_NAME ${MPEngine})
-		set(MACOSX_BUNDLE_ICON_FILE MBII.icns)
-		set_source_files_properties(${MPDir}/macosx/MBII.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-		set(MPEngineFiles ${MPEngineFiles} ${MPDir}/macosx/MBII.icns)
+		set(MACOSX_BUNDLE_ICON_FILE OpenJK.icns)
+		set_source_files_properties(${MPDir}/macosx/OpenJK.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+		set(MPEngineFiles ${MPEngineFiles} ${MPDir}/macosx/OpenJK.icns)
 		set_source_files_properties(${MPDir}/macosx/English.lproj/InfoPlist.strings PROPERTIES MACOSX_PACKAGE_LOCATION Resources/English.lproj)
 		set(MPEngineFiles ${MPEngineFiles} ${MPDir}/macosx/English.lproj/InfoPlist.strings)
 	endif(MakeApplicationBundles)
@@ -707,44 +707,3 @@ if(BuildMPDed)
 	set_target_properties(${MPDed} PROPERTIES PROJECT_LABEL "MP Dedicated Server")
 	target_link_libraries(${MPDed} ${MPDedLibraries})
 endif(BuildMPDed)
-
-	set(GameLibsBuilt)
-	if(BuildMPGame)
-		set(GameLibsBuilt ${GameLibsBuilt} ${MPGame})
-	endif()
-
-	if(BuildMPCGame)
-		set(GameLibsBuilt ${GameLibsBuilt} ${MPCGame})
-	endif()
-
-	if(BuildMPUI)
-		set(GameLibsBuilt ${GameLibsBuilt} ${MPUI})
-	endif()
-
-if(WIN32 AND GameLibsBuilt)
-set(GameLibFullPaths)
-	if(MSVC)
-		foreach(GameLib ${GameLibsBuilt})
-			set(GameLibFullPaths
-				${GameLibFullPaths}
-				${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${GameLib}${CMAKE_SHARED_LIBRARY_SUFFIX})
-		endforeach(GameLib)
-	else()
-		foreach(GameLib ${GameLibsBuilt})
-			set(GameLibFullPaths
-				${GameLibFullPaths}
-				${CMAKE_BINARY_DIR}/${GameLib}${CMAKE_SHARED_LIBRARY_SUFFIX})
-		endforeach(GameLib)
-	endif()
-
-	include(InstallZIP)
-	add_zip_command(${AssetsPk3}
-		FILES ${GameLibFullPaths}
-		DEPENDS "${GameLibsBuilt}")
-	add_custom_target(Assets
-		ALL
-		DEPENDS ${AssetsPk3})
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${AssetsPk3}
-		DESTINATION "${JKAInstallDir}/OpenJK"
-		COMPONENT ${JKAMPCoreComponent})
-endif()
