@@ -2153,8 +2153,8 @@ void R_RenderDlightCubemaps(const refdef_t *fd)
 
 		shadowParms.viewportX = 0;
 		shadowParms.viewportY = 0;
-		shadowParms.viewportWidth = PSHADOW_MAP_SIZE;
-		shadowParms.viewportHeight = PSHADOW_MAP_SIZE;
+		shadowParms.viewportWidth = DSHADOW_MAP_SIZE;
+		shadowParms.viewportHeight = DSHADOW_MAP_SIZE;
 		shadowParms.isPortal = qfalse;
 		shadowParms.isMirror = qtrue; // because it is
 
@@ -2265,8 +2265,6 @@ void R_SetupViewParmsForOrthoRendering(
 
 	viewParms.frameSceneNum = tr.frameSceneNum;
 	viewParms.frameCount = tr.frameCount;
-
-	tr.viewCount++;
 
 	R_RotateForViewer(&tr.ori, &viewParms);
 	R_SetupProjectionOrtho(&viewParms, viewBounds);
@@ -2550,7 +2548,7 @@ void R_RenderSunShadowMaps(const refdef_t *fd, int level)
 	float splitZNear, splitZFar, splitBias;
 	float viewZNear, viewZFar;
 	vec3_t lightviewBounds[2];
-	qboolean lightViewIndependentOfCameraView = qfalse;
+	qboolean lightViewIndependentOfCameraView = qtrue;
 
 	if (r_forceSun->integer == 2)
 	{
@@ -2663,93 +2661,66 @@ void R_RenderSunShadowMaps(const refdef_t *fd, int level)
 
 	// Create bounds for light projection using slice of view projection
 	{
-		matrix_t lightViewMatrix;
-		vec4_t point, base, lightViewPoint;
-		float lx, ly;
-
-		base[3] = 1;
-		point[3] = 1;
-		lightViewPoint[3] = 1;
-
-		Matrix16View(lightViewAxis, lightOrigin, lightViewMatrix);
-
 		ClearBounds(lightviewBounds[0], lightviewBounds[1]);
+
+		vec3_t point, base;
+		float lx, ly, radius;
+		vec3_t splitCenter, frustrumPoint0, frustrumPoint7;
 
 		// add view near plane
 		lx = splitZNear * tan(fd->fov_x * M_PI / 360.0f);
 		ly = splitZNear * tan(fd->fov_y * M_PI / 360.0f);
 		VectorMA(fd->vieworg, splitZNear, fd->viewaxis[0], base);
 
-		VectorMA(base,   lx, fd->viewaxis[1], point);
-		VectorMA(point,  ly, fd->viewaxis[2], point);
-		Matrix16Transform(lightViewMatrix, point, lightViewPoint);
-		AddPointToBounds(lightViewPoint, lightviewBounds[0], lightviewBounds[1]);
+		VectorMA(base, lx, fd->viewaxis[1], point);
+		VectorMA(point, ly, fd->viewaxis[2], point);
+		VectorAdd(point, splitCenter, splitCenter);
+		VectorCopy(point, frustrumPoint0);
 
-		VectorMA(base,  -lx, fd->viewaxis[1], point);
-		VectorMA(point,  ly, fd->viewaxis[2], point);
-		Matrix16Transform(lightViewMatrix, point, lightViewPoint);
-		AddPointToBounds(lightViewPoint, lightviewBounds[0], lightviewBounds[1]);
+		VectorMA(base, -lx, fd->viewaxis[1], point);
+		VectorMA(point, ly, fd->viewaxis[2], point);
+		VectorAdd(point, splitCenter, splitCenter);
 
-		VectorMA(base,   lx, fd->viewaxis[1], point);
+		VectorMA(base, lx, fd->viewaxis[1], point);
 		VectorMA(point, -ly, fd->viewaxis[2], point);
-		Matrix16Transform(lightViewMatrix, point, lightViewPoint);
-		AddPointToBounds(lightViewPoint, lightviewBounds[0], lightviewBounds[1]);
+		VectorAdd(point, splitCenter, splitCenter);
 
-		VectorMA(base,  -lx, fd->viewaxis[1], point);
+		VectorMA(base, -lx, fd->viewaxis[1], point);
 		VectorMA(point, -ly, fd->viewaxis[2], point);
-		Matrix16Transform(lightViewMatrix, point, lightViewPoint);
-		AddPointToBounds(lightViewPoint, lightviewBounds[0], lightviewBounds[1]);
-		
+		VectorAdd(point, splitCenter, splitCenter);
 
 		// add view far plane
 		lx = splitZFar * tan(fd->fov_x * M_PI / 360.0f);
 		ly = splitZFar * tan(fd->fov_y * M_PI / 360.0f);
 		VectorMA(fd->vieworg, splitZFar, fd->viewaxis[0], base);
 
-		VectorMA(base,   lx, fd->viewaxis[1], point);
-		VectorMA(point,  ly, fd->viewaxis[2], point);
-		Matrix16Transform(lightViewMatrix, point, lightViewPoint);
-		AddPointToBounds(lightViewPoint, lightviewBounds[0], lightviewBounds[1]);
+		VectorMA(base, lx, fd->viewaxis[1], point);
+		VectorMA(point, ly, fd->viewaxis[2], point);
+		VectorAdd(point, splitCenter, splitCenter);
 
-		VectorMA(base,  -lx, fd->viewaxis[1], point);
-		VectorMA(point,  ly, fd->viewaxis[2], point);
-		Matrix16Transform(lightViewMatrix, point, lightViewPoint);
-		AddPointToBounds(lightViewPoint, lightviewBounds[0], lightviewBounds[1]);
+		VectorMA(base, -lx, fd->viewaxis[1], point);
+		VectorMA(point, ly, fd->viewaxis[2], point);
+		VectorAdd(point, splitCenter, splitCenter);
 
-		VectorMA(base,   lx, fd->viewaxis[1], point);
+		VectorMA(base, lx, fd->viewaxis[1], point);
 		VectorMA(point, -ly, fd->viewaxis[2], point);
-		Matrix16Transform(lightViewMatrix, point, lightViewPoint);
-		AddPointToBounds(lightViewPoint, lightviewBounds[0], lightviewBounds[1]);
+		VectorAdd(point, splitCenter, splitCenter);
 
-		VectorMA(base,  -lx, fd->viewaxis[1], point);
+		VectorMA(base, -lx, fd->viewaxis[1], point);
 		VectorMA(point, -ly, fd->viewaxis[2], point);
-		Matrix16Transform(lightViewMatrix, point, lightViewPoint);
-		AddPointToBounds(lightViewPoint, lightviewBounds[0], lightviewBounds[1]);
+		VectorAdd(point, splitCenter, splitCenter);
+		VectorCopy(point, frustrumPoint7);
 
-		// Moving the Light in Texel-Sized Increments
-		// from http://msdn.microsoft.com/en-us/library/windows/desktop/ee416324%28v=vs.85%29.aspx
-		//
-		float cascadeBound, worldUnitsPerTexel, invWorldUnitsPerTexel;
+		VectorScale(splitCenter, 1.0f / 8.0f, splitCenter);
+		radius = Distance(frustrumPoint0, frustrumPoint7) / 2.0f;
+		lightviewBounds[0][0] = -radius;
+		lightviewBounds[0][1] = -radius;
+		lightviewBounds[0][2] = -radius;
+		lightviewBounds[1][0] = radius;
+		lightviewBounds[1][1] = radius;
+		lightviewBounds[1][2] = radius;
 
-		cascadeBound = MAX(lightviewBounds[1][0] - lightviewBounds[0][0], lightviewBounds[1][1] - lightviewBounds[0][1]);
-		cascadeBound = MAX(cascadeBound, lightviewBounds[1][2] - lightviewBounds[0][2]);
-		worldUnitsPerTexel = cascadeBound / tr.sunShadowFbo[level]->width;
-		invWorldUnitsPerTexel = 1.0f / worldUnitsPerTexel;
-
-		VectorScale(lightviewBounds[0], invWorldUnitsPerTexel, lightviewBounds[0]);
-		lightviewBounds[0][0] = floor(lightviewBounds[0][0]);
-		lightviewBounds[0][1] = floor(lightviewBounds[0][1]);
-		lightviewBounds[0][2] = floor(lightviewBounds[0][2]);
-		VectorScale(lightviewBounds[0], worldUnitsPerTexel, lightviewBounds[0]);
-
-		VectorScale(lightviewBounds[1], invWorldUnitsPerTexel, lightviewBounds[1]);
-		lightviewBounds[1][0] = floor(lightviewBounds[1][0]);
-		lightviewBounds[1][1] = floor(lightviewBounds[1][1]);
-		lightviewBounds[1][2] = floor(lightviewBounds[1][2]);
-		VectorScale(lightviewBounds[1], worldUnitsPerTexel, lightviewBounds[1]);
-
-		//ri.Printf(PRINT_ALL, "znear %f zfar %f\n", lightviewBounds[0][0], lightviewBounds[1][0]);		
-		//ri.Printf(PRINT_ALL, "fovx %f fovy %f xmin %f xmax %f ymin %f ymax %f\n", fd->fov_x, fd->fov_y, xmin, xmax, ymin, ymax);
+		VectorCopy(splitCenter, lightOrigin);
 	}
 
 	orientationr_t orientation = {};
@@ -2762,6 +2733,26 @@ void R_RenderSunShadowMaps(const refdef_t *fd, int level)
 		VPF_DEPTHSHADOW | VPF_DEPTHCLAMP | VPF_ORTHOGRAPHIC | VPF_NOVIEWMODEL,
 		orientation,
 		lightviewBounds);
+
+	// Moving the Light in Texel-Sized Increments
+	// from http://msdn.microsoft.com/en-us/library/windows/desktop/ee416324%28v=vs.85%29.aspx
+	float worldUnitsPerTexel, invWorldUnitsPerTexel;
+	worldUnitsPerTexel = 2.0f * lightviewBounds[1][0] / (float)tr.sunShadowFbo[level]->width;
+	invWorldUnitsPerTexel = tr.sunShadowFbo[level]->width / (2.0f * lightviewBounds[1][0]);
+	vec3_t new_view_origin;
+	new_view_origin[0] = tr.viewParms.world.modelViewMatrix[12];
+	new_view_origin[1] = tr.viewParms.world.modelViewMatrix[13];
+	new_view_origin[2] = tr.viewParms.world.modelViewMatrix[14];
+
+	VectorScale(new_view_origin, invWorldUnitsPerTexel, new_view_origin);
+	new_view_origin[0] = floor(new_view_origin[0]);
+	new_view_origin[1] = floor(new_view_origin[1]);
+	new_view_origin[2] = floor(new_view_origin[2]);
+	VectorScale(new_view_origin, worldUnitsPerTexel, new_view_origin);
+
+	tr.viewParms.world.modelViewMatrix[12] = new_view_origin[0];
+	tr.viewParms.world.modelViewMatrix[13] = new_view_origin[1];
+	tr.viewParms.world.modelViewMatrix[14] = new_view_origin[2];
 
 	const int firstDrawSurf = tr.refdef.numDrawSurfs;
 	R_GenerateDrawSurfs(&tr.viewParms, &tr.refdef);
@@ -2781,57 +2772,63 @@ void R_RenderCubemapSide( int cubemapIndex, int cubemapSide, qboolean subscene, 
 	float oldColorScale = tr.refdef.colorScale;
 
 	VectorCopy(tr.cubemaps[cubemapIndex].origin, refdef.vieworg);
+	refdef.fov_x = 90;
+	refdef.fov_y = 90;
+	refdef.width = tr.renderCubeFbo->width;
+	refdef.height = tr.renderCubeFbo->height;
+	refdef.x = 0;
+	refdef.y = 0;
 
 	switch(cubemapSide)
 	{
 		case 0:
-			// -X
-			VectorSet( refdef.viewaxis[0], -1,  0,  0);
-			VectorSet( refdef.viewaxis[1],  0,  0, -1);
-			VectorSet( refdef.viewaxis[2],  0,  1,  0);
+			// +X
+			VectorSet(refdef.viewaxis[0], 1,  0, 0);
+			VectorSet(refdef.viewaxis[1], 0,  0, 1);
+			VectorSet(refdef.viewaxis[2], 0, -1, 0);
 			break;
 		case 1: 
-			// +X
-			VectorSet( refdef.viewaxis[0],  1,  0,  0);
-			VectorSet( refdef.viewaxis[1],  0,  0,  1);
-			VectorSet( refdef.viewaxis[2],  0,  1,  0);
+			// -X
+			VectorSet(refdef.viewaxis[0], -1,  0,  0);
+			VectorSet(refdef.viewaxis[1],  0,  0, -1);
+			VectorSet(refdef.viewaxis[2],  0, -1,  0);
 			break;
 		case 2: 
-			// -Y
-			VectorSet( refdef.viewaxis[0],  0, -1,  0);
-			VectorSet( refdef.viewaxis[1],  1,  0,  0);
-			VectorSet( refdef.viewaxis[2],  0,  0, -1);
+			// +Y
+			VectorSet(refdef.viewaxis[0],  0, 1, 0);
+			VectorSet(refdef.viewaxis[1], -1, 0, 0);
+			VectorSet(refdef.viewaxis[2],  0, 0, 1);
 			break;
 		case 3: 
-			// +Y
-			VectorSet( refdef.viewaxis[0],  0,  1,  0);
-			VectorSet( refdef.viewaxis[1],  1,  0,  0);
-			VectorSet( refdef.viewaxis[2],  0,  0,  1);
+			// -Y
+			VectorSet(refdef.viewaxis[0],  0, -1,  0);
+			VectorSet(refdef.viewaxis[1], -1,  0,  0);
+			VectorSet(refdef.viewaxis[2],  0,  0, -1);
 			break;
 		case 4:
-			// -Z
-			VectorSet( refdef.viewaxis[0],  0,  0, -1);
-			VectorSet( refdef.viewaxis[1],  1,  0,  0);
-			VectorSet( refdef.viewaxis[2],  0,  1,  0);
+			// +Z
+			VectorSet(refdef.viewaxis[0],  0,  0, 1);
+			VectorSet(refdef.viewaxis[1], -1,  0, 0);
+			VectorSet(refdef.viewaxis[2],  0, -1, 0);
 			break;
 		case 5:
-			// +Z
-			VectorSet( refdef.viewaxis[0],  0,  0,  1);
-			VectorSet( refdef.viewaxis[1], -1,  0,  0);
-			VectorSet( refdef.viewaxis[2],  0,  1,  0);
+			// -Z
+			VectorSet(refdef.viewaxis[0], 0,  0, -1);
+			VectorSet(refdef.viewaxis[1], 1,  0,  0);
+			VectorSet(refdef.viewaxis[2], 0, -1,  0);
 			break;
 	}
 
 	if (!subscene)
 	{
 		RE_BeginScene(&refdef);
+	}
 
-		if(r_sunlightMode->integer && r_depthPrepass->value && (r_forceSun->integer || tr.sunShadows))
-		{
-			R_RenderSunShadowMaps(&refdef, 0);
-			R_RenderSunShadowMaps(&refdef, 1);
-			R_RenderSunShadowMaps(&refdef, 2);
-		}
+	if (r_sunlightMode->integer && r_depthPrepass->value && (r_forceSun->integer > 0 || tr.sunShadows))
+	{
+		R_RenderSunShadowMaps(&refdef, 0);
+		R_RenderSunShadowMaps(&refdef, 1);
+		R_RenderSunShadowMaps(&refdef, 2);
 	}
 
 	tr.refdef.colorScale = 1.0f;
@@ -2839,7 +2836,7 @@ void R_RenderCubemapSide( int cubemapIndex, int cubemapSide, qboolean subscene, 
 	viewParms_t	parms = {};
 	parms.viewportWidth = tr.renderCubeFbo->width;
 	parms.viewportHeight = tr.renderCubeFbo->height;
-	parms.isMirror = qtrue;
+	parms.isMirror = qfalse;
 	parms.flags =  VPF_NOVIEWMODEL | VPF_NOPOSTPROCESS;
 	if (!bounce)
 		parms.flags |= VPF_NOCUBEMAPS;
@@ -2855,7 +2852,7 @@ void R_RenderCubemapSide( int cubemapIndex, int cubemapSide, qboolean subscene, 
 
 	VectorCopy( refdef.vieworg, parms.pvsOrigin );
 
-	if (r_sunlightMode->integer && r_depthPrepass->value && (r_forceSun->integer || tr.sunShadows))
+	if (r_sunlightMode->integer && r_depthPrepass->value && (r_forceSun->integer > 0 || tr.sunShadows))
 	{
 		parms.flags |= VPF_USESUNLIGHT;
 	}

@@ -1989,6 +1989,10 @@ static void RawImage_UploadTexture( byte *data, int x, int y, int width, int hei
 		dataFormat = GL_RG;
 		dataType = GL_HALF_FLOAT;
 		break;
+	case GL_RGB16F:
+		dataFormat = GL_RGB;
+		dataType = GL_HALF_FLOAT;
+		break;
 	case GL_RGBA16F:
 		dataFormat = GL_RGBA;
 		dataType = GL_HALF_FLOAT;
@@ -2606,7 +2610,7 @@ image_t* R_GetLoadedImage(const char *name, int flags) {
 	return NULL;
 }
 
-void R_CreateDiffuseAndSpecMapsFromBaseColorAndRMO(shaderStage_t *stage, const char *name, const char *rmoName, int flags, int type)
+void R_CreateDiffuseAndSpecMapsFromBaseColorAndRMO(shaderStage_t *stage, const char *name, const char *rmoName, int flags, int type, int roughnessType)
 {
 	char	diffuseName[MAX_QPATH];
 	char	specularName[MAX_QPATH];
@@ -2622,7 +2626,7 @@ void R_CreateDiffuseAndSpecMapsFromBaseColorAndRMO(shaderStage_t *stage, const c
 	Q_strcat(diffuseName, sizeof(diffuseName), "_diffuse");
 
 	COM_StripExtension(name, specularName, sizeof(specularName));
-	Q_strcat(specularName, sizeof(specularName), "_spec");
+	Q_strcat(specularName, sizeof(specularName), "_specGloss");
 
 	//
 	// see if the images are already loaded
@@ -2689,6 +2693,8 @@ void R_CreateDiffuseAndSpecMapsFromBaseColorAndRMO(shaderStage_t *stage, const c
 		case SPEC_RMO:
 		case SPEC_RMOS:
 			roughness = ByteToFloat(rmoPic[i + 0]);
+			if (roughnessType == ROUGHNESS_PERCEPTUAL)
+				roughness *= roughness;
 			gloss = (1.0 - roughness) + (0.04 * roughness);
 			metalness = ByteToFloat(rmoPic[i + 1]);
 			ao = ByteToFloat(rmoPic[i + 2]);
@@ -2702,7 +2708,19 @@ void R_CreateDiffuseAndSpecMapsFromBaseColorAndRMO(shaderStage_t *stage, const c
 			ao += (1.0 - ao) * (1.0 - aoStrength);
 			specular_variance = (type == SPEC_MOSR) ? ByteToFloat(rmoPic[i + 2]) : 1.0f;
 			roughness = ByteToFloat(rmoPic[i + 3]);
+			if (roughnessType == ROUGHNESS_PERCEPTUAL)
+				roughness *= roughness;
 			gloss = (1.0 - roughness) + (0.04 * roughness);
+			break;
+		case SPEC_ORM:
+		case SPEC_ORMS:
+			ao = ByteToFloat(rmoPic[i + 0]);
+			roughness = ByteToFloat(rmoPic[i + 1]);
+			if (roughnessType == ROUGHNESS_PERCEPTUAL)
+				roughness *= roughness;
+			gloss = (1.0 - roughness) + (0.04 * roughness);
+			metalness = ByteToFloat(rmoPic[i + 2]);
+			specular_variance = (type == SPEC_ORMS) ? ByteToFloat(rmoPic[i + 3]) : 1.0f;
 			break;
 		// should never reach this
 		default:
@@ -2726,9 +2744,9 @@ void R_CreateDiffuseAndSpecMapsFromBaseColorAndRMO(shaderStage_t *stage, const c
 		// diffuse Color = baseColor * (1.0 - metalness) 
 		// also gamma correct again
 		// FIXME: AO should be handled in shader because it should only affect the ambient lighting
-		diffusePic[i + 0] = FloatToByte(RGBtosRGB(baseColor[0] * (1.0f - metalness) * ao));
-		diffusePic[i + 1] = FloatToByte(RGBtosRGB(baseColor[1] * (1.0f - metalness) * ao));
-		diffusePic[i + 2] = FloatToByte(RGBtosRGB(baseColor[2] * (1.0f - metalness) * ao));
+		diffusePic[i + 0] = FloatToByte(RGBtosRGB(baseColor[0] * ao));
+		diffusePic[i + 1] = FloatToByte(RGBtosRGB(baseColor[1] * ao));
+		diffusePic[i + 2] = FloatToByte(RGBtosRGB(baseColor[2] * ao));
 		diffusePic[i + 3] = FloatToByte(baseColor[3]);
 
 		// specular Color = mix(baseSpecular, baseColor, metalness)
@@ -3048,7 +3066,7 @@ static void R_CreateEnvBrdfLUT(void) {
 	if (!r_cubeMapping->integer)
 		return;
 
-	uint16_t data[LUT_WIDTH][LUT_HEIGHT][2];
+	uint16_t data[LUT_WIDTH][LUT_HEIGHT][3];
 
 	unsigned const numSamples = 1024;
 
@@ -3067,43 +3085,73 @@ static void R_CreateEnvBrdfLUT(void) {
 
 			float scale = 0.0f;
 			float bias = 0.0f;
+			float velvet = 0.0f;
 
 			for (unsigned i = 0; i < numSamples; ++i)
 			{
 				float const e1 = (float)i / numSamples;
 				float const e2 = (float)((double)ReverseBits(i) / (double)0x100000000LL);
-
 				float const phi = 2.0f * M_PI * e1;
-				float const cosTheta = sqrtf((1.0f - e2) / (1.0f + (m2 - 1.0f) * e2));
-				float const sinTheta = sqrtf(1.0f - cosTheta * cosTheta);
 
-				float const hx = sinTheta * cosf(phi);
-				float const hy = sinTheta * sinf(phi);
-				float const hz = cosTheta;
-
-				float const vdh = vx * hx + vy * hy + vz * hz;
-				float const lz = 2.0f * vdh * hz - vz;
-
-				float const NdotL = MAX(lz, 0.0f);
-				float const NdotH = MAX(hz, 0.0f);
-				float const VdotH = MAX(vdh, 0.0f);
-
-				if (NdotL > 0.0f)
+				// GGX Distribution
 				{
-					float const visibility = GSmithCorrelated(roughness, NdotV, NdotL);
-					float const NdotLVisPDF = NdotL * visibility * (4.0f * VdotH / NdotH);
-					float const fresnel = powf(1.0f - VdotH, 5.0f);
+					float const cosTheta = sqrtf((1.0f - e2) / (1.0f + (m2 - 1.0f) * e2));
+					float const sinTheta = sqrtf(1.0f - cosTheta * cosTheta);
 
-					scale += NdotLVisPDF * (1.0f - fresnel);
-					bias += NdotLVisPDF * fresnel;
+					float const hx = sinTheta * cosf(phi);
+					float const hy = sinTheta * sinf(phi);
+					float const hz = cosTheta;
+
+					float const vdh = vx * hx + vy * hy + vz * hz;
+					float const lz = 2.0f * vdh * hz - vz;
+
+					float const NdotL = MAX(lz, 0.0f);
+					float const NdotH = MAX(hz, 0.0f);
+					float const VdotH = MAX(vdh, 0.0f);
+
+					if (NdotL > 0.0f)
+					{
+						float const visibility = GSmithCorrelated(roughness, NdotV, NdotL);
+						float const NdotLVisPDF = NdotL * visibility * (4.0f * VdotH / NdotH);
+						float const fresnel = powf(1.0f - VdotH, 5.0f);
+
+						scale += NdotLVisPDF * (1.0f - fresnel);
+						bias += NdotLVisPDF * fresnel;
+					}
+				}
+
+				// Charlie Distribution
+				{
+					float const sinTheta = sqrtf(powf(e2, (2.0f * roughness) / ((2.0f * roughness) + 1.0f)));
+					float const cosTheta = sqrtf(1.0f - sinTheta * sinTheta);
+
+					float const hx = sinTheta * cosf(phi);
+					float const hy = sinTheta * sinf(phi);
+					float const hz = cosTheta;
+
+					float const vdh = vx * hx + vy * hy + vz * hz;
+					float const lz = 2.0f * vdh * hz - vz;
+
+					float const NdotL = MAX(lz, 0.0f);
+					float const NdotH = MAX(hz, 0.0f);
+					float const VdotH = MAX(vdh, 0.0f);
+
+					if (NdotL > 0.0f)
+					{
+						float const velvetV = V_Neubelt(NdotV, NdotL);
+						float const rcp_pdf = 4.0f * VdotH / NdotH;
+						velvet += NdotL * velvetV * rcp_pdf;
+					}
 				}
 			}
 
 			scale /= numSamples;
 			bias /= numSamples;
+			velvet /= numSamples;
 
 			data[y][x][0] = FloatToHalf(scale);
 			data[y][x][1] = FloatToHalf(bias);
+			data[y][x][2] = FloatToHalf(velvet);
 		}
 	}
 
@@ -3114,7 +3162,7 @@ static void R_CreateEnvBrdfLUT(void) {
 		LUT_HEIGHT,
 		IMGTYPE_COLORALPHA,
 		IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE,
-		GL_RG16F);
+		GL_RGB16F);
 }
 
 /*
@@ -3177,7 +3225,7 @@ void R_CreateBuiltinImages( void ) {
 		for (x = 0; x < MAX_DLIGHTS; x++)
 		{
 			tr.shadowCubemaps[x].image = R_CreateImage(
-				va("*shadowcubemap%i", x), NULL, PSHADOW_MAP_SIZE, PSHADOW_MAP_SIZE, 
+				va("*shadowcubemap%i", x), NULL, DSHADOW_MAP_SIZE, DSHADOW_MAP_SIZE, 
 				IMGTYPE_COLORALPHA, IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE | IMGFLAG_CUBEMAP, 
 				GL_DEPTH_COMPONENT24);
 			GL_Bind(tr.shadowCubemaps[x].image);
@@ -3408,23 +3456,12 @@ void R_SetColorMappings( void ) {
 	g = r_gamma->value;
 
 	for ( i = 0; i < 256; i++ ) {
-		int i2;
-
-		if (r_srgb->integer)
-		{
-			i2 = 255 * RGBtosRGB(i/255.0f) + 0.5f;
-		}
-		else
-		{
-			i2 = i;
-		}
-
 		if ( g == 1 ) {
-			inf = i2;
+			inf = i;
 		} else {
-			inf = 255 * pow ( i2/255.0f, 1.0f / g ) + 0.5f;
+			inf = 255 * pow ( i/255.0f, 1.0f / g ) + 0.5f;
 		}
-
+		inf <<= tr.overbrightBits;
 		if (inf < 0) {
 			inf = 0;
 		}

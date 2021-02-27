@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_weather.h"
 #include <algorithm>
 
+static size_t STATIC_UNIFORM_BUFFER_SIZE = 1 * 1024 * 1024;
 static size_t FRAME_UNIFORM_BUFFER_SIZE = 8*1024*1024;
 static size_t FRAME_VERTEX_BUFFER_SIZE = 12*1024*1024;
 static size_t FRAME_INDEX_BUFFER_SIZE = 4*1024*1024;
@@ -128,8 +129,6 @@ cvar_t  *r_forceAutoExposure;
 cvar_t  *r_forceAutoExposureMin;
 cvar_t  *r_forceAutoExposureMax;
 
-cvar_t  *r_srgb;
-
 cvar_t  *r_depthPrepass;
 cvar_t  *r_ssao;
 
@@ -138,6 +137,7 @@ cvar_t  *r_specularMapping;
 cvar_t  *r_deluxeMapping;
 cvar_t  *r_deluxeSpecular;
 cvar_t  *r_parallaxMapping;
+cvar_t	*r_forceParallaxBias;
 cvar_t  *r_cubeMapping;
 cvar_t	*r_cubeMappingBounces;
 cvar_t  *r_baseNormalX;
@@ -1438,7 +1438,7 @@ void R_Register( void )
 	r_ext_multi_draw_arrays = ri.Cvar_Get( "r_ext_multi_draw_arrays", "1", CVAR_ARCHIVE | CVAR_LATCH, "Unused" );
 	r_ext_texture_float = ri.Cvar_Get( "r_ext_texture_float", "1", CVAR_ARCHIVE | CVAR_LATCH, "Disable/enable floating-point textures" );
 	r_arb_half_float_pixel = ri.Cvar_Get( "r_arb_half_float_pixel", "1", CVAR_ARCHIVE | CVAR_LATCH, "Disable/enable ARB_half_float GL extension" );
-	r_ext_framebuffer_multisample = ri.Cvar_Get( "r_ext_framebuffer_multisample", "0", CVAR_ARCHIVE | CVAR_LATCH, "Disable/enable framebuffer MSAA" );
+	r_ext_framebuffer_multisample = ri.Cvar_Get( "r_ext_multisample", "0", CVAR_ARCHIVE | CVAR_LATCH, "Disable/enable framebuffer MSAA" );
 	r_arb_seamless_cube_map = ri.Cvar_Get( "r_arb_seamless_cube_map", "0", CVAR_ARCHIVE | CVAR_LATCH, "Disable/enable seamless cube map filtering GL extension" );
 	r_arb_vertex_type_2_10_10_10_rev = ri.Cvar_Get( "r_arb_vertex_type_2_10_10_10_rev", "1", CVAR_ARCHIVE | CVAR_LATCH, "Disable/enable 1010102 UI data type" );
 	r_arb_buffer_storage = ri.Cvar_Get( "r_arb_buffer_storage", "0", CVAR_ARCHIVE | CVAR_LATCH, "Disable/enable buffer storage GL extension" );
@@ -1490,8 +1490,6 @@ void R_Register( void )
 	r_forceAutoExposureMax = ri.Cvar_Get( "r_forceAutoExposureMax", "2.0", CVAR_CHEAT, "" );
 
 	r_cameraExposure = ri.Cvar_Get( "r_cameraExposure", "0", CVAR_CHEAT, "" );
-
-	r_srgb = ri.Cvar_Get( "r_srgb", "0", CVAR_ARCHIVE | CVAR_LATCH, "" );
 
 	r_depthPrepass = ri.Cvar_Get( "r_depthPrepass", "1", CVAR_ARCHIVE, "" );
 	r_ssao = ri.Cvar_Get( "r_ssao", "0", CVAR_LATCH | CVAR_ARCHIVE, "" );
@@ -1577,6 +1575,9 @@ void R_Register( void )
 	r_debugSort = ri.Cvar_Get( "r_debugSort", "0", CVAR_CHEAT, "" );
 	r_printShaders = ri.Cvar_Get( "r_printShaders", "0", 0, "" );
 	r_saveFontData = ri.Cvar_Get( "r_saveFontData", "0", 0, "" );
+
+	r_forceParallaxBias = ri.Cvar_Get("r_forceParallaxBias", "0", CVAR_TEMP, "");
+	ri.Cvar_CheckRange(r_forceParallaxBias, 0.0f, 1.0f, qfalse);
 
 	r_nocurves = ri.Cvar_Get ("r_nocurves", "0", CVAR_CHEAT, "" );
 	r_drawworld = ri.Cvar_Get ("r_drawworld", "1", CVAR_CHEAT, "" );
@@ -1686,6 +1687,7 @@ static void R_InitBackEndFrameData()
 
 		frame->ubo = ubos[i];
 		frame->uboWriteOffset = 0;
+		frame->uboSize = FRAME_UNIFORM_BUFFER_SIZE;
 		qglBindBuffer(GL_UNIFORM_BUFFER, frame->ubo);
 
 		// TODO: persistently mapped UBOs
@@ -1726,6 +1728,33 @@ static void R_InitBackEndFrameData()
 	}
 
 	backEndData->currentFrame = backEndData->frames;
+}
+
+static void R_InitStaticConstants()
+{
+	EntityBlock entity2DBlock = {};
+	entity2DBlock.fxVolumetricBase = -1.0f;
+
+	Matrix16Identity(entity2DBlock.modelMatrix);
+	Matrix16Ortho(
+		0.0f,
+		640.0f,
+		480.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		entity2DBlock.modelViewProjectionMatrix);
+
+	qglBindBuffer(GL_UNIFORM_BUFFER, tr.staticUbo);
+	qglBufferData(
+		GL_UNIFORM_BUFFER,
+		STATIC_UNIFORM_BUFFER_SIZE,
+		nullptr,
+		GL_STATIC_DRAW);
+
+	tr.entity2DUboOffset = 0;
+	qglBufferSubData(
+		GL_UNIFORM_BUFFER, 0, sizeof(entity2DBlock), &entity2DBlock);
 }
 
 static void R_ShutdownBackEndFrameData()
@@ -1841,8 +1870,9 @@ void R_Init( void ) {
 
 	InitOpenGL();
 
-	R_InitVBOs();
+	R_InitGPUBuffers();
 
+	R_InitStaticConstants();
 	R_InitBackEndFrameData();
 	R_InitImages();
 
@@ -1910,7 +1940,7 @@ void RE_Shutdown( qboolean destroyWindow, qboolean restarting ) {
 		R_ShutDownQueries();
 		FBO_Shutdown();
 		R_DeleteTextures();
-		R_ShutdownVBOs();
+		R_DestroyGPUBuffers();
 		GLSL_ShutdownGPUShaders();
 
 		if ( destroyWindow && restarting )

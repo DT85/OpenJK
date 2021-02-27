@@ -2182,7 +2182,7 @@ namespace
 
 		DrawItem item = {};
 		item.renderState.transformFeedback = true;
-		item.transformFeedbackBuffer = {rainVBO, 0, rainVBO->vertexesSize};
+		item.transformFeedbackBuffer = {rainVBO->vertexesVBO, 0, rainVBO->vertexesSize};
 		item.program = &tr.weatherUpdateShader;
 
 		const size_t numAttribs = ARRAY_LEN(ws.attribsTemplate);
