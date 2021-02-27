@@ -3966,7 +3966,9 @@ void RE_LoadWorldMap( const char *name ) {
 	tr.worldMapLoaded = qtrue;
 	tr.world = world;
 
+#ifndef VANILLA_WEATHER
 	R_InitWeatherForMap();
+#endif
 
 	// Render all cubemaps
 	if (r_cubeMapping->integer && tr.numCubemaps)

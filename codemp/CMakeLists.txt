@@ -43,6 +43,11 @@ if(BuildMPRdVanilla)
 	add_subdirectory("${MPDir}/rd-vanilla")
 endif(BuildMPRdVanilla)
 
+#	Add rend2 JKA Renderer Project
+if(BuildMPRend2)
+	add_subdirectory("${MPDir}/rd-rend2")
+endif(BuildMPRend2)
+
 #    Common things between Engine and Dedicated Server
 if(BuildMPEngine OR BuildMPDed)
 
@@ -554,9 +559,9 @@ if(BuildMPEngine)
 	if(MakeApplicationBundles)
 		set(MACOSX_BUNDLE_BUNDLE_NAME ${MPEngine})
 		set(MACOSX_BUNDLE_DISPLAY_NAME ${MPEngine})
-		set(MACOSX_BUNDLE_ICON_FILE OpenJK.icns)
-		set_source_files_properties(${MPDir}/macosx/OpenJK.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-		set(MPEngineFiles ${MPEngineFiles} ${MPDir}/macosx/OpenJK.icns)
+		set(MACOSX_BUNDLE_ICON_FILE MBII.icns)
+		set_source_files_properties(${MPDir}/macosx/MBII.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+		set(MPEngineFiles ${MPEngineFiles} ${MPDir}/macosx/MBII.icns)
 		set_source_files_properties(${MPDir}/macosx/English.lproj/InfoPlist.strings PROPERTIES MACOSX_PACKAGE_LOCATION Resources/English.lproj)
 		set(MPEngineFiles ${MPEngineFiles} ${MPDir}/macosx/English.lproj/InfoPlist.strings)
 	endif(MakeApplicationBundles)
