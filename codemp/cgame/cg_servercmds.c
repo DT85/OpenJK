@@ -909,11 +909,6 @@ static void CG_ConfigStringModified( void ) {
 	else if ( num == CS_SHADERSTATE ) {
 		CG_ShaderStateChanged();
 	}
-	//----(SA)	have not reached this code yet so I don't know if I really need this here
-	else if (num >= CS_DLIGHTS && num < CS_DLIGHTS + MAX_DLIGHTS) {
-		CG_Printf( ">>>>>>>>>>>got configstring for dlight: %d\n", num - CS_DLIGHTS );
-	//----(SA)
-	}
 	else if ( num >= CS_LIGHT_STYLES && num < CS_LIGHT_STYLES + (MAX_LIGHT_STYLES * 3))
 	{
 		CG_SetLightstyle(num - CS_LIGHT_STYLES);

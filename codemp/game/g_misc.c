@@ -308,8 +308,6 @@ void SP_dlight(gentity_t *ent) {
 	int i;
 	int offset, style, atten;
 
-	//G_SetOrigin(ent, ent->s.origin);
-
 	G_SpawnInt("offset", "0", &offset);              // starting index into the stylestring
 	G_SpawnInt("style", "0", &style);                    // predefined stylestring
 	G_SpawnString("sound", "", &snd);                 //
