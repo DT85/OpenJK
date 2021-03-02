@@ -104,3 +104,76 @@ void CG_SetLightstyle (int i)
 		cl_lightstyle[(i/3)].map[k][(i%3)] = (float)(s[k]-'a')/(float)('z'-'a') * 255.0;
 	}
 }
+
+/*
+==============
+CG_AddDLightstyle
+==============
+*/
+#define LS_FRAMETIME 100 // (ms)  cycle through lightstyle characters at 10fps
+void CG_AddDLightstyle(centity_t *cent) {
+	float lightval;
+	int cl;
+	int r, g, b;
+	int stringlength;
+	float offset;
+	int otime;
+	int lastch, nextch;
+
+	if (cent->dl_stylestring[0] == '\0') {
+		return;
+	}
+
+	otime = cg.time - cent->dl_time;
+	stringlength = strlen(cent->dl_stylestring);
+
+	// it's been a long time since you were updated, lets assume a reset
+	if (otime > 2 * LS_FRAMETIME) {
+		otime = 0;
+		cent->dl_frame = cent->dl_oldframe = 0;
+		cent->dl_backlerp = 0;
+	}
+
+	cent->dl_time = cg.time;
+
+	offset = ((float)otime) / LS_FRAMETIME;
+
+	cent->dl_backlerp += offset;
+
+
+	if (cent->dl_backlerp > 1) {                     // we're moving on to the next frame
+		cent->dl_oldframe = cent->dl_oldframe + (int)cent->dl_backlerp;
+		cent->dl_frame = cent->dl_oldframe + 1;
+		if (cent->dl_oldframe >= stringlength) {
+			cent->dl_oldframe = (cent->dl_oldframe) % stringlength;
+			if (cent->dl_oldframe < 3 && cent->dl_sound) { // < 3 so if an alarm comes back into the pvs it will only start a sound if it's going to be closely synced with the light, otherwise wait till the next cycle
+				trap->S_StartSound(NULL, cent->currentState.number, CHAN_AUTO, cgs.gameSounds[cent->dl_sound]);
+			}
+		}
+
+		if (cent->dl_frame >= stringlength) {
+			cent->dl_frame = (cent->dl_frame) % stringlength;
+		}
+
+		cent->dl_backlerp = cent->dl_backlerp - (int)cent->dl_backlerp;
+	}
+
+
+	lastch = cent->dl_stylestring[cent->dl_oldframe] - 'a';
+	nextch = cent->dl_stylestring[cent->dl_frame] - 'a';
+
+	lightval = (lastch * (1.0 - cent->dl_backlerp)) + (nextch * cent->dl_backlerp);
+
+	lightval = (lightval * (1000.0f / 24.0f)) - 200.0f;  // they want 'm' as the "middle" value as 300
+
+	lightval = max(0.0f, lightval);
+	lightval = min(1000.0f, lightval);
+
+	cl = cent->currentState.constantLight;
+	r = cl & 255;
+	g = (cl >> 8) & 255;
+	b = (cl >> 16) & 255;
+
+	trap->R_AddLightToScene(cent->lerpOrigin, lightval, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f);
+}
+

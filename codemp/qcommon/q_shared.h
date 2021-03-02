@@ -940,6 +940,8 @@ Ghoul2 Insert End
 
 #define	MAX_CONFIGSTRINGS	1700 //this is getting pretty high. Try not to raise it anymore than it already is.
 
+#define MAX_DLIGHT_CONFIGSTRINGS    128
+
 // these are the only configstrings that the system reserves, all the
 // other ones are strictly for servergame to clientgame communication
 #define	CS_SERVERINFO		0		// an info string with all the serverinfo cvars

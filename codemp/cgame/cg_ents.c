@@ -349,12 +349,18 @@ static void CG_EntityEffects( centity_t *cent ) {
 		int		cl;
 		float	i, r, g, b;
 
-		cl = cent->currentState.constantLight;
-		r = (float) (cl & 0xFF) / 255.0;
-		g = (float) ((cl >> 8) & 0xFF) / 255.0;
-		b = (float) ((cl >> 16) & 0xFF) / 255.0;
-		i = (float) ((cl >> 24) & 0xFF) * 4.0;
-		trap->R_AddLightToScene( cent->lerpOrigin, i, r, g, b );
+		if (cent->dl_stylestring[0] != 0) {  // it's probably a dlight
+			CG_AddDLightstyle(cent);
+		}
+		else
+		{
+			cl = cent->currentState.constantLight;
+			r = (float)(cl & 0xFF) / 255.0;
+			g = (float)((cl >> 8) & 0xFF) / 255.0;
+			b = (float)((cl >> 16) & 0xFF) / 255.0;
+			i = (float)((cl >> 24) & 0xFF) * 4.0;
+			trap->R_AddLightToScene(cent->lerpOrigin, i, r, g, b);
+		}
 	}
 
 }

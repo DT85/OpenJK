@@ -372,6 +372,15 @@ typedef struct centity_s {
 	vec3_t			lerpOrigin;
 	vec3_t			lerpAngles;
 
+	// client side dlights
+	int				dl_frame;
+	int				dl_oldframe;
+	float			dl_backlerp;
+	int				dl_time;
+	char			dl_stylestring[64];
+	int				dl_sound;
+	int				dl_atten;
+
 #if 0
 	//add up bone offsets until next client frame before adding them in
 	qboolean		hasRagOffset;
@@ -858,6 +867,9 @@ typedef struct cg_s {
 
 	// skull trails
 	skulltrail_t	skulltrails[MAX_CLIENTS];
+
+	// dlights
+	qboolean	dlightstylesInited;
 
 	// centerprinting
 	int			centerPrintTime;
@@ -1848,6 +1860,12 @@ void ScaleModelAxis(refEntity_t	*ent);
 /*
 Ghoul2 Insert End
 */
+
+//
+// cg_light.c
+//
+
+void CG_AddDLightstyle(centity_t *cent);
 
 //
 // cg_turret.c

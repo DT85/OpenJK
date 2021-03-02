@@ -338,6 +338,12 @@ struct gentity_s {
 	int			fly_sound_debounce_time;	// wind tunnel
 	int			last_move_time;
 
+//Dlights
+	vec3_t		dl_color;
+	char        *dl_stylestring;
+	char        *dl_shader;
+	int			dl_atten;
+
 //Health and damage fields
 	int			health;
 	qboolean	takedamage;
@@ -1073,6 +1079,7 @@ void SaveRegisteredItems( void );
 //
 // g_utils.c
 //
+int		G_FindConfigstringIndex( const char *name, int start, int max, qboolean create );
 int		G_ModelIndex( const char *name );
 int		G_SoundIndex( const char *name );
 int		G_SoundSetIndex(const char *name);

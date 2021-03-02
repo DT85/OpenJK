@@ -2402,6 +2402,8 @@ extern qboolean PM_InKnockDown( playerState_t *ps );
 extern qboolean cgQueueLoad;
 extern void CG_ActualLoadDeferredPlayers( void );
 
+extern void CG_SetupDlightstyles(void);
+
 static int cg_siegeClassIndex = -2;
 
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback ) {
@@ -2458,6 +2460,10 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	trap->FX_AdjustTime( cg.time );
 
 	CG_RunLightStyles();
+
+	if (!cg.dlightstylesInited) {
+		CG_SetupDlightstyles();
+	}
 
 	// any looped sounds will be respecified as entities
 	// are added to the render list

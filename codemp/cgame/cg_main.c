@@ -407,6 +407,62 @@ const char *CG_Argv( int arg ) {
 	return buffer;
 }
 
+//========================================================================
+
+void CG_SetupDlightstyles(void) {
+	int i, j;
+	char        *str;
+	char        *token;
+	int entnum;
+	centity_t   *cent;
+
+	cg.dlightstylesInited = qtrue;
+
+	for (i = 1; i < MAX_DLIGHT_CONFIGSTRINGS; i++)
+	{
+		str = (char *)CG_ConfigString(CS_DLIGHTS + i);
+		if (!strlen(str)) {
+			break;
+		}
+
+		token = COM_Parse(&str);   // ent num
+		entnum = atoi(token);
+		cent = &cg_entities[entnum];
+
+		token = COM_Parse(&str);   // stylestring
+		Q_strncpyz(cent->dl_stylestring, token, sizeof(cent->dl_stylestring));
+
+		token = COM_Parse(&str);   // offset
+		cent->dl_frame = atoi(token);
+		cent->dl_oldframe = cent->dl_frame - 1;
+		if (cent->dl_oldframe < 0) {
+			cent->dl_oldframe = strlen(cent->dl_stylestring);
+		}
+
+		token = COM_Parse(&str);   // sound id
+		cent->dl_sound = atoi(token);
+
+		token = COM_Parse(&str);   // attenuation
+		cent->dl_atten = atoi(token);
+
+		for (j = 0; j < strlen(cent->dl_stylestring); j++) {
+
+			cent->dl_stylestring[j] += cent->dl_atten;  // adjust character for attenuation/amplification
+
+			// clamp result
+			if (cent->dl_stylestring[j] < 'a') {
+				cent->dl_stylestring[j] = 'a';
+			}
+			if (cent->dl_stylestring[j] > 'z') {
+				cent->dl_stylestring[j] = 'z';
+			}
+		}
+
+		cent->dl_backlerp = 0.0;
+		cent->dl_time = cg.time;
+	}
+
+}
 
 //========================================================================
 
