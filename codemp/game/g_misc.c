@@ -231,7 +231,6 @@ Stylestring characters run at 10 cps in the game. (meaning the alphabet, at 24 c
 "offset": change the initial index in a style string.  So val of 3 in the above example would start this light at 'N'.  (used to get dlights using the same style out of sync).
 "atten": offset from the alpha values of the stylestring.  stylestring of "ddeeffzz" with an atten of -1 would result in "ccddeeyy"
 Use color picker to set color or key "color".  values are 0.0-1.0 for each color (rgb).
-FORCEACTIVE	- toggle makes sure this light stays alive in a map even if the user has r_dynamiclight set to 0.
 STARTOFF	- means the dlight doesn't spawn in until ent is triggered
 ONETIME		- when the dlight is triggered, it will play through it's cycle once, then shut down until triggered again
 "shader" name of shader to apply
@@ -288,7 +287,7 @@ void use_dlight(gentity_t *ent, gentity_t *other, gentity_t *activator) {
 	{
 		trap->LinkEntity(ent);
 
-		if (ent->spawnflags & 4) {   // ONETIME
+		if (ent->spawnflags & 2) {   // ONETIME
 			ent->think = shutoff_dlight;
 			ent->nextthink = level.time + (strlen(ent->dl_stylestring) * 100) - 100;
 		}
@@ -361,7 +360,7 @@ void SP_dlight(gentity_t *ent) {
 
 	ent->use = use_dlight;
 
-	if (!(ent->spawnflags & 2)) {
+	if (!(ent->spawnflags & 1)) {
 		trap->LinkEntity(ent);
 	}
 
