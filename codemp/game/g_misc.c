@@ -481,9 +481,16 @@ void misc_model_breakable_init( gentity_t *ent )
 "startFrame"	<0> animation start frame (default: 0)
 "endFrame"		<0> animation end frame (default: 0)
 "modelScale"	<0.0> scale
+"tag1"			<string> name of tag to add a dlight to (default: *flash1)
+"tag2"			<string> name of tag2 to add a dlight to (default: *flash2)
+
+NOTE:
+Player model tags require the '*' to be removed.
 
 ANGLES			(spawnflag 1)
 ANIM			(spawnflag 2)
+DLIGHT_1TAG		(spawnflag 4)
+DLIGHT_2TAGS	(spawnflag 8)
 */
 void SP_misc_G2model( gentity_t *ent ) 
 {
@@ -497,6 +504,8 @@ void SP_misc_G2model( gentity_t *ent )
 	ent->r.maxs[0] = 16;
 	ent->r.maxs[1] = 16;
 	ent->r.maxs[2] = 16;
+
+	ent->s.eFlags |= EF_G2MODEL;
 
 	//radius
 	G_SpawnInt("radius", "120", &ent->s.g2radius);
@@ -542,10 +551,59 @@ void SP_misc_G2model( gentity_t *ent )
 		G_SpawnInt("startframe", "0", &startFrame);
 		G_SpawnInt("endframe", "0", &endFrame);
 
-		//send over to cgame
-		ent->s.eFlags |= EF_G2MODEL;
+		//send to cgame
 		ent->s.torsoAnim = startFrame;
 		ent->s.legsAnim = endFrame;
+	}
+
+	//dlights on tags
+	vec3_t		color;
+	float		light;
+	qboolean	lightSet, colorSet;
+	char		*tag1Str, *tag2Str;
+	
+	if (ent->spawnflags & 4) //DLIGHT_1TAG
+	{
+		//send to cgame
+		ent->s.eFlags |= EF_NOT_USED_5;
+		G_SpawnString("tag1", "*flash1", &tag1Str);
+		ent->s.time = G_BoneIndex(tag1Str);
+	}
+
+	if (ent->spawnflags & 8) //DLIGHT_2TAGS
+	{
+		//send to cgame
+		ent->s.eFlags |= EF_NOT_USED_6;
+		G_SpawnString("tag1", "*flash1", &tag1Str);
+		G_SpawnString("tag2", "*flash2", &tag2Str);
+		ent->s.time = G_BoneIndex(tag1Str);
+		ent->s.time2 = G_BoneIndex(tag2Str);
+	}
+
+	lightSet = G_SpawnFloat("light", "0", &light);
+	colorSet = G_SpawnVector("color", "1 1 1", color);
+
+	if (lightSet || colorSet) {
+		int		r, g, b, i;
+
+		r = color[0] * 255;
+		if (r > 255)
+			r = 255;
+
+		g = color[1] * 255;
+		if (g > 255)
+			g = 255;
+
+		b = color[2] * 255;
+		if (b > 255)
+			b = 255;
+
+		i = light / 4;
+		if (i > 255)
+			i = 255;
+
+		//send to cgame
+		ent->s.constantLight = r | (g << 8) | (b << 16) | (i << 24);
 	}
 
 	trap->LinkEntity((sharedEntity_t *)ent);

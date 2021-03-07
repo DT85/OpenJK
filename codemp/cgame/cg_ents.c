@@ -354,9 +354,44 @@ static void CG_EntityEffects( centity_t *cent ) {
 		g = (float) ((cl >> 8) & 0xFF) / 255.0;
 		b = (float) ((cl >> 16) & 0xFF) / 255.0;
 		i = (float) ((cl >> 24) & 0xFF) * 4.0;
-		trap->R_AddLightToScene( cent->lerpOrigin, i, r, g, b );
-	}
 
+		if (cent->currentState.eFlags & EF_G2MODEL && cent->ghoul2)	{
+			vec3_t	org, org2;
+			mdxaBone_t	boltMatrix, boltMatrix2;
+			int bolt1, bolt2;
+			const char *tag1Str, *tag2Str;
+
+			if (cent->currentState.eFlags & EF_NOT_USED_5) {
+				tag1Str = CG_ConfigString(CS_G2BONES + cent->currentState.time);
+				bolt1 = trap->G2API_AddBolt(cent->ghoul2, 0, tag1Str);
+
+				trap->G2API_GetBoltMatrix(cent->ghoul2, 0, bolt1, &boltMatrix, cent->lerpAngles, cent->lerpOrigin, cg.time,
+					cgs.gameModels, cent->modelScale);
+				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, org);
+				trap->R_AddLightToScene(org, i, r, g, b);
+			}
+
+			if (cent->currentState.eFlags & EF_NOT_USED_6) {				
+				tag1Str = CG_ConfigString(CS_G2BONES + cent->currentState.time);
+				tag2Str = CG_ConfigString(CS_G2BONES + cent->currentState.time2);
+
+				bolt1 = trap->G2API_AddBolt(cent->ghoul2, 0, tag1Str);
+				trap->G2API_GetBoltMatrix(cent->ghoul2, 0, bolt1, &boltMatrix, cent->lerpAngles, cent->lerpOrigin, cg.time,
+					cgs.gameModels, cent->modelScale);
+				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, org);
+				trap->R_AddLightToScene(org, i, r, g, b);
+
+				bolt2 = trap->G2API_AddBolt(cent->ghoul2, 0, tag2Str);
+				trap->G2API_GetBoltMatrix(cent->ghoul2, 0, bolt2, &boltMatrix2, cent->lerpAngles, cent->lerpOrigin, cg.time,
+					cgs.gameModels, cent->modelScale);
+				BG_GiveMeVectorFromMatrix(&boltMatrix2, ORIGIN, org2);
+				trap->R_AddLightToScene(org2, i, r, g, b);
+			}
+		}
+		else {
+			trap->R_AddLightToScene(cent->lerpOrigin, i, r, g, b);
+		}
+	}
 }
 
 localEntity_t *FX_AddOrientedLine(vec3_t start, vec3_t end, vec3_t normal, float stScale, float scale,
