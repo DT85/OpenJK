@@ -2928,7 +2928,7 @@ void ForceThrow( gentity_t *self, qboolean pull )
 	int			visionArc;
 	int			pushPower;
 	int			pushPowerMod;
-	vec3_t		center, ent_org, size, forward, right, end, dir, fwdangles = {0};
+	vec3_t		center, ent_org, size, forward, right, up, end, dir, fwdangles = {0};
 	float		dot1;
 	trace_t		tr;
 	int			x;
@@ -3560,14 +3560,54 @@ void ForceThrow( gentity_t *self, qboolean pull )
 					}
 				}
 			}
-			else if ( push_list[x]->s.eType == ET_MISSILE && push_list[x]->s.pos.trType != TR_STATIONARY && (push_list[x]->s.pos.trType != TR_INTERPOLATE||push_list[x]->s.weapon != WP_THERMAL) )//rolling and stationary thermal detonators are dealt with below
+			else if (push_list[x]->s.eType == ET_MISSILE && push_list[x]->s.pos.trType != TR_STATIONARY && (push_list[x]->s.pos.trType != TR_INTERPOLATE || push_list[x]->s.weapon != WP_THERMAL))//rolling and stationary thermal detonators are dealt with below
 			{
-				if ( pull )
+				if (pull)
 				{//deflect rather than reflect?
 				}
 				else
 				{
-					G_ReflectMissile( self, push_list[x], forward );
+					G_ReflectMissile(self, push_list[x], forward);
+				}
+			}
+			// Push/Pull items and specific objects. FIXME: Add an ent that will use ET_PHYS_OBJECT
+			else if (push_list[x]->s.eType == ET_ITEM || push_list[x]->s.eType == ET_PHYS_OBJECT && push_list[x]->s.pos.trType != TR_STATIONARY && (push_list[x]->s.pos.trType != TR_INTERPOLATE || push_list[x]->s.weapon != WP_THERMAL))//rolling and stationary thermal detonators are dealt with below
+			{
+				if (pull)
+				{
+					VectorScale(forward, -650.0f, push_list[x]->s.pos.trDelta);
+					VectorScale(fwdangles, -650.0f, push_list[x]->s.apos.trDelta);
+				}
+				else
+				{
+					VectorScale(forward, 650.0f, push_list[x]->s.pos.trDelta);
+					VectorScale(fwdangles, 650.0f, push_list[x]->s.apos.trDelta);
+				}
+
+				push_list[x]->s.pos.trType = TR_GRAVITY;
+				push_list[x]->s.apos.trType = TR_GRAVITY;
+				push_list[x]->s.pos.trTime = level.time;		// move a bit on the very first frame
+				push_list[x]->s.apos.trTime = level.time;		// move a bit on the very first frame
+				push_list[x]->physicsObject = qtrue;
+				push_list[x]->flags |= FL_BOUNCE_HALF;
+
+				VectorCopy(push_list[x]->r.currentOrigin, push_list[x]->s.pos.trBase);
+
+				//Add a bit of object rotation
+				VectorCopy(self->client->ps.viewangles, fwdangles);
+				AngleVectors(fwdangles, forward, right, up);
+				VectorCopy(push_list[x]->r.currentAngles, push_list[x]->s.apos.trBase);
+				vectoangles(fwdangles, push_list[x]->s.angles);
+				VectorCopy(push_list[x]->s.angles, push_list[x]->s.apos.trBase);
+
+				//FIXME: make these objects go through G_RunObject automatically, like missiles do
+				if (push_list[x]->think == NULL)
+				{
+					push_list[x]->nextthink = level.time + FRAMETIME;
+					push_list[x]->think = G_RunObject;
+				}
+				else
+				{//You're responsible for calling RunObject
 				}
 			}
 			else if ( !Q_stricmp( "func_static", push_list[x]->classname ) )

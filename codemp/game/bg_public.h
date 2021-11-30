@@ -1244,6 +1244,7 @@ typedef enum {
 	ET_BODY,
 	ET_TERRAIN,
 	ET_FX,
+	ET_PHYS_OBJECT,
 
 	ET_EVENTS				// any of the EV_* events can be added freestanding
 							// by setting eType to ET_EVENTS + eventNum

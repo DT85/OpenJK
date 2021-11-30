@@ -401,7 +401,7 @@ void misc_model_breakable_gravity_init( gentity_t *ent, qboolean dropToFloor )
 	trace_t		tr;
 	vec3_t		top, bottom;
 
-	ent->s.eType = ET_GENERAL;
+	ent->s.eType = ET_PHYS_OBJECT;
 	//ent->s.eFlags |= EF_BOUNCE_HALF;	// FIXME
 	ent->clipmask = MASK_SOLID|CONTENTS_BODY|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP;//?
 	ent->physicsBounce = ent->mass = VectorLength( ent->r.maxs ) + VectorLength( ent->r.mins );

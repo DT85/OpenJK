@@ -3437,7 +3437,7 @@ void G_Dismember( gentity_t *ent, gentity_t *enemy, vec3_t point, int limbType, 
 
 	limb->s.g2radius = 200;
 
-	limb->s.eType = ET_GENERAL;
+	limb->s.eType = ET_PHYS_OBJECT;
 	limb->s.weapon = G2_MODEL_PART;
 	limb->s.modelGhoul2 = limbType;
 	limb->s.modelindex = ent->s.number;
@@ -4936,6 +4936,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 	if ( attacker->client && targ != attacker && targ->health > 0
 			&& targ->s.eType != ET_MISSILE
 			&& targ->s.eType != ET_GENERAL
+			&& targ->s.eType != ET_PHYS_OBJECT
 			&& client) {
 		if ( OnSameTeam( targ, attacker ) ) {
 			attacker->client->ps.persistant[PERS_HITS]--;

@@ -3349,6 +3349,7 @@ Ghoul2 Insert End
 	case ET_TERRAIN:
 		break;
 	case ET_GENERAL:
+	case ET_PHYS_OBJECT:
 		CG_General( cent );
 		break;
 	case ET_PLAYER:
