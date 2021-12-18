@@ -1681,13 +1681,15 @@ typedef struct weaponInfo_s {
 	sfxHandle_t		selectSound;	// sound played when weapon is selected
 
 	//Ghoul2 viewmodels - START
-	bool			bUsesGhoul2;
+	bool			bIsGhoul2VM;
 	CGhoul2Info_v	ghoul2;
-	qhandle_t		g2_flashbolt;
-	qhandle_t		g2_effectsbolt;
-	short			g2_index;
-	int				g2_skin;
-	viewModelAnimSet_t g2_anims;
+	qhandle_t		g2_viewFlashBolt;
+	qhandle_t		g2_viewEffectsBolt;
+	short			g2_viewIndex;
+	short			g2_worldIndex;
+	int				g2_viewSkinIndex;
+	int				g2_worldSkinIndex;
+	viewModelAnimSet_t g2_viewAnims;
 	//Ghoul2 viewmodels - END
 } weaponInfo_t;
 

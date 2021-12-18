@@ -70,7 +70,7 @@ extern qboolean PM_FlippingAnim( int anim );
 extern qboolean PM_InCartwheel( int anim );
 extern qboolean PM_StandingAnim( int anim );
 extern qboolean PM_InForceGetUp( playerState_t *ps );
-extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel );
+extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel, const char* weaponSkin);
 extern qboolean FlyingCreature( gentity_t *ent );
 
 extern bool		in_camera;
@@ -1103,17 +1103,17 @@ void G_MatchPlayerWeapon( gentity_t *ent )
 			{
 				//FIXME: AddSound/Sight Event
 				WP_SaberInitBladeData( ent );
-				G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel );
+				G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel, 0 );
 				ent->client->ps.saberActive = g_entities[0].client->ps.saberActive;
 				ent->client->ps.saberLength = g_entities[0].client->ps.saberLength;
 				ent->client->ps.saberAnimLevel = g_entities[0].client->ps.saberAnimLevel;
 			}
 			else
 			{
-				if(weaponData[ent->client->ps.weapon].worldModel[0])
-					G_CreateG2AttachedWeaponModel( ent, weaponData[newWeap].worldModel );
+				if(weaponData[ent->client->ps.weapon].worldModelPath[0])
+					G_CreateG2AttachedWeaponModel( ent, weaponData[newWeap].worldModelPath, weaponData[newWeap].worldSkinPath);
 				else
-					G_CreateG2AttachedWeaponModel(ent, weaponData[newWeap].weaponMdl);
+					G_CreateG2AttachedWeaponModel(ent, weaponData[newWeap].weaponMdl, weaponData[newWeap].worldSkinPath);
 			}
 		}
 	}
@@ -1706,7 +1706,7 @@ extern void CG_ChangeWeapon( int num );
 		if (weaponData[ent->client->ps.weapon].weaponMdl[0])
 		{
 			//might be NONE, so check if it has a model
-			G_CreateG2AttachedWeaponModel( ent, weaponData[ent->client->ps.weapon].weaponMdl );
+			G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl, weaponData[ent->client->ps.weapon].worldSkinPath);
 
 			if ( ent->client->ps.weapon == WP_SABER && cg_saberAutoThird.value )
 			{
@@ -1717,6 +1717,23 @@ extern void CG_ChangeWeapon( int num );
 				gi.cvar_set( "cg_thirdperson", "0" );
 			}
 		}
+		
+		//Ghoul2 viewmodels - START
+		if (weaponData[ent->client->ps.weapon].worldModelPath[0])
+		{
+			//might be NONE, so check if it has a model
+			G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModelPath, weaponData[ent->client->ps.weapon].worldSkinPath);
+
+			if (ent->client->ps.weapon == WP_SABER && cg_saberAutoThird.value)
+			{
+				gi.cvar_set("cg_thirdperson", "1");
+			}
+			else if (ent->client->ps.weapon != WP_SABER && cg_gunAutoFirst.value)
+			{
+				gi.cvar_set("cg_thirdperson", "0");
+			}
+		}
+		//Ghoul2 viewmodels - END
 	}
 
 	if ( ent->client->ps.weapon == WP_SABER )

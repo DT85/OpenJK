@@ -262,7 +262,7 @@ float saberAnimSpeedMod[NUM_FORCE_POWER_LEVELS] =
 };
 //SABER INITIALIZATION======================================================================
 
-void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *psWeaponModel )
+void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *psWeaponModel, const char* psWeaponSkin)
 {
 	if (!psWeaponModel)
 	{
@@ -277,22 +277,40 @@ void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *psWeaponModel )
 
 	char weaponModel[MAX_QPATH];
 	Q_strncpyz(weaponModel, psWeaponModel, sizeof(weaponModel));
-	if (char *spot = (char*)Q_stristr(weaponModel, ".md3") ) {
-        *spot = 0;
+
+	if (char* spot = (char*)Q_stristr(weaponModel, ".md3")) {
+		*spot = 0;
 		spot = (char*)Q_stristr(weaponModel, "_w");//i'm using the in view weapon array instead of scanning the item list, so put the _w back on
-		if (!spot&&!Q_stristr(weaponModel, "noweap"))
+		if (!spot && !Q_stristr(weaponModel, "noweap"))
 		{
-			Q_strcat (weaponModel, sizeof(weaponModel), "_w");
+			Q_strcat(weaponModel, sizeof(weaponModel), "_w");
 		}
-		Q_strcat (weaponModel, sizeof(weaponModel), ".glm");	//and change to ghoul2
+		Q_strcat(weaponModel, sizeof(weaponModel), ".glm");	//and change to ghoul2
 	}
 
 	if ( ent->playerModel == -1 )
 	{
 		return;
 	}
+
 	// give us a sabre model
-	ent->weaponModel = gi.G2API_InitGhoul2Model(ent->ghoul2, weaponModel, G_ModelIndex( weaponModel ), NULL_HANDLE, NULL_HANDLE, 0, 0);
+	ent->weaponModel = gi.G2API_InitGhoul2Model(ent->ghoul2, weaponModel, G_ModelIndex(weaponModel), NULL_HANDLE, NULL_HANDLE, 0, 0);
+
+	// apply skin if available
+	if (psWeaponSkin[0] && ent->s.weapon != WP_SABER)
+	{
+		gi.Printf(S_COLOR_YELLOW "'%s'\n", psWeaponSkin);
+
+		char weaponSkin[MAX_QPATH];
+		Q_strncpyz(weaponSkin, psWeaponSkin, sizeof(weaponSkin));
+
+		int skin = gi.RE_RegisterSkin(weaponSkin);
+
+		if (skin) {
+			gi.G2API_SetSkin(&ent->ghoul2[ent->weaponModel], G_SkinIndex(weaponSkin), skin);
+		}
+	}
+
 	if ( ent->weaponModel != -1 )
 	{
 		// attach it to the hand
@@ -4261,7 +4279,7 @@ void WP_SaberCatch( gentity_t *self, gentity_t *saber, qboolean switchToSaber )
 		//if it's not our current weapon, make it our current weapon
 		if ( self->client->ps.weapon == WP_SABER )
 		{
-			G_CreateG2AttachedWeaponModel( self, self->client->ps.saberModel );
+			G_CreateG2AttachedWeaponModel( self, self->client->ps.saberModel, 0);
 		}
 		if ( switchToSaber )
 		{

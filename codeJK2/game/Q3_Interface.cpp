@@ -3306,7 +3306,7 @@ Q3_SetWeapon
 ============
 */
 extern gentity_t *TossClientItems( gentity_t *self );
-extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel );
+extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel, const char* weaponSkin);
 extern void WP_SaberInitBladeData( gentity_t *ent );
 static void Q3_SetWeapon (int entID, const char *wp_name)
 {
@@ -3393,16 +3393,16 @@ static void Q3_SetWeapon (int entID, const char *wp_name)
 		{
 			WP_SaberInitBladeData( self );
 		}
-		G_CreateG2AttachedWeaponModel( self, self->client->ps.saberModel );
+		G_CreateG2AttachedWeaponModel( self, self->client->ps.saberModel, 0 );
 	}
 	else
 	{
 		//Ghoul2 viewmodels - START
-		if (weaponData[wp].worldModel[0]) {
-			G_CreateG2AttachedWeaponModel(self, weaponData[wp].worldModel);
+		if (weaponData[wp].worldModelPath[0]) {
+			G_CreateG2AttachedWeaponModel(self, weaponData[wp].worldModelPath, weaponData[wp].worldSkinPath);
 		}
 		else {
-			G_CreateG2AttachedWeaponModel(self, weaponData[wp].weaponMdl);
+			G_CreateG2AttachedWeaponModel(self, weaponData[wp].weaponMdl, weaponData[wp].worldSkinPath);
 		}
 		//Ghoul2 viewmodels - END
 	}

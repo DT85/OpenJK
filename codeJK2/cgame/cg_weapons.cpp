@@ -91,11 +91,9 @@ void CG_RegisterWeapon( int weaponNum ) {
 	Q_strncpyz(path, weaponData[weaponNum].weaponMdl, sizeof(path));
 
 	// set up in view weapon model
-	if (Q_stristr(path, ".glm")) {
-		weaponInfo->bUsesGhoul2 = true;
-	}
+	weaponInfo->bIsGhoul2VM = weaponData[weaponNum].bIsGhoul2ViewModel;
 
-	if (!weaponInfo->bUsesGhoul2) {
+	if (!weaponInfo->bIsGhoul2VM) {
 		weaponInfo->weaponModel = cgi_R_RegisterModel(weaponData[weaponNum].weaponMdl);
 		{//in case the weaponmodel isn't _w, precache the _w.glm
 			char weaponModel[64];
@@ -122,7 +120,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 	}
 	else {
 		//precache the _w.glm 
-		gi.G2API_PrecacheGhoul2Model(weaponData[weaponNum].worldModel);
+		gi.G2API_PrecacheGhoul2Model(weaponData[weaponNum].worldModelPath);
 	}
 	//Ghoul2 viewmodels - END
 
@@ -150,7 +148,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 	}
 
 	//Ghoul2 viewmodels - START
-	if (!weaponInfo->bUsesGhoul2) {
+	if (!weaponInfo->bIsGhoul2VM) {
 		for (i = 0; i < weaponData[weaponNum].numBarrels; i++) {
 			Q_strncpyz(path, weaponData[weaponNum].weaponMdl, sizeof(path));
 			COM_StripExtension(path, path, sizeof(path));
@@ -162,48 +160,45 @@ void CG_RegisterWeapon( int weaponNum ) {
 				Q_strcat(path, sizeof(path), "_barrel.md3");
 			weaponInfo->barrelModel[i] = cgi_R_RegisterModel(path);
 		}
-	}
-	//Ghoul2 viewmodels - END
 
-	// set up the world model for the weapon
-	weaponInfo->weaponWorldModel = cgi_R_RegisterModel( item->world_model );
-	if ( !weaponInfo->weaponWorldModel) {
-		weaponInfo->weaponWorldModel = weaponInfo->weaponModel;
+		// set up the world model for the weapon
+		weaponInfo->weaponWorldModel = cgi_R_RegisterModel(item->world_model);
+		if (!weaponInfo->weaponWorldModel) {
+			weaponInfo->weaponWorldModel = weaponInfo->weaponModel;
+		}
 	}
 
-	//Ghoul2 viewmodels - START
-	// set up the hand that holds the in view weapon - assuming we have one
+	// set up the in-view weapon
 	Q_strncpyz(path, weaponData[weaponNum].weaponMdl, sizeof(path));
 
-	if (weaponInfo->bUsesGhoul2) {
-		// Precache the model
+	if (weaponInfo->bIsGhoul2VM) //GLM viewmodels 
+	{
+		// Precache
 		gi.G2API_PrecacheGhoul2Model(weaponData[weaponNum].weaponMdl);
 
-		// Init the ghoul2 model
-		weaponInfo->g2_skin = gi.RE_RegisterSkin(weaponData[weaponNum].skinPath);
-		weaponInfo->g2_index = gi.G2API_InitGhoul2Model(weaponInfo->ghoul2, path,
-			G_ModelIndex(path), G_SkinIndex(weaponData[weaponNum].skinPath), NULL, 0, 0);
+		// Init the model
+		weaponInfo->g2_viewSkinIndex = gi.RE_RegisterSkin(weaponData[weaponNum].viewSkinPath);
+		weaponInfo->g2_viewIndex = gi.G2API_InitGhoul2Model(weaponInfo->ghoul2, path,
+			G_ModelIndex(path), G_SkinIndex(weaponData[weaponNum].viewSkinPath), NULL, 0, 0);
 
 		// Set the skin
-		gi.G2API_SetSkin(&weaponInfo->ghoul2[weaponInfo->g2_index], 0, weaponInfo->g2_skin);
+		gi.G2API_SetSkin(&weaponInfo->ghoul2[weaponInfo->g2_viewIndex], 0, weaponInfo->g2_viewSkinIndex);
 
-		// Add flash bolt
-		weaponInfo->g2_flashbolt = gi.G2API_AddBolt(&weaponInfo->ghoul2[weaponInfo->g2_index], "*flash");
-		weaponInfo->g2_effectsbolt = gi.G2API_AddBolt(&weaponInfo->ghoul2[weaponInfo->g2_index], "*l_hand");
+		// Add flash & hand bolts
+		weaponInfo->g2_viewFlashBolt = gi.G2API_AddBolt(&weaponInfo->ghoul2[weaponInfo->g2_viewIndex], "*flash");
+		weaponInfo->g2_viewEffectsBolt = gi.G2API_AddBolt(&weaponInfo->ghoul2[weaponInfo->g2_viewIndex], "*l_hand");
 
 		// Load the animation.cfg
-		CG_LoadViewmodelAnimations(&weaponInfo->ghoul2[weaponInfo->g2_index], path, &weaponInfo->g2_anims);
+		CG_LoadViewmodelAnimations(&weaponInfo->ghoul2[weaponInfo->g2_viewIndex], path, &weaponInfo->g2_viewAnims);
 	}
-	else {
-		// Normal -- MD3 viewmodels
-		if (!weaponData[weaponNum].bNoHandModel) {
-			COM_StripExtension(path, path, sizeof(path));
-			Q_strcat(path, sizeof(path), "_hand.md3");
-			weaponInfo->handsModel = cgi_R_RegisterModel(path);
+	else //MD3 viewmodels
+	{
+		COM_StripExtension(path, path, sizeof(path));
+		Q_strcat(path, sizeof(path), "_hand.md3");
+		weaponInfo->handsModel = cgi_R_RegisterModel(path);
 
-			if (!weaponInfo->handsModel) {
-				weaponInfo->handsModel = cgi_R_RegisterModel("models/weapons2/briar_pistol/briar_pistol_hand.md3");
-			}
+		if (!weaponInfo->handsModel) {
+			weaponInfo->handsModel = cgi_R_RegisterModel("models/weapons2/briar_pistol/briar_pistol_hand.md3");
 		}
 	}
 	//Ghoul2 viewmodels - END
@@ -589,10 +584,10 @@ void CG_DeregisterWeapon(int weaponNum) {
 	weaponInfo_t* weaponInfo = &cg_weapons[weaponNum];
 	if (!gi.G2API_HaveWeGhoul2Models(weaponInfo->ghoul2))
 		return;
-	if (weaponInfo->g2_flashbolt < 0)
+	if (weaponInfo->g2_viewFlashBolt < 0)
 		return;
-	gi.G2API_RemoveBolt(&weaponInfo->ghoul2[weaponInfo->g2_index], weaponInfo->g2_flashbolt);
-	gi.G2API_RemoveBolt(&weaponInfo->ghoul2[weaponInfo->g2_index], weaponInfo->g2_effectsbolt);
+	gi.G2API_RemoveBolt(&weaponInfo->ghoul2[weaponInfo->g2_viewIndex], weaponInfo->g2_viewFlashBolt);
+	gi.G2API_RemoveBolt(&weaponInfo->ghoul2[weaponInfo->g2_viewIndex], weaponInfo->g2_viewEffectsBolt);
 	gi.G2API_CleanGhoul2Models(weaponInfo->ghoul2);
 }
 
@@ -1177,12 +1172,12 @@ void CG_AnimateViewmodel(centity_t* cent, playerState_t* ps) {
 	lastAnimPlayed = ps->torsoAnim;
 
 	const float	timeScaleMod = (cg_timescale.value) ? (1.0 / cg_timescale.value) : 1.0;
-	float animSpeed = 50.0f / weapon->g2_anims.animations[desiredAnim].frameLerp * timeScaleMod;
+	float animSpeed = 50.0f / weapon->g2_viewAnims.animations[desiredAnim].frameLerp * timeScaleMod;
 
-	gi.G2API_SetBoneAnim(&weapon->ghoul2[weapon->g2_index], "model_root",
-		weapon->g2_anims.animations[desiredAnim].firstFrame,
-		weapon->g2_anims.animations[desiredAnim].firstFrame + weapon->g2_anims.animations[desiredAnim].numFrames,
-		flags, animSpeed, cg.time, weapon->g2_anims.animations[desiredAnim].firstFrame, -1);
+	gi.G2API_SetBoneAnim(&weapon->ghoul2[weapon->g2_viewIndex], "model_root",
+		weapon->g2_viewAnims.animations[desiredAnim].firstFrame,
+		weapon->g2_viewAnims.animations[desiredAnim].firstFrame + weapon->g2_viewAnims.animations[desiredAnim].numFrames,
+		flags, animSpeed, cg.time, weapon->g2_viewAnims.animations[desiredAnim].firstFrame, -1);
 }
 //Ghoul2 viewmodels - END
 
@@ -1357,7 +1352,7 @@ void CG_AddViewWeapon( playerState_t *ps )
 	}
 	//Ghoul2 viewmodels - START
 	// map torso animations to weapon animations
-	else if (!weapon->bUsesGhoul2) {
+	else if (!weapon->bIsGhoul2VM) {
 		// get clientinfo for animation map
 		const clientInfo_t* ci = &cent->gent->client->clientInfo;
 		int torsoAnim = cent->gent->client->ps.torsoAnim;//pe.torso.animationNumber;
@@ -1390,13 +1385,15 @@ void CG_AddViewWeapon( playerState_t *ps )
 	// add the weapon
 	memset (&gun, 0, sizeof(gun));
 
-	if (!weapon->bUsesGhoul2) {
+	if (!weapon->bIsGhoul2VM) {
 		gun.hModel = weapon->weaponModel;
 
 		if (!gun.hModel)
 		{
 			return;
 		}
+
+		CG_PositionEntityOnTag(&gun, &hand, weapon->handsModel, "tag_weapon");
 	}
 	else
 	{
@@ -1404,14 +1401,10 @@ void CG_AddViewWeapon( playerState_t *ps )
 
 		gun.ghoul2 = const_cast<CGhoul2Info_v*>(&weapon->ghoul2);
 		gun.radius = 60;
-		gun.customSkin = weapon->g2_skin;
+		gun.customSkin = weapon->g2_viewSkinIndex;
 		VectorCopy(hand.axis[0], gun.axis[0]);
-	}
-
-	if (!wData->bNoHandModel)
-		CG_PositionEntityOnTag(&gun, &hand, weapon->handsModel, "tag_weapon");
-	else
 		VectorCopy(hand.origin, gun.origin);
+	}
 	//Ghoul2 viewmodels - END
 
 	gun.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON;
@@ -1451,7 +1444,7 @@ void CG_AddViewWeapon( playerState_t *ps )
 */
 	//Ghoul2 viewmodels - START
 	// add the spinning barrel[s]
-	if (!weapon->bUsesGhoul2) {
+	if (!weapon->bIsGhoul2VM) {
 		for (int i = 0; (i < wData->numBarrels); i++)
 		{
 			refEntity_t	barrel;
@@ -1482,7 +1475,7 @@ void CG_AddViewWeapon( playerState_t *ps )
 	memset(&flash, 0, sizeof(flash));
 
 	// Seems like we should always do this in case we have an animating muzzle flash....that way we can always store the correct muzzle dir, etc.
-	if (!weapon->bUsesGhoul2) 
+	if (!weapon->bIsGhoul2VM)
 	{
 		CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
 		CG_DoMuzzleFlash(cent, flash.origin, flash.axis[0], wData);
@@ -1494,7 +1487,7 @@ void CG_AddViewWeapon( playerState_t *ps )
 
 		VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-		gi.G2API_GetBoltMatrix(s, weapon->g2_index, weapon->g2_flashbolt, &boltMatrix, setAngles, gun.origin,
+		gi.G2API_GetBoltMatrix(s, weapon->g2_viewIndex, weapon->g2_viewFlashBolt, &boltMatrix, setAngles, gun.origin,
 			(cg.time ? cg.time : level.time), NULL, gun.modelScale);
 		gi.G2API_GiveMeVectorFromMatrix(boltMatrix, ORIGIN, flash.origin);
 		// this seems to screw the position a bit
@@ -1510,7 +1503,7 @@ void CG_AddViewWeapon( playerState_t *ps )
 			ps->forcePowersActive & (1 << FP_GRIP)) {
 				vec3_t effectOrigin;
 				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
-				gi.G2API_GetBoltMatrix(s, weapon->g2_index, weapon->g2_effectsbolt, &boltMatrix, setAngles, gun.origin,
+				gi.G2API_GetBoltMatrix(s, weapon->g2_viewIndex, weapon->g2_viewEffectsBolt, &boltMatrix, setAngles, gun.origin,
 																	(cg.time ? cg.time : level.time), NULL, gun.modelScale);
 				gi.G2API_GiveMeVectorFromMatrix(boltMatrix, ORIGIN, effectOrigin);
 				CG_ForcePushBlur(effectOrigin);

@@ -187,7 +187,7 @@ NPC_SetMiscDefaultData
 -------------------------
 */
 
-extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel );
+extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel, const char* weaponSkin);
 void NPC_SetMiscDefaultData( gentity_t *ent )
 {
 	if ( ent->spawnflags & SFB_CINEMATIC )
@@ -213,7 +213,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 			ent->client->ps.saberActive = qfalse;
 			ent->client->ps.saberLength = 0;
 			WP_SaberInitBladeData( ent );
-			G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel );
+			G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel, 0);
 			ent->client->enemyTeam = TEAM_ENEMY;
 			WP_InitForcePowers( ent );
 			Jedi_ClearTimers( ent );
@@ -228,11 +228,11 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 			if (ent->client->ps.weapon != WP_NONE)
 			{
 				//Ghoul2 viewmodels - START
-				if (weaponData[ent->client->ps.weapon].worldModel[0]) {
-					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModel);
+				if (weaponData[ent->client->ps.weapon].worldModelPath[0]) {
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModelPath, weaponData[ent->client->ps.weapon].worldSkinPath);
 				}
 				else {
-					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl);
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl, weaponData[ent->client->ps.weapon].worldSkinPath);
 				}
 				//Ghoul2 viewmodels - END
 			}
@@ -312,7 +312,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 				ent->client->ps.saberActive = qfalse;
 				ent->client->ps.saberLength = 0;
 				WP_SaberInitBladeData( ent );
-				G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel );
+				G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel, 0 );
 				WP_InitForcePowers( ent );
 				ent->client->enemyTeam = TEAM_PLAYER;
 				Jedi_ClearTimers( ent );
@@ -333,11 +333,11 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 			else 
 			{
 				//Ghoul2 viewmodels - START
-				if (weaponData[ent->client->ps.weapon].worldModel[0]) {
-					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModel);
+				if (weaponData[ent->client->ps.weapon].worldModelPath[0]) {
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModelPath, weaponData[ent->client->ps.weapon].worldSkinPath);
 				}
 				else {
-					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl);
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl, weaponData[ent->client->ps.weapon].worldSkinPath);
 				}
 				//Ghoul2 viewmodels - END
 
