@@ -1386,6 +1386,57 @@ typedef enum //# animNumber_e
 
 #define SABER_ANIM_GROUP_SIZE (BOTH_A2_T__B_ - BOTH_A1_T__B_)
 
+//Ghoul2 viewmodels - START
+/*
+======================================
+Viewmodel Animations
+======================================
+*/
+
+typedef enum {
+	VM_READY,						// Weapon 1-frame idle. Usually first frame of VM_FIRE.
+	VM_IDLE,						// Weapon idling animation
+	VM_RAISE,						// Draw weapon
+	VM_LOWER,						// Put weapon away
+	VM_FIRE,						// Fire weapon
+	VM_FIRE_THERMAL,				// Fire Thermal - need this because anim is longer than usual
+	VM_FIRE_DETPACK,				// Fire Det Pack - need this because anim is longer than usual
+
+	VM_THERMAL_PULLBACK,			// Thermal detonator pull back
+	VM_THERMAL_THROW,				// Thermal detonator throw
+
+	VM_MELEE1,						// Melee 1. WP_MELEE only!
+	VM_MELEE2,						// Melee 2. WP_MELEE only!
+
+	// Commented out all force powers for now, to avoid crashes due to missing anims.
+	VM_FPUSH,						// Force Push
+	VM_FPULL,						// Force Pull
+	VM_FGRIP,						// Force Grip
+	VM_FGRIP_HOLD,					// Force Grip hold
+	VM_FGRIP_RELEASE,				// Force Grip release
+	VM_TOSS_LEFT,					// Throwing to left after force gripping
+	VM_TOSS_RIGHT,					// Throwing to right after force gripping
+	VM_FHEAL_QUICK,					// Force Heal quick
+	VM_FHEAL_START,					// Force Heal start
+	VM_FHEAL_STOP,					// Force Heal stop
+	VM_FLIGHTNING,					// Force Lightning
+	VM_FLIGHTNING_START,			// Force Lightning start
+	VM_FLIGHTNING_HOLD,				// Force Lightning hold
+	VM_FLIGHTNING_RELEASE,			// Force Lightning release
+	VM_FRESISTPUSH,					// Force resist push
+	VM_FMINDTRICK,					// Force Mind Trick
+
+	MAX_VIEWMODEL_ANIMATIONS
+} viewModelAnimNumber_t;
+
+typedef struct {
+	char			filename[MAX_QPATH];
+	animation_t		animations[MAX_VIEWMODEL_ANIMATIONS];
+} viewModelAnimSet_t;
+
+extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
+//Ghoul2 viewmodels - END
+
 #define MAX_ANIM_SOUNDS 69
 
 #ifndef CG_PLAYERS_CPP

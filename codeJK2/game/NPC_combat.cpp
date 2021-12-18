@@ -491,14 +491,30 @@ void G_SetEnemy( gentity_t *self, gentity_t *enemy )
 				ChangeWeapon( self, WP_BLASTER );
 				self->client->ps.weapon = WP_BLASTER;
 				self->client->ps.weaponstate = WEAPON_READY;
-				G_CreateG2AttachedWeaponModel( self, weaponData[WP_BLASTER].weaponMdl );
+
+				//Ghoul2 viewmodels - START
+				if (weaponData[WP_BLASTER].worldModel[0]) {
+					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER].worldModel);
+				}
+				else {
+					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER].weaponMdl);
+				}
+				//Ghoul2 viewmodels - END
 			}
 			else if ( self->client->ps.stats[STAT_WEAPONS] & ( 1 << WP_BLASTER_PISTOL ) )
 			{
 				ChangeWeapon( self, WP_BLASTER_PISTOL );
 				self->client->ps.weapon = WP_BLASTER_PISTOL;
 				self->client->ps.weaponstate = WEAPON_READY;
-				G_CreateG2AttachedWeaponModel( self, weaponData[WP_BLASTER_PISTOL].weaponMdl );
+
+				//Ghoul2 viewmodels - START
+				if (weaponData[WP_BLASTER_PISTOL].worldModel[0]) {
+					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER_PISTOL].worldModel);
+				}
+				else {
+					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER_PISTOL].weaponMdl);
+				}
+				//Ghoul2 viewmodels - END
 			}
 		}
 		return;
@@ -834,7 +850,14 @@ void NPC_ChangeWeapon( int newWeapon )
 		}
 		else
 		{
-			G_CreateG2AttachedWeaponModel( NPC, weaponData[NPC->client->ps.weapon].weaponMdl );
+			//Ghoul2 viewmodels - START
+			if (weaponData[NPC->client->ps.weapon].worldModel[0]) {
+				G_CreateG2AttachedWeaponModel(NPC, weaponData[NPC->client->ps.weapon].worldModel);
+			}
+			else {
+				G_CreateG2AttachedWeaponModel(NPC, weaponData[NPC->client->ps.weapon].weaponMdl);
+			}
+			// DT EDIT : Ghoul2 viewmodels - END
 		}
 	}
 }

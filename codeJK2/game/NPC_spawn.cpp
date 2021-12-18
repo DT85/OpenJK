@@ -227,7 +227,14 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 		{
 			if (ent->client->ps.weapon != WP_NONE)
 			{
-				G_CreateG2AttachedWeaponModel( ent, weaponData[ent->client->ps.weapon].weaponMdl );
+				//Ghoul2 viewmodels - START
+				if (weaponData[ent->client->ps.weapon].worldModel[0]) {
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModel);
+				}
+				else {
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl);
+				}
+				//Ghoul2 viewmodels - END
 			}
 			switch ( ent->client->ps.weapon )
 			{
@@ -325,7 +332,15 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 			}
 			else 
 			{
-				G_CreateG2AttachedWeaponModel( ent, weaponData[ent->client->ps.weapon].weaponMdl );
+				//Ghoul2 viewmodels - START
+				if (weaponData[ent->client->ps.weapon].worldModel[0]) {
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModel);
+				}
+				else {
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl);
+				}
+				//Ghoul2 viewmodels - END
+
 				switch ( ent->client->ps.weapon )
 				{
 				case WP_BRYAR_PISTOL:

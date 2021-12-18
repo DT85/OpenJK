@@ -31,6 +31,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../cgame/cg_public.h"
 #include "bset.h"
 
+//Ghoul2 viewmodels - START
+#include "anims.h"
+//Ghoul2 viewmodels - END
+
 #define	FOFS(x) offsetof(gentity_t, x)
 
 typedef struct centity_s centity_t;
@@ -1675,6 +1679,16 @@ typedef struct weaponInfo_s {
 	sfxHandle_t		altChargeSound;
 
 	sfxHandle_t		selectSound;	// sound played when weapon is selected
+
+	//Ghoul2 viewmodels - START
+	bool			bUsesGhoul2;
+	CGhoul2Info_v	ghoul2;
+	qhandle_t		g2_flashbolt;
+	qhandle_t		g2_effectsbolt;
+	short			g2_index;
+	int				g2_skin;
+	viewModelAnimSet_t g2_anims;
+	//Ghoul2 viewmodels - END
 } weaponInfo_t;
 
 extern sfxHandle_t CAS_GetBModelSound( const char *name, int stage );

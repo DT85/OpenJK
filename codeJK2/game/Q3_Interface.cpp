@@ -3397,7 +3397,14 @@ static void Q3_SetWeapon (int entID, const char *wp_name)
 	}
 	else
 	{
-		G_CreateG2AttachedWeaponModel( self, weaponData[wp].weaponMdl );
+		//Ghoul2 viewmodels - START
+		if (weaponData[wp].worldModel[0]) {
+			G_CreateG2AttachedWeaponModel(self, weaponData[wp].worldModel);
+		}
+		else {
+			G_CreateG2AttachedWeaponModel(self, weaponData[wp].weaponMdl);
+		}
+		//Ghoul2 viewmodels - END
 	}
 }
 

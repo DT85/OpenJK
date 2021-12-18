@@ -1781,7 +1781,14 @@ qboolean ClientSpawn(gentity_t *ent, SavedGameJustLoaded_e eSavedGameJustLoaded 
 		}
 		if ( ent->weaponModel == -1 && ent->client->ps.weapon != WP_NONE )
 		{
-			G_CreateG2AttachedWeaponModel( ent, weaponData[ent->client->ps.weapon].weaponMdl );
+			//Ghoul2 viewmodels - START
+			if (weaponData[ent->client->ps.weapon].worldModel[0]) {
+				G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModel);
+			}
+			else {
+				G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl);
+			}
+			//Ghoul2 viewmodels - END
 		}
 
 		{

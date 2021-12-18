@@ -302,7 +302,14 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other)
 			}
 			else
 			{
-				G_CreateG2AttachedWeaponModel( other, weaponData[ent->item->giTag].weaponMdl );
+				//Ghoul2 viewmodels - START
+				if (weaponData[ent->item->giTag].worldModel[0]) {
+					G_CreateG2AttachedWeaponModel(other, weaponData[ent->item->giTag].worldModel);
+				}
+				else {
+					G_CreateG2AttachedWeaponModel(other, weaponData[ent->item->giTag].weaponMdl);
+				}
+				//Ghoul2 viewmodels - END
 			}
 		}
 	}

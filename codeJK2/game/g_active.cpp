@@ -1110,7 +1110,10 @@ void G_MatchPlayerWeapon( gentity_t *ent )
 			}
 			else
 			{
-				G_CreateG2AttachedWeaponModel( ent, weaponData[newWeap].weaponMdl );
+				if(weaponData[ent->client->ps.weapon].worldModel[0])
+					G_CreateG2AttachedWeaponModel( ent, weaponData[newWeap].worldModel );
+				else
+					G_CreateG2AttachedWeaponModel(ent, weaponData[newWeap].weaponMdl);
 			}
 		}
 	}

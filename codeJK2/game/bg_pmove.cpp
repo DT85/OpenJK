@@ -5683,9 +5683,20 @@ static void PM_FinishWeaponChange( void ) {
 				gi.G2API_RemoveGhoul2Model(pm->gent->ghoul2, pm->gent->weaponModel);
 				pm->gent->weaponModel = -1;
 			}
-			if (weaponData[weapon].weaponMdl[0]) {	//might be NONE, so check if it has a model
-				G_CreateG2AttachedWeaponModel( pm->gent, weaponData[weapon].weaponMdl );
+
+			//Ghoul2 viewmodels - START
+			//might be NONE, so check if it has a model
+			if (weaponData[weapon].worldModel[0])
+			{				
+				//G2 viewmodel
+				G_CreateG2AttachedWeaponModel(pm->gent, weaponData[weapon].worldModel);
 			}
+			else
+			{
+				//MD3 viewmodel
+				G_CreateG2AttachedWeaponModel(pm->gent, weaponData[weapon].weaponMdl);
+			}
+			//Ghoul2 viewmodels - END
 		}
 
 		if ( pm->gent && pm->gent->client && pm->gent->client->NPC_class == CLASS_GALAKMECH )

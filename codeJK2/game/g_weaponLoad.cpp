@@ -139,6 +139,11 @@ void WPN_MissileHitSound(const char **holdBuf);
 void WPN_AltMissileHitSound(const char **holdBuf);
 void WPN_MuzzleEffect(const char **holdBuf);
 void WPN_AltMuzzleEffect(const char **holdBuf);
+//Ghoul2 viewmodels - START
+void WPN_SkinFile(const char** holdBuf);
+void WPN_WorldModel(const char** holdBuf);
+void WPN_NoHandModel(const char** holdBuf);
+//Ghoul2 viewmodels - END
 
 // OPENJK ADD
 
@@ -366,9 +371,73 @@ wpnParms_t WpnParms[] =
 	{ "chargeforce",		WPN_FuncSkip },
 	{ "altchargeforce",	WPN_FuncSkip },
 	{ "selectforce",		WPN_FuncSkip },
+
+	//Ghoul2 viewmodels - START
+	// Ghoul2 viewmodels
+	{ "vm_skinfile",		WPN_SkinFile },
+	{ "worldmodel",			WPN_WorldModel },
+	{ "isghoul2model",		WPN_NoHandModel },
+	//Ghoul2 viewmodels - END
 };
 
 static const size_t numWpnParms = ARRAY_LEN(WpnParms);
+
+//Ghoul2 viewmodels - START
+void WPN_SkinFile(const char** holdBuf)
+{
+	int len;
+	const char* tokenStr;
+
+	if (COM_ParseString(holdBuf, &tokenStr))
+	{
+		return;
+	}
+
+	len = strlen(tokenStr);
+	len++;
+	if (len > 64)
+	{
+		len = 64;
+		gi.Printf(S_COLOR_YELLOW"WARNING: vm_skinfile too long in external WEAPONS.DAT '%s'\n", tokenStr);
+	}
+
+	Q_strncpyz(weaponData[wpnParms.weaponNum].skinPath, tokenStr, len);
+}
+
+void WPN_WorldModel(const char** holdBuf)
+{
+	int len;
+	const char* tokenStr;
+
+	if (COM_ParseString(holdBuf, &tokenStr))
+	{
+		return;
+	}
+
+	len = strlen(tokenStr);
+	len++;
+	if (len > 64)
+	{
+		len = 64;
+		gi.Printf(S_COLOR_YELLOW"WARNING: worldModel too long in external WEAPONS.DAT '%s'\n", tokenStr);
+	}
+
+	Q_strncpyz(weaponData[wpnParms.weaponNum].worldModel, tokenStr, len);
+}
+
+void WPN_NoHandModel(const char** holdBuf)
+{
+	int		tokenInt;
+
+	if (COM_ParseInt(holdBuf, &tokenInt))
+	{
+		SkipRestOfLine(holdBuf);
+		return;
+	}
+
+	weaponData[wpnParms.weaponNum].bNoHandModel = tokenInt ? true : false;
+}
+//Ghoul2 viewmodels - END
 
 void WPN_FuncSkip( const char **holdBuf)
 {
