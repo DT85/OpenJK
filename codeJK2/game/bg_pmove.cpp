@@ -5504,7 +5504,7 @@ static void PM_WaterEvents( void ) {		// FIXME?
 PM_BeginWeaponChange
 ===============
 */
-extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel, const char* weaponSkin);
+extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel);
 static void PM_BeginWeaponChange( int weapon ) {
 
 	if ( pm->gent && pm->gent->client && pm->gent->client->pers.enterTime >= level.time - 500 )
@@ -5653,7 +5653,7 @@ static void PM_FinishWeaponChange( void ) {
 
 			if ( pm->gent )
 			{
-				G_CreateG2AttachedWeaponModel( pm->gent, pm->ps->saberModel, 0 );
+				G_CreateG2AttachedWeaponModel( pm->gent, pm->ps->saberModel );
 			}
 		}
 		else
@@ -5689,12 +5689,12 @@ static void PM_FinishWeaponChange( void ) {
 			if (weaponData[weapon].worldModelPath[0])
 			{				
 				//G2 viewmodel
-				G_CreateG2AttachedWeaponModel(pm->gent, weaponData[weapon].worldModelPath, weaponData[weapon].worldSkinPath);
+				G_CreateG2AttachedWeaponModel(pm->gent, weaponData[weapon].worldModelPath);
 			}
 			else
 			{
 				//MD3 viewmodel
-				G_CreateG2AttachedWeaponModel(pm->gent, weaponData[weapon].weaponMdl, weaponData[weapon].worldSkinPath);
+				G_CreateG2AttachedWeaponModel(pm->gent, weaponData[weapon].weaponMdl);
 			}
 			//Ghoul2 viewmodels - END
 		}

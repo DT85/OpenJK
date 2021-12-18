@@ -32,7 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 extern qboolean	missionInfo_Updated;
 
 extern void CrystalAmmoSettings(gentity_t *ent);
-extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel, const char* weaponSkin);
+extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel);
 extern void ChangeWeapon( gentity_t *ent, int newWeapon );
 extern void G_SoundOnEnt( gentity_t *ent, soundChannel_t channel, const char *soundPath );
 extern qboolean PM_InKnockDown( playerState_t *ps );
@@ -298,16 +298,16 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other)
 			if ( ent->item->giTag == WP_SABER )
 			{
 				other->client->ps.saberActive = qtrue;
-				G_CreateG2AttachedWeaponModel( other, other->client->ps.saberModel, 0 );
+				G_CreateG2AttachedWeaponModel( other, other->client->ps.saberModel );
 			}
 			else
 			{
 				//Ghoul2 viewmodels - START
 				if (weaponData[ent->item->giTag].worldModelPath[0]) {
-					G_CreateG2AttachedWeaponModel(other, weaponData[ent->item->giTag].worldModelPath, weaponData[ent->item->giTag].worldSkinPath);
+					G_CreateG2AttachedWeaponModel(other, weaponData[ent->item->giTag].worldModelPath);
 				}
 				else {
-					G_CreateG2AttachedWeaponModel(other, weaponData[ent->item->giTag].weaponMdl, weaponData[ent->item->giTag].worldSkinPath);
+					G_CreateG2AttachedWeaponModel(other, weaponData[ent->item->giTag].weaponMdl);
 				}
 				//Ghoul2 viewmodels - END
 			}

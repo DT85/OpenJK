@@ -262,7 +262,7 @@ float saberAnimSpeedMod[NUM_FORCE_POWER_LEVELS] =
 };
 //SABER INITIALIZATION======================================================================
 
-void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *psWeaponModel, const char* psWeaponSkin)
+void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *psWeaponModel)
 {
 	if (!psWeaponModel)
 	{
@@ -297,12 +297,10 @@ void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *psWeaponModel, c
 	ent->weaponModel = gi.G2API_InitGhoul2Model(ent->ghoul2, weaponModel, G_ModelIndex(weaponModel), NULL_HANDLE, NULL_HANDLE, 0, 0);
 
 	// apply skin if available
-	if (psWeaponSkin[0] && ent->s.weapon != WP_SABER)
+	if (weaponData[ent->client->ps.weapon].worldSkinPath[0] && ent->client->ps.weapon != WP_SABER)
 	{
-		gi.Printf(S_COLOR_YELLOW "'%s'\n", psWeaponSkin);
-
 		char weaponSkin[MAX_QPATH];
-		Q_strncpyz(weaponSkin, psWeaponSkin, sizeof(weaponSkin));
+		Q_strncpyz(weaponSkin, weaponData[ent->client->ps.weapon].worldSkinPath, sizeof(weaponSkin));
 
 		int skin = gi.RE_RegisterSkin(weaponSkin);
 
@@ -4279,7 +4277,7 @@ void WP_SaberCatch( gentity_t *self, gentity_t *saber, qboolean switchToSaber )
 		//if it's not our current weapon, make it our current weapon
 		if ( self->client->ps.weapon == WP_SABER )
 		{
-			G_CreateG2AttachedWeaponModel( self, self->client->ps.saberModel, 0);
+			G_CreateG2AttachedWeaponModel( self, self->client->ps.saberModel);
 		}
 		if ( switchToSaber )
 		{

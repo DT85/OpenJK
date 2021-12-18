@@ -31,7 +31,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 extern void Q3_DebugPrint( int level, const char *format, ... );
 extern void WP_SaberInitBladeData( gentity_t *ent );
-extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel, const char* weaponSkin);
+extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel);
 extern qboolean	CheatsOk( gentity_t *ent );
 extern vmCvar_t	cg_thirdPersonAlpha;
 
@@ -1776,17 +1776,17 @@ qboolean ClientSpawn(gentity_t *ent, SavedGameJustLoaded_e eSavedGameJustLoaded 
 			WP_SaberInitBladeData( ent );
 			if ( ent->weaponModel == -1 && ent->client->ps.weapon == WP_SABER )
 			{
-				G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel, 0 );
+				G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel );
 			}
 		}
 		if ( ent->weaponModel == -1 && ent->client->ps.weapon != WP_NONE )
 		{
 			//Ghoul2 viewmodels - START
 			if (weaponData[ent->client->ps.weapon].worldModelPath[0]) {
-				G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModelPath, weaponData[ent->client->ps.weapon].worldSkinPath);
+				G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModelPath);
 			}
 			else {
-				G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl, weaponData[ent->client->ps.weapon].worldSkinPath);
+				G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl);
 			}
 			//Ghoul2 viewmodels - END
 		}

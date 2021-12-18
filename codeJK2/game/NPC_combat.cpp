@@ -37,7 +37,7 @@ extern void NPC_ClearLookTarget( gentity_t *self );
 extern void NPC_Jedi_RateNewEnemy( gentity_t *self, gentity_t *enemy );
 extern int NAV_FindClosestWaypointForPoint( vec3_t point );
 extern int NAV_GetNearestNode( gentity_t *self, int lastNode );
-extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel, const char* weaponSkin);
+extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel);
 extern qboolean PM_DroidMelee( int npc_class );
 
 extern	CNavigator	navigator;
@@ -494,10 +494,10 @@ void G_SetEnemy( gentity_t *self, gentity_t *enemy )
 
 				//Ghoul2 viewmodels - START
 				if (weaponData[WP_BLASTER].worldModelPath[0]) {
-					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER].worldModelPath, weaponData[WP_BLASTER].worldSkinPath);
+					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER].worldModelPath);
 				}
 				else {
-					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER].weaponMdl, weaponData[WP_BLASTER].worldSkinPath);
+					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER].weaponMdl);
 				}
 				//Ghoul2 viewmodels - END
 			}
@@ -509,10 +509,10 @@ void G_SetEnemy( gentity_t *self, gentity_t *enemy )
 
 				//Ghoul2 viewmodels - START
 				if (weaponData[WP_BLASTER_PISTOL].worldModelPath[0]) {
-					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER_PISTOL].worldModelPath, weaponData[WP_BLASTER_PISTOL].worldSkinPath);
+					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER_PISTOL].worldModelPath);
 				}
 				else {
-					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER_PISTOL].weaponMdl, weaponData[WP_BLASTER_PISTOL].worldSkinPath);
+					G_CreateG2AttachedWeaponModel(self, weaponData[WP_BLASTER_PISTOL].weaponMdl);
 				}
 				//Ghoul2 viewmodels - END
 			}
@@ -846,16 +846,16 @@ void NPC_ChangeWeapon( int newWeapon )
 	{
 		if ( NPC->client->ps.weapon == WP_SABER )
 		{
-			G_CreateG2AttachedWeaponModel( NPC, NPC->client->ps.saberModel, 0 );
+			G_CreateG2AttachedWeaponModel( NPC, NPC->client->ps.saberModel );
 		}
 		else
 		{
 			//Ghoul2 viewmodels - START
 			if (weaponData[NPC->client->ps.weapon].worldModelPath[0]) {
-				G_CreateG2AttachedWeaponModel(NPC, weaponData[NPC->client->ps.weapon].worldModelPath, weaponData[NPC->client->ps.weapon].worldSkinPath);
+				G_CreateG2AttachedWeaponModel(NPC, weaponData[NPC->client->ps.weapon].worldModelPath);
 			}
 			else {
-				G_CreateG2AttachedWeaponModel(NPC, weaponData[NPC->client->ps.weapon].weaponMdl, weaponData[NPC->client->ps.weapon].worldSkinPath);
+				G_CreateG2AttachedWeaponModel(NPC, weaponData[NPC->client->ps.weapon].weaponMdl);
 			}
 			// DT EDIT : Ghoul2 viewmodels - END
 		}

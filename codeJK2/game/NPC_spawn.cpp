@@ -187,7 +187,7 @@ NPC_SetMiscDefaultData
 -------------------------
 */
 
-extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel, const char* weaponSkin);
+extern void G_CreateG2AttachedWeaponModel( gentity_t *ent, const char *weaponModel);
 void NPC_SetMiscDefaultData( gentity_t *ent )
 {
 	if ( ent->spawnflags & SFB_CINEMATIC )
@@ -213,7 +213,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 			ent->client->ps.saberActive = qfalse;
 			ent->client->ps.saberLength = 0;
 			WP_SaberInitBladeData( ent );
-			G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel, 0);
+			G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel );
 			ent->client->enemyTeam = TEAM_ENEMY;
 			WP_InitForcePowers( ent );
 			Jedi_ClearTimers( ent );
@@ -229,10 +229,10 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 			{
 				//Ghoul2 viewmodels - START
 				if (weaponData[ent->client->ps.weapon].worldModelPath[0]) {
-					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModelPath, weaponData[ent->client->ps.weapon].worldSkinPath);
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModelPath);
 				}
 				else {
-					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl, weaponData[ent->client->ps.weapon].worldSkinPath);
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl);
 				}
 				//Ghoul2 viewmodels - END
 			}
@@ -312,7 +312,7 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 				ent->client->ps.saberActive = qfalse;
 				ent->client->ps.saberLength = 0;
 				WP_SaberInitBladeData( ent );
-				G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel, 0 );
+				G_CreateG2AttachedWeaponModel( ent, ent->client->ps.saberModel );
 				WP_InitForcePowers( ent );
 				ent->client->enemyTeam = TEAM_PLAYER;
 				Jedi_ClearTimers( ent );
@@ -334,10 +334,10 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 			{
 				//Ghoul2 viewmodels - START
 				if (weaponData[ent->client->ps.weapon].worldModelPath[0]) {
-					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModelPath, weaponData[ent->client->ps.weapon].worldSkinPath);
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].worldModelPath);
 				}
 				else {
-					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl, weaponData[ent->client->ps.weapon].worldSkinPath);
+					G_CreateG2AttachedWeaponModel(ent, weaponData[ent->client->ps.weapon].weaponMdl);
 				}
 				//Ghoul2 viewmodels - END
 
