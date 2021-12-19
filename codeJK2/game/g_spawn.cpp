@@ -421,6 +421,7 @@ void SP_misc_security_panel (gentity_t *ent);
 void SP_misc_camera( gentity_t *ent );
 void SP_misc_spotlight( gentity_t *ent );
 
+void SP_misc_weather_zone(gentity_t* ent);
 void SP_misc_cubemap( gentity_t *ent );
 
 void SP_shooter_rocket( gentity_t *ent );
@@ -608,6 +609,7 @@ spawn_t	spawns[] = {
 	{"misc_crystal_crate", SP_misc_crystal_crate},
 	{"misc_atst_drivable", SP_misc_atst_drivable},
 
+	{"misc_weather_zone", SP_misc_weather_zone},
 	{"misc_cubemap", SP_misc_cubemap},
 	
 	{"shooter_rocket", SP_shooter_rocket},
