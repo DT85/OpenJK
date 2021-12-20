@@ -49,6 +49,9 @@ typedef struct {
 	vec3_t		previous_origin;
 	vec3_t		previous_velocity;
 	int			previous_waterlevel;
+
+	// ladders
+	qboolean ladder;
 } pml_t;
 
 extern	pmove_t		*pm;

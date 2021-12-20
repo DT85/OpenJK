@@ -162,7 +162,6 @@ pml_t		pml;
 const float	pm_stopspeed = 100.0f;
 const float	pm_duckScale = 0.50f;
 const float	pm_swimScale = 0.50f;
-float	pm_ladderScale = 0.7f;
 
 const float	pm_vehicleaccelerate = 36.0f;
 const float	pm_accelerate = 12.0f;
@@ -173,6 +172,7 @@ const float	pm_flyaccelerate = 8.0f;
 const float	pm_friction = 6.0f;
 const float	pm_waterfriction = 1.0f;
 const float	pm_flightfriction = 3.0f;
+const float	pm_ladderfriction = 14.0f;
 
 //const float	pm_frictionModifier	= 3.0f;	//Used for "careful" mode (when pressing use)
 const float pm_airDecelRate = 1.35f;	//Used for air decelleration away from current movement velocity
@@ -585,7 +585,7 @@ static void PM_Friction( void ) {
 
 	drop = 0;
 
-	// apply ground friction, even if on ladder
+	// apply ground friction
 	if ( pm->gent
 		&& pm->gent->client
 		&& pm->gent->client->NPC_class == CLASS_VEHICLE && pm->gent->m_pVehicle
@@ -630,9 +630,9 @@ static void PM_Friction( void ) {
 	}
 	else if ( Flying != FLY_NORMAL )
 	{
-		if ( (pm->watertype & CONTENTS_LADDER) || pm->waterlevel <= 1 )
+		if ( pm->waterlevel <= 1 )
 		{
-			if ( (pm->watertype & CONTENTS_LADDER) || (pml.walking && !(pml.groundTrace.surfaceFlags & SURF_SLICK)) )
+			if ( (pml.walking && !(pml.groundTrace.surfaceFlags & SURF_SLICK)) )
 			{
 				// if getting knocked back, no friction
 				if ( !(pm->ps->pm_flags & PMF_TIME_KNOCKBACK) && !(pm->ps->pm_flags & PMF_TIME_NOFRICTION) )
@@ -696,7 +696,7 @@ static void PM_Friction( void ) {
 	// apply water friction even if just wading
 	if ( !waterForceJump )
 	{
-		if ( pm->waterlevel && !(pm->watertype & CONTENTS_LADDER))
+		if ( pm->waterlevel )
 		{
 			drop += speed*pm_waterfriction*pm->waterlevel*pml.frametime;
 		}
@@ -706,6 +706,12 @@ static void PM_Friction( void ) {
 	if ( pm->ps->pm_type == PM_SPECTATOR )
 	{
 		drop += speed*pm_flightfriction*pml.frametime;
+	}
+
+	// apply ladder strafe friction
+	if (pml.ladder)
+	{
+		drop += speed * pm_ladderfriction * pml.frametime;
 	}
 
 	// scale the velocity
@@ -2485,11 +2491,6 @@ static qboolean	PM_CheckWaterJump( void ) {
 		return qfalse;
 	}
 
-	if ( pm->watertype & CONTENTS_LADDER ) {
-		if (pm->ps->velocity[2] <= 0)
-			return qfalse;
-	}
-
 	flatforward[0] = pml.forward[0];
 	flatforward[1] = pml.forward[1];
 	flatforward[2] = 0;
@@ -2591,37 +2592,31 @@ static void PM_WaterMove( void ) {
 	if ( !scale ) {
 		wishvel[0] = 0;
 		wishvel[1] = 0;
-		if ( pm->watertype & CONTENTS_LADDER ) {
-			wishvel[2] = 0;
-		} else {
-			wishvel[2] = -60;		// sink towards bottom
-		}
+		wishvel[2] = -60;		// sink towards bottom
 	} else {
 		for (i=0 ; i<3 ; i++) {
 			wishvel[i] = scale * pml.forward[i]*pm->cmd.forwardmove + scale * pml.right[i]*pm->cmd.rightmove;
 		}
 		wishvel[2] += scale * pm->cmd.upmove;
-		if ( !(pm->watertype&CONTENTS_LADDER) )	//ladder
-		{
-			float depth = (pm->ps->origin[2]+pm->gent->client->standheight)-pm->ps->waterheight;
-			if ( depth >= 12 )
-			{//too high!
-				wishvel[2] -= 120;		// sink towards bottom
-				if ( wishvel[2] > 0 )
-				{
-					wishvel[2] = 0;
-				}
-			}
-			else if ( pm->ps->waterHeightLevel >= WHL_UNDER )//!depth && pm->waterlevel == 3 )
+
+		float depth = (pm->ps->origin[2]+pm->gent->client->standheight)-pm->ps->waterheight;
+		if ( depth >= 12 )
+		{//too high!
+			wishvel[2] -= 120;		// sink towards bottom
+			if ( wishvel[2] > 0 )
 			{
+				wishvel[2] = 0;
 			}
-			else if ( depth < 12 )
-			{//still deep
-				wishvel[2] -= 60;		// sink towards bottom
-				if ( wishvel[2] > 30 )
-				{
-					wishvel[2] = 30;
-				}
+		}
+		else if ( pm->ps->waterHeightLevel >= WHL_UNDER )//!depth && pm->waterlevel == 3 )
+		{
+		}
+		else if ( depth < 12 )
+		{//still deep
+			wishvel[2] -= 60;		// sink towards bottom
+			if ( wishvel[2] > 30 )
+			{
+				wishvel[2] = 30;
 			}
 		}
 	}
@@ -2629,22 +2624,14 @@ static void PM_WaterMove( void ) {
 	VectorCopy (wishvel, wishdir);
 	wishspeed = VectorNormalize(wishdir);
 
-	if ( pm->watertype & CONTENTS_LADDER )	//ladder
-	{
-		if ( wishspeed > pm->ps->speed * pm_ladderScale ) {
-			wishspeed = pm->ps->speed * pm_ladderScale;
-		}
-		PM_Accelerate( wishdir, wishspeed, pm_flyaccelerate );
-	} else {
-		if ( pm->ps->gravity < 0 )
-		{//float up
-			pm->ps->velocity[2] -= pm->ps->gravity * pml.frametime;
-		}
-		if ( wishspeed > pm->ps->speed * pm_swimScale ) {
-			wishspeed = pm->ps->speed * pm_swimScale;
-		}
-		PM_Accelerate( wishdir, wishspeed, pm_wateraccelerate );
+	if ( pm->ps->gravity < 0 )
+	{//float up
+		pm->ps->velocity[2] -= pm->ps->gravity * pml.frametime;
 	}
+	if ( wishspeed > pm->ps->speed * pm_swimScale ) {
+		wishspeed = pm->ps->speed * pm_swimScale;
+	}
+	PM_Accelerate( wishdir, wishspeed, pm_wateraccelerate );
 
 	// make sure we can go up slopes easily under water
 	if ( pml.groundPlane && DotProduct( pm->ps->velocity, pml.groundTrace.plane.normal ) < 0 ) {
@@ -3236,7 +3223,7 @@ static void PM_WalkMove( void ) {
 	}
 
 	// clamp the speed lower if wading or walking on the bottom
-	if ( pm->waterlevel ) {
+	if (pm->waterlevel) {
 		float	waterScale;
 
 		waterScale = pm->waterlevel / 3.0;
@@ -3329,6 +3316,225 @@ static void PM_WalkMove( void ) {
 
 }
 
+qboolean ladderforward;
+vec3_t   laddervec;
+
+#define TRACE_LADDER_DIST   48.0
+
+/**
+ * @brief Checks to see if we are on a ladder
+ */
+void PM_CheckLadderMove(void)
+{
+	vec3_t   spot;
+	vec3_t   flatforward;
+	trace_t  trace;
+	float    tracedist;
+	bool	 wasOnLadder;
+
+	if (pm->ps->pm_time)
+	{
+		return;
+	}
+
+	if (pml.walking)
+	{
+		tracedist = 1.0;
+	}
+	else
+	{
+		tracedist = TRACE_LADDER_DIST;
+	}
+
+	wasOnLadder = ((pm->ps->pm_flags & PMF_LADDER) != 0);
+
+	pml.ladder = qfalse;
+	pm->ps->pm_flags &= ~PMF_LADDER;    // clear ladder bit
+	ladderforward = qfalse;
+
+	if (pm->ps->stats[STAT_HEALTH] <= 0)
+	{
+		pm->ps->groundEntityNum = ENTITYNUM_NONE;
+		pml.groundPlane = qfalse;
+		pml.walking = qfalse;
+		return;
+	}
+
+	// check for ladder
+	flatforward[0] = pml.forward[0];
+	flatforward[1] = pml.forward[1];
+	flatforward[2] = 0;
+	VectorNormalize(flatforward);
+
+	VectorMA(pm->ps->origin, tracedist, flatforward, spot);
+	pm->trace(&trace, pm->ps->origin, pm->mins, pm->maxs, spot, pm->ps->clientNum, pm->tracemask, (EG2_Collision)0, 0);
+	if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_LADDER))
+	it's not finding CONTENTS_LADDER, no idea why
+	{
+		pml.ladder = qtrue;
+	}
+
+	if (pml.ladder)
+	{
+		VectorCopy(trace.plane.normal, laddervec);
+	}
+
+	if (pml.ladder && !pml.walking && (trace.fraction * tracedist > 1.0f))
+	{
+		vec3_t mins;
+		// if we are only just on the ladder, don't do this yet, or it may throw us back off the ladder
+		pml.ladder = qfalse;
+		VectorCopy(pm->mins, mins);
+		mins[2] = -1;
+		VectorMA(pm->ps->origin, -tracedist, laddervec, spot);
+		pm->trace(&trace, pm->ps->origin, mins, pm->maxs, spot, pm->ps->clientNum, pm->tracemask, (EG2_Collision)0, 0);
+		if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_LADDER))
+		{
+			ladderforward = qtrue;
+			pml.ladder = qtrue;
+			pm->ps->pm_flags |= PMF_LADDER; // set ladder bit
+		}
+		else
+		{
+			pml.ladder = qfalse;
+		}
+	}
+	else if (pml.ladder)
+	{
+		pm->ps->pm_flags |= PMF_LADDER; // set ladder bit
+	}
+
+	// create some up/down velocity if touching ladder
+	if (pml.ladder)
+	{
+		if (pml.walking)
+		{
+			// we are currently on the ground, only go up and prevent X/Y if we are pushing forwards
+			if (pm->cmd.forwardmove <= 0)
+			{
+				pml.ladder = qfalse;
+			}
+		}
+	}
+
+	// if we have just dismounted the ladder at the top, play dismount
+	if (!pml.ladder && wasOnLadder && pm->ps->velocity[2] > 0)
+	{
+		Com_Printf( "play ladder dismount anim\n" );
+		//BG_AnimScriptEvent(pm->ps, pm->character->animModelInfo, ANIM_ET_CLIMB_DISMOUNT, qfalse, qfalse);
+	}
+	// if we have just mounted the ladder
+	if (pml.ladder && !wasOnLadder && pm->ps->velocity[2] < 0)        // only play anim if going down ladder
+	{
+		Com_Printf("play ladder mount anim\n");
+		//BG_AnimScriptEvent(pm->ps, pm->character->animModelInfo, ANIM_ET_CLIMB_MOUNT, qfalse, qfalse);
+	}
+}
+
+/**
+ * @brief PM_LadderMove
+ */
+void PM_LadderMove(void)
+{
+	float  wishspeed, scale;
+	vec3_t wishdir, wishvel;
+	float  upscale;
+
+	if (ladderforward)
+	{
+		// move towards the ladder
+		VectorScale(laddervec, -200.0, wishvel);
+		pm->ps->velocity[0] = wishvel[0];
+		pm->ps->velocity[1] = wishvel[1];
+	}
+
+	upscale = (pml.forward[2] + 0.5f) * 2.5f;
+	if (upscale > 1.0f)
+	{
+		upscale = 1.0f;
+	}
+	else if (upscale < -1.0f)
+	{
+		upscale = -1.0f;
+	}
+
+	// forward/right should be horizontal only
+	pml.forward[2] = 0;
+	pml.right[2] = 0;
+	VectorNormalize(pml.forward);
+	VectorNormalize(pml.right);
+
+	// move depending on the view, if view is straight forward, then go up
+	// if view is down more then X degrees, start going down
+	// if they are back pedalling, then go in reverse of above
+	scale = PM_CmdScale(&pm->cmd);
+	VectorClear(wishvel);
+
+	if (pm->cmd.forwardmove)
+	{
+		wishvel[2] = 0.9f * upscale * scale * (float)pm->cmd.forwardmove;
+	}
+	//Com_Printf("wishvel[2] = %i, fwdmove = %i\n", (int)wishvel[2], (int)pm->cmd.forwardmove );
+
+	if (pm->cmd.rightmove)
+	{
+		// strafe, so we can jump off ladder
+		vec3_t ladder_right, ang;
+		vectoangles(laddervec, ang);
+		AngleVectors(ang, NULL, ladder_right, NULL);
+
+		// if we are looking away from the ladder, reverse the right vector
+		if (DotProduct(laddervec, pml.forward) < 0)
+		{
+			VectorInverse(ladder_right);
+		}
+
+		//VectorMA( wishvel, 0.5 * scale * (float)pm->cmd.rightmove, pml.right, wishvel );
+		VectorMA(wishvel, 0.5f * scale * (float)pm->cmd.rightmove, ladder_right, wishvel);
+	}
+
+	// do strafe friction
+	PM_Friction();
+
+	if (pm->ps->velocity[0] < 1 && pm->ps->velocity[0] > -1)
+	{
+		pm->ps->velocity[0] = 0;
+	}
+	if (pm->ps->velocity[1] < 1 && pm->ps->velocity[1] > -1)
+	{
+		pm->ps->velocity[1] = 0;
+	}
+
+	wishspeed = VectorNormalize2(wishvel, wishdir);
+
+	PM_Accelerate(wishdir, wishspeed, pm_accelerate);
+	if (wishvel[2] == 0.f)
+	{
+		if (pm->ps->velocity[2] > 0)
+		{
+			pm->ps->velocity[2] -= pm->ps->gravity * pml.frametime;
+			if (pm->ps->velocity[2] < 0)
+			{
+				pm->ps->velocity[2] = 0;
+			}
+		}
+		else
+		{
+			pm->ps->velocity[2] += pm->ps->gravity * pml.frametime;
+			if (pm->ps->velocity[2] > 0)
+			{
+				pm->ps->velocity[2] = 0;
+			}
+		}
+	}
+
+	//Com_Printf("vel[2] = %i\n", (int)pm->ps->velocity[2] );
+
+	PM_StepSlideMove(qfalse);    // no gravity while going up ladder
+
+	// always point legs forward
+	pm->ps->movementDir = 0;
+}
 
 /*
 ==============
@@ -5535,11 +5741,11 @@ static void PM_SetWaterLevelAtPoint( vec3_t org, int *waterlevel, int *watertype
 	point[0] = org[0];
 	point[1] = org[1];
 	point[2] = org[2] + DEFAULT_MINS_2 + 1;
-	if (gi.totalMapContents() & (MASK_WATER|CONTENTS_LADDER))
-	{
-		cont = pm->pointcontents( point, pm->ps->clientNum );
+	cont = pm->pointcontents(point, pm->ps->clientNum);
 
-		if ( cont & (MASK_WATER|CONTENTS_LADDER) )
+	if (gi.totalMapContents() & (MASK_WATER))
+	{
+		if ( cont & (MASK_WATER) )
 		{
 			sample2 = pm->ps->viewheight - DEFAULT_MINS_2;
 			sample1 = sample2 / 2;
@@ -5548,12 +5754,12 @@ static void PM_SetWaterLevelAtPoint( vec3_t org, int *waterlevel, int *watertype
 			*waterlevel = 1;
 			point[2] = org[2] + DEFAULT_MINS_2 + sample1;
 			cont = pm->pointcontents( point, pm->ps->clientNum );
-			if ( cont & (MASK_WATER|CONTENTS_LADDER) )
+			if ( cont & (MASK_WATER) )
 			{
 				*waterlevel = 2;
 				point[2] = org[2] + DEFAULT_MINS_2 + sample2;
 				cont = pm->pointcontents( point, pm->ps->clientNum );
-				if ( cont & (MASK_WATER|CONTENTS_LADDER) )
+				if ( cont & (MASK_WATER) )
 				{
 					*waterlevel = 3;
 				}
@@ -5781,7 +5987,7 @@ static void PM_CheckDuck (void)
 		pm->ps->pm_flags |= PMF_DUCKED;
 		return;
 	}
-	if ( pm->cmd.upmove < 0 )
+	if ( pm->cmd.upmove < 0 && !(pm->ps->pm_flags & PMF_LADDER))
 	{	// trying to duck
 		pm->maxs[2] = crouchheight;
 		pm->ps->viewheight = crouchheight + STANDARD_VIEWHEIGHT_OFFSET;//CROUCH_VIEWHEIGHT;
@@ -8008,51 +8214,12 @@ static void PM_Footsteps( void )
 	}
 
 	if ( pm->ps->groundEntityNum == ENTITYNUM_NONE
-		|| ( pm->watertype & CONTENTS_LADDER )
 		|| pm->ps->waterHeightLevel >= WHL_TORSO )
 	{//in air or submerged in water or in ladder
 		// airborne leaves position in cycle intact, but doesn't advance
 		if ( pm->waterlevel > 0 )
 		{
-			if ( pm->watertype & CONTENTS_LADDER )
-			{//FIXME: check for watertype, save waterlevel for whether to play
-				//the get off ladder transition anim!
-				if ( pm->ps->velocity[2]  )
-				{//going up or down it
-					int	anim;
-					if ( pm->ps->velocity[2] > 0 )
-					{
-						anim = BOTH_LADDER_UP1;
-					}
-					else
-					{
-						anim = BOTH_LADDER_DWN1;
-					}
-					PM_SetAnim( pm, SETANIM_LEGS, anim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
-					if ( pm->waterlevel >= 2 )	//arms on ladder
-					{
-						PM_SetAnim( pm, SETANIM_TORSO, anim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
-					}
-					if (fabs(pm->ps->velocity[2]) >5) {
-						bobmove = 0.005 * fabs(pm->ps->velocity[2]);	// climbing bobs slow
-						if (bobmove > 0.3)
-							bobmove = 0.3F;
-						goto DoFootSteps;
-					}
-				}
-				else
-				{
-					PM_SetAnim( pm, SETANIM_LEGS, BOTH_LADDER_IDLE, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_RESTART );
-					pm->ps->legsAnimTimer += 300;
-					if ( pm->waterlevel >= 2 )	//arms on ladder
-					{
-						PM_SetAnim( pm, SETANIM_TORSO, BOTH_LADDER_IDLE, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_RESTART );
-						pm->ps->torsoAnimTimer += 300;
-					}
-				}
-				return;
-			}
-			else if ( pm->ps->waterHeightLevel >= WHL_TORSO
+			if ( pm->ps->waterHeightLevel >= WHL_TORSO
 				&& ((pm->ps->clientNum < MAX_CLIENTS||PM_ControlledByPlayer())
 					||pm->ps->weapon==WP_SABER||pm->ps->weapon==WP_NONE||pm->ps->weapon==WP_MELEE) )//pm->waterlevel > 1 )	//in deep water
 			{
@@ -8151,6 +8318,37 @@ static void PM_Footsteps( void )
 				{
 					PM_SwimFloatAnim();
 				}
+			}
+			return;
+		}
+
+		if (pm->ps->pm_flags & PMF_LADDER) // on ladder
+		{//FIXME: check for watertype, save waterlevel for whether to play
+			//the get off ladder transition anim!
+			if (pm->ps->velocity[2])
+			{//going up or down it
+				int	anim;
+				if (pm->ps->velocity[2] > 0)
+				{
+					anim = BOTH_LADDER_UP1;
+				}
+				else
+				{
+					anim = BOTH_LADDER_DWN1;
+				}
+				PM_SetAnim(pm, SETANIM_LEGS, anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
+
+				if (fabs(pm->ps->velocity[2]) > 5) {
+					bobmove = 0.005 * fabs(pm->ps->velocity[2]);	// climbing bobs slow
+					if (bobmove > 0.3)
+						bobmove = 0.3F;
+					goto DoFootSteps;
+				}
+			}
+			else
+			{
+				PM_SetAnim(pm, SETANIM_LEGS, BOTH_LADDER_IDLE, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
+				pm->ps->legsAnimTimer += 300;
 			}
 			return;
 		}
@@ -8630,7 +8828,7 @@ DoFootSteps:
 	// if we just crossed a cycle boundary, play an apropriate footstep event
 	if ( ( ( old + 64 ) ^ ( pm->ps->bobCycle + 64 ) ) & 128 )
 	{
-		if ( pm->watertype & CONTENTS_LADDER )
+		if ( pm->ps->pm_flags & PMF_LADDER )
 		{
 			if ( !pm->noFootsteps )
 			{
@@ -8734,10 +8932,6 @@ static void PM_WaterEvents( void ) {		// FIXME?
 
 	qboolean impact_splash = qfalse;
 
-	if ( pm->watertype & CONTENTS_LADDER )	//fake water for ladder
-	{
-		return;
-	}
 	//
 	// if just entered a water volume, play a sound
 	//
@@ -14850,12 +15044,7 @@ void Pmove( pmove_t *pmove )
 	PM_SetWaterLevelAtPoint( pm->ps->origin, &pm->waterlevel, &pm->watertype );
 
 	PM_SetWaterHeight();
-
-	if ( !(pm->watertype & CONTENTS_LADDER) )
-	{//Don't want to remember this for ladders, is only for waterlevel change events (sounds)
-		pml.previous_waterlevel = pmove->waterlevel;
-	}
-
+	pml.previous_waterlevel = pmove->waterlevel;
 
 	waterForceJump = qfalse;
 	if ( pmove->waterlevel && pm->ps->clientNum )
@@ -14870,7 +15059,7 @@ void Pmove( pmove_t *pmove )
 	// set mins, maxs, and viewheight
 	PM_SetBounds();
 
-	if ( !Flying && !(pm->watertype & CONTENTS_LADDER) && pm->ps->pm_type != PM_DEAD )
+	if ( !Flying && pm->ps->pm_type != PM_DEAD )
 	{//NOTE: noclippers shouldn't jump or duck either, no?
 		PM_CheckDuck();
 	}
@@ -14886,14 +15075,16 @@ void Pmove( pmove_t *pmove )
 		PM_DeadMove ();
 	}
 
+	// ladders
+	PM_CheckLadderMove();
+
 	PM_DropTimers();
 
-	/*
-	if ( PM_RidingVehicle() )
+	if (pml.ladder)
 	{
-		PM_NoclipMove();
+		PM_LadderMove();
 	}
-	else */if ( pm->ps && ( (pm->ps->eFlags&EF_LOCKED_TO_WEAPON)
+	else if ( pm->ps && ( (pm->ps->eFlags&EF_LOCKED_TO_WEAPON)
 							|| (pm->ps->eFlags&EF_HELD_BY_RANCOR)
 							|| (pm->ps->eFlags&EF_HELD_BY_WAMPA)
 							|| (pm->ps->eFlags&EF_HELD_BY_SAND_CREATURE) ) )
@@ -14916,7 +15107,7 @@ void Pmove( pmove_t *pmove )
 	else if ( pm->waterlevel > 1 //in water
 			 &&((pm->ps->clientNum < MAX_CLIENTS||PM_ControlledByPlayer()) || !waterForceJump) )//player or NPC not force jumping
 	{//force-jumping NPCs should
-		// swimming or in ladder
+		// swimming
 		PM_WaterMove();
 	}
 	else if (pm->gent && pm->gent->NPC && pm->gent->NPC->jumpTime!=0)
