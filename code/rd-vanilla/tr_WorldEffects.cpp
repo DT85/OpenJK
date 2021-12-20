@@ -1981,24 +1981,18 @@ void R_WorldEffectCommand(const char *command)
 	//---------------------
 	else if (Q_stricmp(token, "spacedust") == 0)
 	{
-		int count;
 		if (mParticleClouds.full())
 		{
 			COM_EndParseSession();
 			return;
 		}
-		token = COM_ParseExt(&command, qfalse);
-		count = atoi(token);
-
 		CParticleCloud& nCloud = mParticleClouds.push_back();
-		nCloud.Initialize(count, "gfx/effects/snowpuff1.tga");
+		nCloud.Initialize(400, "gfx/effects/snowpuff1.tga");
 		nCloud.mHeight		= 1.2f;
 		nCloud.mWidth		= 1.2f;
 		nCloud.mGravity		= 0.0f;
-		nCloud.mBlendMode			= 1;
-		nCloud.mRotationChangeNext	= 0;
+		nCloud.mBlendMode	= 1;
 		nCloud.mColor		= 0.75f;
-		nCloud.mWaterParticles = true;
 		nCloud.mMass.mMax	= 30.0f;
 		nCloud.mMass.mMin	= 10.0f;
 		nCloud.mSpawnRange.mMins[0]	= -1500.0f;
@@ -2175,7 +2169,17 @@ float R_GetChanceOfSaberFizz()
 
 bool R_IsRaining()
 {
-	return !mParticleClouds.empty();
+	//check for water particles. we don't want surface weather 
+	//playing if it's not rain/snow.
+	for (int i = 0; i < mParticleClouds.size(); i++)
+	{
+		if (mParticleClouds[i].mWaterParticles)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool R_IsPuffing()
