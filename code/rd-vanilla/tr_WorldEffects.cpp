@@ -1977,6 +1977,54 @@ void R_WorldEffectCommand(const char *command)
 		nCloud.mWaterParticles = true;
 	}
 
+	// Create A Snow Storm
+	//---------------------
+	else if (Q_stricmp(token, "snowstorm") == 0)
+	{
+		if (mParticleClouds.full() || mWindZones.full())
+		{
+			COM_EndParseSession();
+			return;
+		}
+		//snow
+		CParticleCloud& nCloud = mParticleClouds.push_back();
+		nCloud.Initialize(1500, "gfx/effects/snowflake1.tga");
+		nCloud.mBlendMode			= 1;
+		nCloud.mColor				= 0.75f;
+		nCloud.mFade				= 5.0f;
+		nCloud.mGravity				= 600.0f;
+		nCloud.mWaterParticles		= true;
+
+		//wind
+		CWindZone& nWind = mWindZones.push_back();
+		nWind.Initialize();
+		nWind.mRVelocity.mMins				= -3000.0f;
+		nWind.mRVelocity.mMins[2]			= -100.0f;
+		nWind.mRVelocity.mMaxs				= 3000.0f;
+		nWind.mRVelocity.mMaxs[2]			= 100.0f;
+		nWind.mMaxDeltaVelocityPerUpdate	= 10.0f;
+		nWind.mRDuration.mMin				= 1000;
+		nWind.mRDuration.mMax				= 3000;
+		nWind.mChanceOfDeadTime				= 0.0f;
+		nWind.mRDeadTime.mMin				= 0;
+		nWind.mRDeadTime.mMax				= 0;
+
+		//fog
+		CParticleCloud& nCloudFog = mParticleClouds.push_back();
+		nCloudFog.Initialize(1500, "gfx/effects/alpha_smoke2b.tga");
+		nCloudFog.mBlendMode			= 1;
+		nCloudFog.mGravity				= 0;
+		nCloudFog.mWidth				= 100;
+		nCloudFog.mHeight				= 100;
+		nCloudFog.mColor				= 0.20f;
+		nCloudFog.mFade					= 5.0f;
+		nCloudFog.mMass.mMax			= 30.0f;
+		nCloudFog.mMass.mMin			= 10.0f;
+		nCloud.mSpawnRange.mMins[2]		= -150;
+		nCloud.mSpawnRange.mMaxs[2]		= 150;
+		nCloudFog.mRotationChangeNext	= 0;
+	}
+
 	// Create A Some stuff
 	//---------------------
 	else if (Q_stricmp(token, "spacedust") == 0)
