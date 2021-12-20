@@ -1670,6 +1670,10 @@ void R_WorldEffect_f(void)
 		ri.Cmd_ArgsBuffer(temp, sizeof(temp));
 		R_WorldEffectCommand(temp);
 	}
+	else
+	{
+		Com_Printf("'r_we' is cheat protected.\n");
+	}
 }
 
 /*
@@ -1879,7 +1883,6 @@ void R_WorldEffectCommand(const char *command)
 		nCloud.mHeight		= 80.0f;
 		nCloud.mWidth		= 1.2f;
 		nCloud.mGravity		= 2000.0f;
-		nCloud.mFilterMode	= 1;
 		nCloud.mBlendMode	= 1;
 		nCloud.mFade		= 100.0f;
 		nCloud.mColor		= 0.5f;
@@ -1901,7 +1904,6 @@ void R_WorldEffectCommand(const char *command)
 		nCloud.mHeight		= 80.0f;
 		nCloud.mWidth		= 1.2f;
 		nCloud.mGravity		= 2000.0f;
-		nCloud.mFilterMode	= 1;
 		nCloud.mBlendMode	= 1;
 		nCloud.mFade		= 100.0f;
 		nCloud.mColor		= 0.5f;
@@ -1923,7 +1925,6 @@ void R_WorldEffectCommand(const char *command)
 		nCloud.mHeight		= 80.0f;
 		nCloud.mWidth		= 2.0f;
 		nCloud.mGravity		= 2000.0f;
-		nCloud.mFilterMode	= 1;
 		nCloud.mBlendMode	= 1;
 		nCloud.mFade		= 100.0f;
 
@@ -1948,11 +1949,10 @@ void R_WorldEffectCommand(const char *command)
 			return;
 		}
 		CParticleCloud& nCloud = mParticleClouds.push_back();
-		nCloud.Initialize(1000, "gfx/world/rain.jpg", 3);
+		nCloud.Initialize(1500, "gfx/world/rain.jpg", 3);
 		nCloud.mHeight		= 80.0f;
 		nCloud.mWidth		= 1.2f;
-		nCloud.mGravity		= 2800.0f;
-		nCloud.mFilterMode	= 1;
+		nCloud.mGravity		= 3500.0f;
 		nCloud.mBlendMode	= 1;
 		nCloud.mFade		= 15.0f;
 		nCloud.mColor		= 0.5f;
