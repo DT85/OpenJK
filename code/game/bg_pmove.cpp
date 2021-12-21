@@ -3368,8 +3368,7 @@ void PM_CheckLadderMove(void)
 
 	VectorMA(pm->ps->origin, tracedist, flatforward, spot);
 	pm->trace(&trace, pm->ps->origin, pm->mins, pm->maxs, spot, pm->ps->clientNum, pm->tracemask, (EG2_Collision)0, 0);
-	if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_LADDER))
-	it's not finding CONTENTS_LADDER, no idea why
+	if ((trace.fraction < 1.0f) && (trace.surfaceFlags & SURF_LADDER))
 	{
 		pml.ladder = qtrue;
 	}
@@ -3388,7 +3387,7 @@ void PM_CheckLadderMove(void)
 		mins[2] = -1;
 		VectorMA(pm->ps->origin, -tracedist, laddervec, spot);
 		pm->trace(&trace, pm->ps->origin, mins, pm->maxs, spot, pm->ps->clientNum, pm->tracemask, (EG2_Collision)0, 0);
-		if ((trace.fraction < 1.0f) && (trace.contents & CONTENTS_LADDER))
+		if ((trace.fraction < 1.0f) && (trace.surfaceFlags & SURF_LADDER))
 		{
 			ladderforward = qtrue;
 			pml.ladder = qtrue;
@@ -3460,9 +3459,9 @@ void PM_LadderMove(void)
 
 	// forward/right should be horizontal only
 	pml.forward[2] = 0;
-	pml.right[2] = 0;
+	//pml.right[2] = 0;
 	VectorNormalize(pml.forward);
-	VectorNormalize(pml.right);
+	//VectorNormalize(pml.right);
 
 	// move depending on the view, if view is straight forward, then go up
 	// if view is down more then X degrees, start going down
@@ -3476,7 +3475,12 @@ void PM_LadderMove(void)
 	}
 	//Com_Printf("wishvel[2] = %i, fwdmove = %i\n", (int)wishvel[2], (int)pm->cmd.forwardmove );
 
-	if (pm->cmd.rightmove)
+	pm->cmd.rightmove = 0;
+	pm->cmd.upmove = 0;
+	pm->cmd.angles[0] = 0;
+	pm->cmd.angles[1] = 0;
+	pm->cmd.angles[2] = 0;
+	/*if (pm->cmd.rightmove)
 	{
 		// strafe, so we can jump off ladder
 		vec3_t ladder_right, ang;
@@ -3491,7 +3495,7 @@ void PM_LadderMove(void)
 
 		//VectorMA( wishvel, 0.5 * scale * (float)pm->cmd.rightmove, pml.right, wishvel );
 		VectorMA(wishvel, 0.5f * scale * (float)pm->cmd.rightmove, ladder_right, wishvel);
-	}
+	}*/
 
 	// do strafe friction
 	PM_Friction();
@@ -3534,6 +3538,10 @@ void PM_LadderMove(void)
 
 	// always point legs forward
 	pm->ps->movementDir = 0;
+
+	//lock the player angles
+	//pm->cmd.angles[PITCH] = ANGLE2SHORT(pm->ps->viewangles[PITCH]) - pm->ps->delta_angles[PITCH];
+	//pm->cmd.angles[YAW] = ANGLE2SHORT(pm->ps->viewangles[YAW]) - pm->ps->delta_angles[YAW];
 }
 
 /*
@@ -8323,32 +8331,15 @@ static void PM_Footsteps( void )
 		}
 
 		if (pm->ps->pm_flags & PMF_LADDER) // on ladder
-		{//FIXME: check for watertype, save waterlevel for whether to play
-			//the get off ladder transition anim!
+		{
 			if (pm->ps->velocity[2])
 			{//going up or down it
-				int	anim;
-				if (pm->ps->velocity[2] > 0)
-				{
-					anim = BOTH_LADDER_UP1;
-				}
-				else
-				{
-					anim = BOTH_LADDER_DWN1;
-				}
-				PM_SetAnim(pm, SETANIM_LEGS, anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
-
 				if (fabs(pm->ps->velocity[2]) > 5) {
 					bobmove = 0.005 * fabs(pm->ps->velocity[2]);	// climbing bobs slow
 					if (bobmove > 0.3)
 						bobmove = 0.3F;
 					goto DoFootSteps;
 				}
-			}
-			else
-			{
-				PM_SetAnim(pm, SETANIM_LEGS, BOTH_LADDER_IDLE, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
-				pm->ps->legsAnimTimer += 300;
 			}
 			return;
 		}

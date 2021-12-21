@@ -65,7 +65,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define CONTENTS_ALL			(0xFFFFFFFFu)
 
 #define SURF_NONE				(0x00000000u)
-#define SURF_UNUSED00000001		(0x00000001u)	//
+#define SURF_LADDER				(0x00000001u)	//
 #define SURF_UNUSED00000002		(0x00000002u)	//
 #define SURF_UNUSED00000004		(0x00000004u)	//
 #define SURF_UNUSED00000008		(0x00000008u)	//
