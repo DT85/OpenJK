@@ -992,11 +992,6 @@ void CG_AddViewWeapon( playerState_t *ps )
 		return;
 	}
 
-	if ( cg.snap->ps.pm_flags & PMF_LADDER )
-	{
-		return;
-	}
-
 	if ( cent->gent && cent->gent->client && cent->gent->client->ps.forcePowersActive&(1<<FP_LIGHTNING) )
 	{//doing the electrocuting
 		vec3_t temp;//tAng, fxDir,

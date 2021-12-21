@@ -70,6 +70,7 @@ extern qboolean PM_AdjustAnglesForBFKick( gentity_t *ent, usercmd_t *ucmd, vec3_
 extern qboolean PM_AdjustAnglesForStabDown( gentity_t *ent, usercmd_t *ucmd );
 extern qboolean PM_AdjustAnglesForSpinProtect( gentity_t *ent, usercmd_t *ucmd );
 extern qboolean PM_AdjustAnglesForWallRunUpFlipAlt( gentity_t *ent, usercmd_t *ucmd );
+extern qboolean PM_AdjustAnglesForLadderMove(gentity_t* ent, usercmd_t* ucmd);
 extern qboolean PM_AdjustAnglesForHeldByMonster( gentity_t *ent, gentity_t *monster, usercmd_t *ucmd );
 extern qboolean PM_HasAnimation( gentity_t *ent, int animation );
 extern qboolean PM_LeapingSaberAnim( int anim );
@@ -2573,6 +2574,22 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 		}
 		ucmd->forwardmove = ucmd->rightmove = ucmd->upmove = 0;
 		overridAngles = (PM_AdjustAnglesForWallRunUpFlipAlt( ent, ucmd )?qtrue:overridAngles);
+	}
+
+	if ( ent->client->ps.pm_flags & PMF_LADDER )
+	{
+		vec3_t vFwd, fwdAng = { 0,ent->currentAngles[YAW],0 };
+		AngleVectors(fwdAng, vFwd, NULL, NULL);
+
+		if (ent->client->ps.groundEntityNum == ENTITYNUM_NONE)
+		{
+			float savZ = ent->client->ps.velocity[2];
+			VectorScale(vFwd, 100, ent->client->ps.velocity);
+			ent->client->ps.velocity[2] = savZ;
+		}
+		ucmd->rightmove = 0;
+
+		overridAngles = (PM_AdjustAnglesForLadderMove(ent, ucmd) ? qtrue : overridAngles);
 	}
 
 	if ( ent->client->ps.saberMove == LS_A_JUMP_T__B_ )

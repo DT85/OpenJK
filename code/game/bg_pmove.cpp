@@ -3316,14 +3316,15 @@ static void PM_WalkMove( void ) {
 
 }
 
+/*
+===================
+PM_CheckLadderMove
+===================
+*/
+#define TRACE_LADDER_DIST   48.0
 qboolean ladderforward;
 vec3_t   laddervec;
 
-#define TRACE_LADDER_DIST   48.0
-
-/**
- * @brief Checks to see if we are on a ladder
- */
 void PM_CheckLadderMove(void)
 {
 	vec3_t   spot;
@@ -3387,6 +3388,7 @@ void PM_CheckLadderMove(void)
 		mins[2] = -1;
 		VectorMA(pm->ps->origin, -tracedist, laddervec, spot);
 		pm->trace(&trace, pm->ps->origin, mins, pm->maxs, spot, pm->ps->clientNum, pm->tracemask, (EG2_Collision)0, 0);
+
 		if ((trace.fraction < 1.0f) && (trace.surfaceFlags & SURF_LADDER))
 		{
 			ladderforward = qtrue;
@@ -3430,9 +3432,11 @@ void PM_CheckLadderMove(void)
 	}
 }
 
-/**
- * @brief PM_LadderMove
- */
+/*
+===================
+PM_LadderMove
+===================
+*/
 void PM_LadderMove(void)
 {
 	float  wishspeed, scale;
@@ -8323,7 +8327,6 @@ static void PM_Footsteps( void )
 				}
 			}
 
-			//I did have this in PM_TorsoAnimation, might need to move it back if there's anim issues. - DT
 			if (pm->ps->pm_flags & PMF_LADDER) // on ladder
 			{
 				if (pm->ps->velocity[2])
@@ -15091,6 +15094,7 @@ void Pmove( pmove_t *pmove )
 	{
 		PM_LadderMove();
 	}
+
 	else if ( pm->ps && ( (pm->ps->eFlags&EF_LOCKED_TO_WEAPON)
 							|| (pm->ps->eFlags&EF_HELD_BY_RANCOR)
 							|| (pm->ps->eFlags&EF_HELD_BY_WAMPA)

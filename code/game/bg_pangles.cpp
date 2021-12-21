@@ -1338,6 +1338,45 @@ qboolean PM_AdjustAnglesForHeldByMonster( gentity_t *ent, gentity_t *monster, us
 	return qtrue;
 }
 
+qboolean PM_AdjustAnglesForLadderMove(gentity_t* ent, usercmd_t* ucmd)
+{
+	if (ent->client->ps.viewEntity <= 0 || ent->client->ps.viewEntity >= ENTITYNUM_WORLD)
+	{//don't clamp angles when looking through a viewEntity
+		SetClientViewAngle(ent, ent->client->ps.viewangles);
+	}
+
+	ucmd->angles[PITCH] = ANGLE2SHORT(ent->client->ps.viewangles[PITCH]) - ent->client->ps.delta_angles[PITCH];
+	ucmd->angles[YAW] = ANGLE2SHORT(ent->client->ps.viewangles[YAW]) - ent->client->ps.delta_angles[YAW];
+
+	return qtrue;
+
+////////////////////////////////////////////////////////////
+
+
+	/*Com_Printf("ent->client->ps.origin = %s\n", vtos(ent->client->ps.origin));
+	Com_Printf("ent->currentOrigin = %s\n", vtos(ent->currentOrigin));
+	Com_Printf("ent->s.pos.trBase = %s\n", vtos(ent->s.pos.trBase));
+	Com_Printf("ent->s.origin = %s\n", vtos(ent->s.origin));
+	Com_Printf("ent->model = %s\n", ent->model);
+
+	vec3_t dir, angles;
+
+	VectorSubtract(ent->client->ps.origin, ent->currentOrigin, dir);
+	vectoangles(dir, angles);
+	angles[PITCH] = AngleNormalize180(angles[PITCH]);
+	angles[YAW] = AngleNormalize180(angles[YAW]);
+
+	if (ent->client->ps.viewEntity <= 0 || ent->client->ps.viewEntity >= ENTITYNUM_WORLD)
+	{//don't clamp angles when looking through a viewEntity
+		SetClientViewAngle(ent, angles);
+	}
+
+	ucmd->angles[PITCH] = ANGLE2SHORT(angles[PITCH]) - ent->client->ps.delta_angles[PITCH];
+	ucmd->angles[YAW] = ANGLE2SHORT(angles[YAW]) - ent->client->ps.delta_angles[YAW];
+
+	return qtrue;*/
+}
+
 qboolean G_OkayToLean( playerState_t *ps, usercmd_t *cmd, qboolean interruptOkay )
 {
 	if ( (ps->clientNum < MAX_CLIENTS||G_ControlledByPlayer(&g_entities[ps->clientNum]))//player
