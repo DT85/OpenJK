@@ -5561,42 +5561,6 @@ void PM_TorsoAnimation( void )
 		return;
 	}
 
-	/*if (pm->gent && pm->ps && pm->ps->pm_flags & PMF_LADDER)
-	{
-		if (pm->gent->owner && pm->gent->owner->e_UseFunc == useF_emplaced_gun_use)//ugly way to tell, but...
-		{//full body
-			PM_SetAnim(pm, SETANIM_BOTH, BOTH_GUNSIT1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);//SETANIM_FLAG_NORMAL
-		}
-		else
-		{//torso
-			PM_SetAnim(pm, SETANIM_TORSO, BOTH_GUNSIT1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);//SETANIM_FLAG_NORMAL
-		}
-		return;
-	}*/
-
-	if (pm->gent && pm->ps && pm->ps->pm_flags & PMF_LADDER)
-	{//FIXME: check for watertype, save waterlevel for whether to play
-		//the get off ladder transition anim!
-		if (pm->ps->velocity[2])
-		{//going up or down it
-			int	anim;
-			if (pm->ps->velocity[2] > 0)
-			{
-				anim = BOTH_STAND1;
-			}
-			else
-			{
-				anim = BOTH_STAND9;
-			}
-			PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
-		}
-		else
-		{
-			PM_SetAnim(pm, SETANIM_BOTH, BOTH_GUNSIT1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
-			pm->ps->legsAnimTimer += 300;
-		}
-		return;
-	}
 
 /*	else if ( pm->gent && pm->gent->client && pm->gent->client->NPC_class == CLASS_VEHICLE && pm->ps->clientNum < MAX_CLIENTS && (m_pVehicleInfo[((CVehicleNPC *)pm->gent->NPC)->m_iVehicleTypeID].numHands == 2 || g_speederControlScheme->value == 2) )
 	{//can't look around

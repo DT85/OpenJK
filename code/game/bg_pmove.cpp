@@ -3459,9 +3459,9 @@ void PM_LadderMove(void)
 
 	// forward/right should be horizontal only
 	pml.forward[2] = 0;
-	//pml.right[2] = 0;
+	pml.right[2] = 0;
 	VectorNormalize(pml.forward);
-	//VectorNormalize(pml.right);
+	VectorNormalize(pml.right);
 
 	// move depending on the view, if view is straight forward, then go up
 	// if view is down more then X degrees, start going down
@@ -3475,12 +3475,7 @@ void PM_LadderMove(void)
 	}
 	//Com_Printf("wishvel[2] = %i, fwdmove = %i\n", (int)wishvel[2], (int)pm->cmd.forwardmove );
 
-	pm->cmd.rightmove = 0;
-	pm->cmd.upmove = 0;
-	pm->cmd.angles[0] = 0;
-	pm->cmd.angles[1] = 0;
-	pm->cmd.angles[2] = 0;
-	/*if (pm->cmd.rightmove)
+	if (pm->cmd.rightmove)
 	{
 		// strafe, so we can jump off ladder
 		vec3_t ladder_right, ang;
@@ -3495,7 +3490,7 @@ void PM_LadderMove(void)
 
 		//VectorMA( wishvel, 0.5 * scale * (float)pm->cmd.rightmove, pml.right, wishvel );
 		VectorMA(wishvel, 0.5f * scale * (float)pm->cmd.rightmove, ladder_right, wishvel);
-	}*/
+	}
 
 	// do strafe friction
 	PM_Friction();
@@ -8327,19 +8322,40 @@ static void PM_Footsteps( void )
 					PM_SwimFloatAnim();
 				}
 			}
-			return;
-		}
 
-		if (pm->ps->pm_flags & PMF_LADDER) // on ladder
-		{
-			if (pm->ps->velocity[2])
-			{//going up or down it
-				if (fabs(pm->ps->velocity[2]) > 5) {
-					bobmove = 0.005 * fabs(pm->ps->velocity[2]);	// climbing bobs slow
-					if (bobmove > 0.3)
-						bobmove = 0.3F;
-					goto DoFootSteps;
+			//I did have this in PM_TorsoAnimation, might need to move it back if there's anim issues. - DT
+			if (pm->ps->pm_flags & PMF_LADDER) // on ladder
+			{
+				if (pm->ps->velocity[2])
+				{//going up or down it
+					int	anim;
+					if (pm->ps->velocity[2] > 0)
+					{
+						anim = BOTH_STAND1;
+					}
+					else
+					{
+						anim = BOTH_STAND9;
+					}
+					PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
 				}
+				else
+				{
+					PM_SetAnim(pm, SETANIM_BOTH, BOTH_GUNSIT1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
+					pm->ps->legsAnimTimer += 300;
+				}
+
+				if (pm->ps->velocity[2])
+				{//going up or down it
+					if (fabs(pm->ps->velocity[2]) > 5) 
+					{
+						bobmove = 0.005f *fabs(pm->ps->velocity[2]);	// climbing bobs slow
+						if (bobmove > 0.3)
+							bobmove = 0.3F;
+						goto DoFootSteps;
+					}
+				}
+				//return;
 			}
 			return;
 		}
