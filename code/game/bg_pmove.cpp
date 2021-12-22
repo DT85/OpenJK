@@ -179,6 +179,9 @@ const float pm_airDecelRate = 1.35f;	//Used for air decelleration away from curr
 
 int	c_pmove = 0;
 
+ladder_t	pm_ladders[MAX_LADDERS];
+int			pm_laddercount = 0;
+
 extern void PM_SetTorsoAnimTimer( gentity_t *ent, int *torsoAnimTimer, int time );
 extern void PM_SetLegsAnimTimer( gentity_t *ent, int *legsAnimTimer, int time );
 extern void PM_TorsoAnimation( void );
@@ -3317,6 +3320,58 @@ static void PM_WalkMove( void ) {
 }
 
 /*
+================
+PM_AddLadder
+
+Adds a ladder to the ladder list
+================
+*/
+void PM_AddLadder(vec3_t absmin, vec3_t absmax, vec3_t fwd)
+{
+	pm_ladders[pm_laddercount].origin[0] = (absmax[0] + absmin[0]) / 2;
+	pm_ladders[pm_laddercount].origin[1] = (absmax[1] + absmin[1]) / 2;
+	pm_ladders[pm_laddercount].origin[2] = (absmax[2] + absmin[2]) / 2;
+	VectorCopy(fwd, pm_ladders[pm_laddercount].fwd);
+	pm_laddercount++;
+}
+
+/*
+================
+PM_FindLadder
+
+Searches through the ladder list and finds the closes to the given origin
+================
+*/
+int PM_FindLadder(vec3_t playerPos)
+{
+	int		result;
+	float	dist;
+
+	dist = 999999.0f;
+	result = -1;
+
+	for (int ladder = 0; ladder < pm_laddercount; ladder++)
+	{
+		float dist2 = DistanceSquared(playerPos, pm_ladders[ladder].origin);
+
+		if (dist2 < dist)
+		{
+			vec3_t diff;
+			VectorSubtract(pm_ladders[ladder].origin, playerPos, diff);
+			diff[2] = 0;
+
+			if (VectorLengthSquared(diff) < 500 * 500)
+			{
+				dist = dist2;
+				result = ladder;
+			}
+		}
+	}
+
+	return result;
+}
+
+/*
 ===================
 PM_CheckLadderMove
 ===================
@@ -3402,7 +3457,17 @@ void PM_CheckLadderMove(void)
 	}
 	else if (pml.ladder)
 	{
+		if (pm->ps->ladder == -1)
+		{
+			pm->ps->ladder = PM_FindLadder(pm->ps->origin);
+		}
+
 		pm->ps->pm_flags |= PMF_LADDER; // set ladder bit
+	}
+	else
+	{
+		pm->ps->ladder = -1;
+		pm->ps->pm_flags &= ~PMF_LADDER;
 	}
 
 	// create some up/down velocity if touching ladder
@@ -3451,6 +3516,17 @@ void PM_LadderMove(void)
 		pm->ps->velocity[1] = wishvel[1];
 	}
 
+	VectorNormalize(pm_ladders[pm->ps->ladder].fwd);
+
+	if (pm->cmd.forwardmove >= 0)
+	{
+		VectorAdd(pml.forward, pm_ladders[pm->ps->ladder].fwd, pml.forward);
+	}
+	else
+	{
+		VectorSubtract(pml.forward, pm_ladders[pm->ps->ladder].fwd, pml.forward);
+	}
+
 	upscale = (pml.forward[2] + 0.5f) * 2.5f;
 	if (upscale > 1.0f)
 	{
@@ -3461,24 +3537,11 @@ void PM_LadderMove(void)
 		upscale = -1.0f;
 	}
 
-	//get our ladder ent, and find its origin
-	gentity_t* found = pm->gent;
-	found = G_Find(found, FOFS(classname), "func_ladder");
-	{
-		vec3_t center;
-		VectorAdd(found->absmin, found->absmax, center);
-		VectorScale(center, 0.5, center);
-
-		//test to see if we actually got the origin
-		gi.Printf("origin %s\n", vtos(center));
-	}
-
-
 	// forward/right should be horizontal only
 	pml.forward[2] = 0;
-	pml.right[2] = 0;
+	//pml.right[2] = 0;
 	VectorNormalize(pml.forward);
-	VectorNormalize(pml.right);
+	//VectorNormalize(pml.right);
 
 	// move depending on the view, if view is straight forward, then go up
 	// if view is down more then X degrees, start going down
@@ -3492,7 +3555,7 @@ void PM_LadderMove(void)
 	}
 	//Com_Printf("wishvel[2] = %i, fwdmove = %i\n", (int)wishvel[2], (int)pm->cmd.forwardmove );
 
-	if (pm->cmd.rightmove)
+	/*if (pm->cmd.rightmove)
 	{
 		// strafe, so we can jump off ladder
 		vec3_t ladder_right, ang;
@@ -3507,7 +3570,7 @@ void PM_LadderMove(void)
 
 		//VectorMA( wishvel, 0.5 * scale * (float)pm->cmd.rightmove, pml.right, wishvel );
 		VectorMA(wishvel, 0.5f * scale * (float)pm->cmd.rightmove, ladder_right, wishvel);
-	}
+	}*/
 
 	// do strafe friction
 	PM_Friction();
@@ -3544,16 +3607,10 @@ void PM_LadderMove(void)
 		}
 	}
 
-	//Com_Printf("vel[2] = %i\n", (int)pm->ps->velocity[2] );
-
 	PM_StepSlideMove(qfalse);    // no gravity while going up ladder
 
 	// always point legs forward
 	pm->ps->movementDir = 0;
-
-	//lock the player angles
-	//pm->cmd.angles[PITCH] = ANGLE2SHORT(pm->ps->viewangles[PITCH]) - pm->ps->delta_angles[PITCH];
-	//pm->cmd.angles[YAW] = ANGLE2SHORT(pm->ps->viewangles[YAW]) - pm->ps->delta_angles[YAW];
 }
 
 /*
@@ -15103,11 +15160,17 @@ void Pmove( pmove_t *pmove )
 
 	PM_DropTimers();
 
+#ifdef ET_LADDERS
 	if (pml.ladder)
 	{
 		PM_LadderMove();
 	}
+#endif
 
+	if (pm->ps->pm_flags & PMF_LADDER)
+	{
+		PM_LadderMove();
+	}
 	else if ( pm->ps && ( (pm->ps->eFlags&EF_LOCKED_TO_WEAPON)
 							|| (pm->ps->eFlags&EF_HELD_BY_RANCOR)
 							|| (pm->ps->eFlags&EF_HELD_BY_WAMPA)

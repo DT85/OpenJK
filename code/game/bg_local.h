@@ -57,6 +57,8 @@ typedef struct {
 extern	pmove_t		*pm;
 extern	pml_t		pml;
 
+extern	ladder_t	pm_ladders[MAX_LADDERS];
+
 // movement parameters
 extern	const float	pm_stopspeed;
 extern	const float	pm_duckScale;

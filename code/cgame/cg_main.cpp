@@ -677,6 +677,45 @@ static inline void CG_AS_Register(void)
 
 /*
 =================
+CG_RegisterLadders
+
+Registers all the ladders in the current map
+=================
+*/
+static void CG_RegisterLadders(void)
+{
+	int			i;
+	const char* ladder;
+
+	for (i = 0; i < MAX_LADDERS; i++)
+	{
+		vec3_t absmin;
+		vec3_t absmax;
+		vec3_t fwd;
+		vec3_t angles;
+
+		ladder = CG_ConfigString(CS_LADDERS + i);
+
+		// No ladder?	
+		if (!ladder || !ladder[0])
+		{
+			continue;
+		}
+
+		VectorClear(angles);
+		sscanf(ladder, "%f,%f,%f,%f,%f,%f,%f",
+			&absmin[0], &absmin[1], &absmin[2],
+			&absmax[0], &absmax[1], &absmax[2],
+			&angles[YAW]);
+
+		AngleVectors(angles, fwd, 0, 0);
+
+		PM_AddLadder(absmin, absmax, fwd);
+	}
+}
+
+/*
+=================
 CG_RegisterSounds
 
 called during a precache command

@@ -2340,6 +2340,9 @@ qboolean ClientSpawn(gentity_t *ent, SavedGameJustLoaded_e eSavedGameJustLoaded 
 		client->ps.torsoAnim = BOTH_STAND2;
 		client->ps.legsAnim = BOTH_STAND2;
 
+		// Not on a ladder
+		client->ps.ladder = -1;
+
 		//clear IK grabbing stuff
 		client->ps.heldClient = client->ps.heldByClient = ENTITYNUM_NONE;
 		client->ps.saberLockEnemy = ENTITYNUM_NONE;	//duh, don't think i'm locking with myself

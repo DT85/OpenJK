@@ -300,6 +300,7 @@ public:
 	char		*mTargetAdjust;
 	qboolean	hasBspInstances;
 
+	int			ladderCount;
 
 	void sg_export(
 		ojk::SavedGameHelper& saved_game) const
@@ -321,6 +322,7 @@ public:
 		saved_game.write<int32_t>(numKnownAnimFileSets);
 		saved_game.write<int32_t>(worldFlags);
 		saved_game.write<int32_t>(dmState);
+		saved_game.write<int32_t>(ladderCount);
 	}
 
 	void sg_import(
@@ -343,11 +345,14 @@ public:
 		saved_game.read<int32_t>(numKnownAnimFileSets);
 		saved_game.read<int32_t>(worldFlags);
 		saved_game.read<int32_t>(dmState);
+		saved_game.read<int32_t>(ladderCount);
 	}
 }; // level_locals_t
 
 extern	level_locals_t	level;
 extern	game_export_t	globals;
+
+extern	ladder_t	pm_ladders[MAX_LADDERS];
 
 extern	cvar_t	*g_gravity;
 extern	cvar_t	*g_speed;

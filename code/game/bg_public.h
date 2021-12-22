@@ -102,6 +102,13 @@ typedef enum {
 	WEAPON_IDLE, //lowered
 } weaponstate_t;
 
+typedef struct ladder_s
+{
+	vec3_t	origin;
+	vec3_t	fwd;
+
+} ladder_t;
+
 // pmove->pm_flags
 #define	PMF_DUCKED			(1<<0)//1
 #define	PMF_JUMP_HELD		(1<<1)//2
@@ -752,6 +759,8 @@ typedef enum {
 } entityType_t;
 
 
+void	PM_AddLadder(vec3_t absmin, vec3_t absmax, vec3_t fwd);
+int		PM_FindLadder(vec3_t playerPos);
 
 void	EvaluateTrajectory( const trajectory_t *tr, int atTime, vec3_t result );
 void	EvaluateTrajectoryDelta( const trajectory_t *tr, int atTime, vec3_t result );

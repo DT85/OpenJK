@@ -1348,6 +1348,16 @@ qboolean PM_AdjustAnglesForLadderMove(gentity_t* ent, usercmd_t* ucmd)
 	ucmd->angles[PITCH] = ANGLE2SHORT(ent->client->ps.viewangles[PITCH]) - ent->client->ps.delta_angles[PITCH];
 	ucmd->angles[YAW] = ANGLE2SHORT(ent->client->ps.viewangles[YAW]) - ent->client->ps.delta_angles[YAW];
 
+	//get our func_ladder ent, and set the player angles to the angles set in the map editor
+	{
+		int i = PM_FindLadder(ent->currentOrigin);
+
+		gi.Printf("ladder %i origin: %s\n", i, vtos(pm_ladders[i].origin));
+		gi.Printf("ladder %i angles: %s\n", i, vtos(pm_ladders[i].fwd));
+
+		//need to set the angle of the player here
+	}
+
 	return qtrue;
 
 ////////////////////////////////////////////////////////////

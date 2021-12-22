@@ -2587,6 +2587,20 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 			VectorScale(vFwd, 100, ent->client->ps.velocity);
 			ent->client->ps.velocity[2] = savZ;
 		}
+
+		//get our func_ladder ent, and move the player to its origin
+		int i = PM_FindLadder(ent->currentOrigin);
+		{
+			//we only want one axis here
+			vec3_t alignOrigin;
+
+			alignOrigin[0] = pm_ladders[i].origin[0];
+			alignOrigin[1] = ent->currentOrigin[1];
+			alignOrigin[2] = ent->currentOrigin[2];
+
+			G_SetOrigin(ent, alignOrigin);
+		}
+
 		ucmd->rightmove = 0;
 
 		overridAngles = (PM_AdjustAnglesForLadderMove(ent, ucmd) ? qtrue : overridAngles);

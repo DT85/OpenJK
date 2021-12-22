@@ -617,6 +617,7 @@ typedef struct {
 //
 #define	MAX_CLIENTS			1 // 128		// absolute limit
 #define MAX_TERRAINS		1 //32
+#define MAX_LADDERS			64
 
 #define	GENTITYNUM_BITS		10		// don't need to send any more
 #define	MAX_GENTITIES		(1<<GENTITYNUM_BITS)
@@ -721,7 +722,8 @@ Ghoul2 Insert End
 */
 #define CS_DYNAMIC_MUSIC_STATE	(CS_CHARSKINS + MAX_CHARSKINS)
 #define CS_WORLD_FX				(CS_DYNAMIC_MUSIC_STATE + 1)
-#define CS_MAX					(CS_WORLD_FX + MAX_WORLD_FX)
+#define CS_LADDERS				(CS_WORLD_FX + MAX_WORLD_FX)
+#define CS_MAX					(CS_LADDERS + MAX_LADDERS)
 
 #if (CS_MAX) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
@@ -1898,6 +1900,8 @@ public:
 	int			electrifyTime;
 #endif // !JK2_MODE
 
+	// Ladders
+	int			ladder;
 
 	void sg_export(
 		ojk::SavedGameHelper& saved_game) const
@@ -2065,6 +2069,7 @@ public:
 		saved_game.write<int32_t>(vehTurnaroundTime);
 		saved_game.write<int32_t>(brokenLimbs);
 		saved_game.write<int32_t>(electrifyTime);
+		saved_game.write<int32_t>(ladder);
 #endif // !JK2_MODE
 	}
 
@@ -2234,6 +2239,7 @@ public:
 		saved_game.read<int32_t>(vehTurnaroundTime);
 		saved_game.read<int32_t>(brokenLimbs);
 		saved_game.read<int32_t>(electrifyTime);
+		saved_game.read<int32_t>(ladder);
 #endif // !JK2_MODE
 	}
 }; // PlayerStateBase
