@@ -2589,17 +2589,17 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 		}
 
 		//get our func_ladder ent, and move the player to its origin
-		int i = PM_FindLadder(ent->currentOrigin);
+		/*int i = PM_FindLadder(ent->currentOrigin);
 		{
 			//we only want one axis here
 			vec3_t alignOrigin;
 
 			alignOrigin[0] = pm_ladders[i].origin[0];
 			alignOrigin[1] = ent->currentOrigin[1];
-			alignOrigin[2] = ent->currentOrigin[2];
+			alignOrigin[2] = pm_ladders[i].origin[2];
 
 			G_SetOrigin(ent, alignOrigin);
-		}
+		}*/
 
 		ucmd->rightmove = 0;
 

@@ -106,7 +106,6 @@ typedef struct ladder_s
 {
 	vec3_t	origin;
 	vec3_t	fwd;
-
 } ladder_t;
 
 // pmove->pm_flags

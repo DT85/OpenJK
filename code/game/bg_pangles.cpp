@@ -1340,7 +1340,7 @@ qboolean PM_AdjustAnglesForHeldByMonster( gentity_t *ent, gentity_t *monster, us
 
 qboolean PM_AdjustAnglesForLadderMove(gentity_t* ent, usercmd_t* ucmd)
 {
-	if (ent->client->ps.viewEntity <= 0 || ent->client->ps.viewEntity >= ENTITYNUM_WORLD)
+	/*if (ent->client->ps.viewEntity <= 0 || ent->client->ps.viewEntity >= ENTITYNUM_WORLD)
 	{//don't clamp angles when looking through a viewEntity
 		SetClientViewAngle(ent, ent->client->ps.viewangles);
 	}
@@ -1358,33 +1358,31 @@ qboolean PM_AdjustAnglesForLadderMove(gentity_t* ent, usercmd_t* ucmd)
 		//need to set the angle of the player here
 	}
 
-	return qtrue;
+	return qtrue;*/
 
 ////////////////////////////////////////////////////////////
 
+	{
+		//FIXME: pm_ladders[i].fwd isn't getting the angles fron the func_ladder properly
+		int i = PM_FindLadder(ent->currentOrigin);
 
-	/*Com_Printf("ent->client->ps.origin = %s\n", vtos(ent->client->ps.origin));
-	Com_Printf("ent->currentOrigin = %s\n", vtos(ent->currentOrigin));
-	Com_Printf("ent->s.pos.trBase = %s\n", vtos(ent->s.pos.trBase));
-	Com_Printf("ent->s.origin = %s\n", vtos(ent->s.origin));
-	Com_Printf("ent->model = %s\n", ent->model);
+		//pm_ladders[i].fwd[YAW] = AngleNormalize180(pm_ladders[i].fwd[YAW]);
 
-	vec3_t dir, angles;
+		//gi.Printf("ladder %i origin: %s\n", i, vtos(pm_ladders[i].origin));
+		//gi.Printf("ladder %i angles: %s\n", i, vtos(pm_ladders[i].fwd));
 
-	VectorSubtract(ent->client->ps.origin, ent->currentOrigin, dir);
-	vectoangles(dir, angles);
-	angles[PITCH] = AngleNormalize180(angles[PITCH]);
-	angles[YAW] = AngleNormalize180(angles[YAW]);
+		if (ent->client->ps.viewEntity <= 0 || ent->client->ps.viewEntity >= ENTITYNUM_WORLD)
+		{//don't clamp angles when looking through a viewEntity
+			SetClientViewAngle(ent, pm_ladders[i].fwd);
+		}
 
-	if (ent->client->ps.viewEntity <= 0 || ent->client->ps.viewEntity >= ENTITYNUM_WORLD)
-	{//don't clamp angles when looking through a viewEntity
-		SetClientViewAngle(ent, angles);
+		ucmd->angles[PITCH] = ANGLE2SHORT(ent->client->ps.viewangles[PITCH]) - ent->client->ps.delta_angles[PITCH];
+		ucmd->angles[YAW] = ANGLE2SHORT(pm_ladders[i].fwd[YAW]) - ent->client->ps.delta_angles[YAW];
+
+		return qtrue;
 	}
 
-	ucmd->angles[PITCH] = ANGLE2SHORT(angles[PITCH]) - ent->client->ps.delta_angles[PITCH];
-	ucmd->angles[YAW] = ANGLE2SHORT(angles[YAW]) - ent->client->ps.delta_angles[YAW];
-
-	return qtrue;*/
+	return qfalse;
 }
 
 qboolean G_OkayToLean( playerState_t *ps, usercmd_t *cmd, qboolean interruptOkay )

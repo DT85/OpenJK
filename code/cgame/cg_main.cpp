@@ -1918,6 +1918,8 @@ static void CG_GameStateReceived( void ) {
 
 	cgi_CM_LoadMap( cgs.mapname, qfalse );
 
+	CG_RegisterLadders();
+
 	CG_RegisterSounds();
 
 	CG_RegisterGraphics();

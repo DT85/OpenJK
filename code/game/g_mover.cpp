@@ -2173,7 +2173,7 @@ void SP_func_ladder(gentity_t* ent)
 	G_SetOrigin(ent, ent->s.origin);
 	G_SetAngles(ent, ent->s.angles);*/
 
-	vec3_t fwd;
+	vec3_t fwd; 
 
 	gi.SetBrushModel(ent, ent->model);
 	gi.linkentity(ent);
@@ -2194,12 +2194,11 @@ void SP_func_ladder(gentity_t* ent)
 
 	ent->s.angles[PITCH] = ent->s.angles[ROLL] = 0;
 	ent->s.angles[YAW] = (int)ent->s.angles[YAW];
-	//AngleVectors(ent->s.angles, fwd, 0, 0);
+	AngleVectors(ent->s.angles, fwd, 0, 0);
 
-	//PM_AddLadder(ent->absmin, ent->absmax, fwd);
-	PM_AddLadder(ent->absmin, ent->absmax, ent->s.angles);
+	PM_AddLadder(ent->absmin, ent->absmax, fwd);
 
-	gi.linkentity(ent);
+	G_FreeEntity(ent);
 }
 
 /*

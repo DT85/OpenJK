@@ -712,7 +712,7 @@ static void PM_Friction( void ) {
 	}
 
 	// apply ladder strafe friction
-	if (pml.ladder)
+	if (pm->ps->pm_flags & PMF_LADDER)
 	{
 		drop += speed * pm_ladderfriction * pml.frametime;
 	}
@@ -15159,13 +15159,6 @@ void Pmove( pmove_t *pmove )
 	PM_CheckLadderMove();
 
 	PM_DropTimers();
-
-#ifdef ET_LADDERS
-	if (pml.ladder)
-	{
-		PM_LadderMove();
-	}
-#endif
 
 	if (pm->ps->pm_flags & PMF_LADDER)
 	{
