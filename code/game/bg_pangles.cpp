@@ -1340,47 +1340,23 @@ qboolean PM_AdjustAnglesForHeldByMonster( gentity_t *ent, gentity_t *monster, us
 
 qboolean PM_AdjustAnglesForLadderMove(gentity_t* ent, usercmd_t* ucmd)
 {
-	/*if (ent->client->ps.viewEntity <= 0 || ent->client->ps.viewEntity >= ENTITYNUM_WORLD)
+	//FIXME: pm_ladders[i].fwd isn't getting the angles fron the func_ladder properly
+	int i = PM_FindLadder(ent->currentOrigin);
+
+	//do we need to normalise this?
+	//pm_ladders[i].fwd[YAW] = AngleNormalize180(pm_ladders[i].fwd[YAW]);
+
+	//test to see we have the correct ladder origin and angle from func_ladder ent
+	//gi.Printf("ladder %i origin: %s\n", i, vtos(pm_ladders[i].origin));
+	//gi.Printf("ladder %i angles: %s\n", i, vtos(pm_ladders[i].fwd));
+
+	if (ent->client->ps.viewEntity <= 0 || ent->client->ps.viewEntity >= ENTITYNUM_WORLD)
 	{//don't clamp angles when looking through a viewEntity
-		SetClientViewAngle(ent, ent->client->ps.viewangles);
+		SetClientViewAngle(ent, pm_ladders[i].fwd);
 	}
 
 	ucmd->angles[PITCH] = ANGLE2SHORT(ent->client->ps.viewangles[PITCH]) - ent->client->ps.delta_angles[PITCH];
-	ucmd->angles[YAW] = ANGLE2SHORT(ent->client->ps.viewangles[YAW]) - ent->client->ps.delta_angles[YAW];
-
-	//get our func_ladder ent, and set the player angles to the angles set in the map editor
-	{
-		int i = PM_FindLadder(ent->currentOrigin);
-
-		gi.Printf("ladder %i origin: %s\n", i, vtos(pm_ladders[i].origin));
-		gi.Printf("ladder %i angles: %s\n", i, vtos(pm_ladders[i].fwd));
-
-		//need to set the angle of the player here
-	}
-
-	return qtrue;*/
-
-////////////////////////////////////////////////////////////
-
-	{
-		//FIXME: pm_ladders[i].fwd isn't getting the angles fron the func_ladder properly
-		int i = PM_FindLadder(ent->currentOrigin);
-
-		//pm_ladders[i].fwd[YAW] = AngleNormalize180(pm_ladders[i].fwd[YAW]);
-
-		//gi.Printf("ladder %i origin: %s\n", i, vtos(pm_ladders[i].origin));
-		//gi.Printf("ladder %i angles: %s\n", i, vtos(pm_ladders[i].fwd));
-
-		if (ent->client->ps.viewEntity <= 0 || ent->client->ps.viewEntity >= ENTITYNUM_WORLD)
-		{//don't clamp angles when looking through a viewEntity
-			SetClientViewAngle(ent, pm_ladders[i].fwd);
-		}
-
-		ucmd->angles[PITCH] = ANGLE2SHORT(ent->client->ps.viewangles[PITCH]) - ent->client->ps.delta_angles[PITCH];
-		ucmd->angles[YAW] = ANGLE2SHORT(pm_ladders[i].fwd[YAW]) - ent->client->ps.delta_angles[YAW];
-
-		return qtrue;
-	}
+	ucmd->angles[YAW] = ANGLE2SHORT(pm_ladders[i].fwd[YAW]) - ent->client->ps.delta_angles[YAW];
 
 	return qfalse;
 }

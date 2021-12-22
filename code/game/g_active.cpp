@@ -2589,20 +2589,23 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 		}
 
 		//get our func_ladder ent, and move the player to its origin
+		//Notes: we get the X & Y fine, but the player is then stuck on the ladder
 		/*int i = PM_FindLadder(ent->currentOrigin);
 		{
-			//we only want one axis here
+			//we only want X & Y axis here
 			vec3_t alignOrigin;
 
 			alignOrigin[0] = pm_ladders[i].origin[0];
-			alignOrigin[1] = ent->currentOrigin[1];
-			alignOrigin[2] = pm_ladders[i].origin[2];
+			alignOrigin[1] = pm_ladders[i].origin[1];
+			alignOrigin[2] = ent->currentOrigin[2];
 
 			G_SetOrigin(ent, alignOrigin);
+			gi.linkentity( ent );
 		}*/
 
 		ucmd->rightmove = 0;
 
+		//Notes: does this only affect the camera? would we be better off to bolt the player to the ladder?
 		overridAngles = (PM_AdjustAnglesForLadderMove(ent, ucmd) ? qtrue : overridAngles);
 	}
 
