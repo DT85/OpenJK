@@ -2587,9 +2587,10 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 			VectorScale(vFwd, 100, ent->client->ps.velocity);
 			ent->client->ps.velocity[2] = savZ;
 		}
+				
+		//Notes: we get the X & Y fine, but the player is then stuck on the ladder for some reason
 
 		//get our func_ladder ent, and move the player to its origin
-		//Notes: we get the X & Y fine, but the player is then stuck on the ladder
 		/*int i = PM_FindLadder(ent->currentOrigin);
 		{
 			//we only want X & Y axis here
@@ -2605,8 +2606,8 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 
 		ucmd->rightmove = 0;
 
-		//Notes: does this only affect the camera? would we be better off to bolt the player to the ladder?
-		overridAngles = (PM_AdjustAnglesForLadderMove(ent, ucmd) ? qtrue : overridAngles);
+		//Notes: would we be better off to bolt the player to the ladder?
+		//overridAngles = (PM_AdjustAnglesForLadderMove(ent, ucmd) ? qtrue : overridAngles);
 	}
 
 	if ( ent->client->ps.saberMove == LS_A_JUMP_T__B_ )
