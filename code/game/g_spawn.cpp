@@ -397,6 +397,7 @@ void SP_func_train (gentity_t *ent);
 void SP_func_timer (gentity_t *self);
 void SP_func_wall (gentity_t *ent);
 void SP_func_usable( gentity_t *self );
+void SP_func_ladder( gentity_t* ent );
 void SP_rail_mover( gentity_t *self );
 void SP_rail_track( gentity_t *self );
 void SP_rail_lane( gentity_t *self );
@@ -636,6 +637,7 @@ spawn_t	spawns[] = {
 	{"func_wall", SP_func_wall},
 	{"func_usable", SP_func_usable},
 	{"func_glass", SP_func_glass},
+	{"func_ladder", SP_func_ladder},
 
 	{"rail_mover", SP_rail_mover},
 	{"rail_track", SP_rail_track},

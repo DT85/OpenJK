@@ -2154,6 +2154,15 @@ void SP_func_train (gentity_t *self) {
 	}
 }
 
+void SP_func_ladder(gentity_t* ent)
+{
+	gi.SetBrushModel(ent, ent->model);
+
+	G_SetOrigin(ent, ent->s.origin);
+
+	gi.linkentity(ent);
+}
+
 /*
 ===============================================================================
 

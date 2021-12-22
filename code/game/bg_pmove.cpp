@@ -3461,6 +3461,19 @@ void PM_LadderMove(void)
 		upscale = -1.0f;
 	}
 
+	//get our ladder ent, and find its origin
+	gentity_t* found = pm->gent;
+	found = G_Find(found, FOFS(classname), "func_ladder");
+	{
+		vec3_t center;
+		VectorAdd(found->absmin, found->absmax, center);
+		VectorScale(center, 0.5, center);
+
+		//test to see if we actually got the origin
+		gi.Printf("origin %s\n", vtos(center));
+	}
+
+
 	// forward/right should be horizontal only
 	pml.forward[2] = 0;
 	pml.right[2] = 0;
