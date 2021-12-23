@@ -2591,8 +2591,8 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 		//FIXME: we get the X & Y fine, but the player is then stuck on the ladder for some reason
 
 		//get our ladder, and move the player to its origin
-		/*int ladder = PM_FindLadder(ent->currentOrigin);
-		{
+		int ladder = PM_FindLadder(ent->currentOrigin);
+		/*{
 			//we only want X & Y axis here
 			vec3_t alignOrigin;
 
@@ -2610,7 +2610,7 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 		ucmd->rightmove = 0;
 
 		//FIXME: pm_ladders[ladder].fwd isn't getting the angles fron the func_ladder properly
-		//overridAngles = (PM_AdjustAnglesForLadderMove(ent, ladder, ucmd) ? qtrue : overridAngles);
+		overridAngles = (PM_AdjustAnglesForLadderMove(ent, ladder, ucmd) ? qtrue : overridAngles);
 	}
 
 	if ( ent->client->ps.saberMove == LS_A_JUMP_T__B_ )

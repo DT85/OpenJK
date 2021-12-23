@@ -397,7 +397,6 @@ void SP_func_train (gentity_t *ent);
 void SP_func_timer (gentity_t *self);
 void SP_func_wall (gentity_t *ent);
 void SP_func_usable( gentity_t *self );
-void SP_func_ladder( gentity_t* ent );
 void SP_rail_mover( gentity_t *self );
 void SP_rail_track( gentity_t *self );
 void SP_rail_lane( gentity_t *self );
@@ -410,6 +409,7 @@ void SP_trigger_once (gentity_t *ent);
 void SP_trigger_push (gentity_t *ent);
 void SP_trigger_teleport (gentity_t *ent);
 void SP_trigger_hurt (gentity_t *ent);
+void SP_trigger_ladder(gentity_t* ent);
 void SP_trigger_bidirectional (gentity_t *ent);
 void SP_trigger_entdist (gentity_t *self);
 void SP_trigger_location( gentity_t *ent );
@@ -637,7 +637,6 @@ spawn_t	spawns[] = {
 	{"func_wall", SP_func_wall},
 	{"func_usable", SP_func_usable},
 	{"func_glass", SP_func_glass},
-	{"func_ladder", SP_func_ladder},
 
 	{"rail_mover", SP_rail_mover},
 	{"rail_track", SP_rail_track},
@@ -649,6 +648,7 @@ spawn_t	spawns[] = {
 	{"trigger_push", SP_trigger_push},
 	{"trigger_teleport", SP_trigger_teleport},
 	{"trigger_hurt", SP_trigger_hurt},
+	{"trigger_ladder", SP_trigger_ladder},
 	{"trigger_bidirectional", SP_trigger_bidirectional},
 	{"trigger_entdist", SP_trigger_entdist},
 	{"trigger_location", SP_trigger_location},

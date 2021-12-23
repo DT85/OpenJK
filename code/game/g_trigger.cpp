@@ -1314,6 +1314,53 @@ void SP_trigger_hurt( gentity_t *self )
 	}
 }
 
+/*QUAKED trigger_ladder (.5 .5 .5) ?
+Indicates a ladder and its normal
+
+"angles"		angle ladder faces
+*/
+void SP_trigger_ladder(gentity_t* ent)
+{
+	/*gi.SetBrushModel(ent, ent->model);
+
+	G_SpawnVector("forward", "0 0 0", ent->s.angles);
+
+	VectorAdd(ent->mins, ent->maxs, ent->s.origin);
+	VectorScale(ent->s.origin, 0.5, ent->s.origin);
+
+	InitMover(ent);
+
+	G_SetOrigin(ent, ent->s.origin);
+	G_SetAngles(ent, ent->s.angles);*/
+
+	vec3_t fwd;
+
+	gi.SetBrushModel(ent, ent->model);
+	gi.linkentity(ent);
+
+	gi.SetConfigstring(CS_LADDERS + level.ladderCount++,
+		va("%i,%i,%i,%i,%i,%i,%i",
+			(int)ent->absmin[0], (int)ent->absmin[1], (int)ent->absmin[2],
+			(int)ent->absmax[0], (int)ent->absmax[1], (int)ent->absmax[2],
+			(int)ent->s.angles[YAW]));
+
+	// Only need integer resolution
+	ent->absmin[0] = (int)ent->absmin[0];
+	ent->absmin[1] = (int)ent->absmin[1];
+	ent->absmin[2] = (int)ent->absmin[2];
+	ent->absmax[0] = (int)ent->absmax[0];
+	ent->absmax[1] = (int)ent->absmax[1];
+	ent->absmax[2] = (int)ent->absmax[2];
+
+	ent->s.angles[PITCH] = ent->s.angles[ROLL] = 0;
+	ent->s.angles[YAW] = (int)ent->s.angles[YAW];
+	AngleVectors(ent->s.angles, fwd, 0, 0);
+
+	PM_AddLadder(ent->absmin, ent->absmax, fwd);
+
+	G_FreeEntity(ent);
+}
+
 #define	INITIAL_SUFFOCATION_DELAY	5000 //5 seconds
 void space_touch( gentity_t *self, gentity_t *other, trace_t *trace )
 {

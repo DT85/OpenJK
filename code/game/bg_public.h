@@ -130,6 +130,7 @@ typedef struct ladder_s
 #define PMF_FORCE_FOCUS_HELD	(1<<18)//262144	// Holding down the saberthrow/kick button
 #define PMF_FIX_MINS		(1<<19)//524288	// Mins raised for dual forward jump, fix them
 #define PMF_LADDER			(1<<20)//1,048,576	// On a ladder
+#define PMF_LADDER_JUMP		(1<<21)//2,097,152	// Jumped off a ladder
 #define	PMF_ALL_TIMES	(PMF_TIME_WATERJUMP|PMF_TIME_LAND|PMF_TIME_KNOCKBACK|PMF_TIME_NOFRICTION)
 
 #define	MAXTOUCH	32
