@@ -2431,7 +2431,9 @@ static qboolean PM_CheckJump( void )
 	if (pm->ps->ladder != -1)
 	{
 		vec3_t forward;
-		VectorCopy(pm_ladders[pm->ps->ladder].fwd, forward);
+		//VectorCopy(pm_ladders[pm->ps->ladder].fwd, forward);
+		forward[0] = 0;
+		forward[1] = pm_ladders[pm->ps->ladder].fwd;
 		forward[2] = 0;
 		VectorNormalize(forward);
 		VectorMA(pm->ps->velocity, -50, forward, pm->ps->velocity);
@@ -3345,12 +3347,13 @@ PM_AddLadder
 Adds a ladder to the ladder list
 ================
 */
-void PM_AddLadder(vec3_t absmin, vec3_t absmax, vec3_t fwd)
+void PM_AddLadder(vec3_t absmin, vec3_t absmax, /*vec3_t*/float fwd)
 {
 	pm_ladders[pm_laddercount].origin[0] = (absmax[0] + absmin[0]) / 2;
 	pm_ladders[pm_laddercount].origin[1] = (absmax[1] + absmin[1]) / 2;
 	pm_ladders[pm_laddercount].origin[2] = (absmax[2] + absmin[2]) / 2;
-	VectorCopy(fwd, pm_ladders[pm_laddercount].fwd);
+	//VectorCopy(fwd, pm_ladders[pm_laddercount].fwd);
+	pm_ladders[pm_laddercount].fwd = fwd;
 	pm_laddercount++;
 }
 
@@ -3426,8 +3429,12 @@ static void PM_LadderMove(void)
 	else
 	{
 		int i;
+		vec3_t fwd;
+		fwd[0] = 0;
+		fwd[1] = pm_ladders[pm->ps->ladder].fwd;
+		fwd[2] = 0;
 
-		VectorNormalize(pm_ladders[pm->ps->ladder].fwd);
+		VectorNormalize(/*pm_ladders[pm->ps->ladder].*/fwd);
 		VectorNormalize(pml.forward);
 
 		if (!pml.groundPlane)
@@ -3447,11 +3454,11 @@ static void PM_LadderMove(void)
 			{
 				if (pm->cmd.forwardmove >= 0)
 				{
-					VectorAdd(pml.forward, pm_ladders[pm->ps->ladder].fwd, pml.forward);
+					VectorAdd(pml.forward, /*pm_ladders[pm->ps->ladder].*/fwd, pml.forward);
 				}
 				else
 				{
-					VectorSubtract(pml.forward, pm_ladders[pm->ps->ladder].fwd, pml.forward);
+					VectorSubtract(pml.forward, /*pm_ladders[pm->ps->ladder].*/fwd, pml.forward);
 				}
 			}
 		}
@@ -3466,6 +3473,12 @@ static void PM_LadderMove(void)
 		{
 			wishvel[2] += scale * pm->cmd.upmove;
 		}
+
+		//clamp wishvel
+		if (wishvel[2] > 100.0f)
+			wishvel[2] = 100.0f;
+		else if (wishvel[2] < -100.0f)
+			wishvel[2] = -100.0f;
 	}
 
 	VectorCopy(wishvel, wishdir);

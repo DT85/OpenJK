@@ -691,8 +691,7 @@ static void CG_RegisterLadders(void)
 	{
 		vec3_t absmin;
 		vec3_t absmax;
-		vec3_t fwd;
-		vec3_t angles;
+		float forward;
 
 		ladder = CG_ConfigString(CS_LADDERS + i);
 
@@ -702,15 +701,12 @@ static void CG_RegisterLadders(void)
 			continue;
 		}
 
-		VectorClear(angles);
 		sscanf(ladder, "%f,%f,%f,%f,%f,%f,%f",
 			&absmin[0], &absmin[1], &absmin[2],
 			&absmax[0], &absmax[1], &absmax[2],
-			&angles[YAW]);
+			&forward);
 
-		AngleVectors(angles, fwd, 0, 0);
-
-		PM_AddLadder(absmin, absmax, fwd);
+		PM_AddLadder(absmin, absmax, forward);
 	}
 }
 

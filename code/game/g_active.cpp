@@ -2588,28 +2588,25 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 			ent->client->ps.velocity[2] = savZ;
 		}
 				
-		//FIXME: we get the X & Y fine, but the player is then stuck on the ladder for some reason
+		//FIXME: we get the X & Y fine, but the player is then stuck at the bottom of the ladder
 
 		//get our ladder, and move the player to its origin
 		int ladder = PM_FindLadder(ent->currentOrigin);
-		/*{
+		{
 			//we only want X & Y axis here
 			vec3_t alignOrigin;
 
-			//alignOrigin[0] - (pm_ladders[ladder].origin[0]) / (pm_ladders[ladder].fwd[0]);
-			
-			alignOrigin[0] = ent->currentOrigin[0];
+			alignOrigin[0] = pm_ladders[ladder].origin[0];
 			alignOrigin[1] = pm_ladders[ladder].origin[1];
 			alignOrigin[2] = ent->currentOrigin[2];
 
 			G_SetOrigin(ent, alignOrigin);
 			gi.linkentity( ent );
-		}*/
+		}
 
 		//no strafing
 		ucmd->rightmove = 0;
 
-		//FIXME: pm_ladders[ladder].fwd isn't getting the angles fron the func_ladder properly
 		overridAngles = (PM_AdjustAnglesForLadderMove(ent, ladder, ucmd) ? qtrue : overridAngles);
 	}
 
