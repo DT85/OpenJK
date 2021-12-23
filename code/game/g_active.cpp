@@ -70,7 +70,7 @@ extern qboolean PM_AdjustAnglesForBFKick( gentity_t *ent, usercmd_t *ucmd, vec3_
 extern qboolean PM_AdjustAnglesForStabDown( gentity_t *ent, usercmd_t *ucmd );
 extern qboolean PM_AdjustAnglesForSpinProtect( gentity_t *ent, usercmd_t *ucmd );
 extern qboolean PM_AdjustAnglesForWallRunUpFlipAlt( gentity_t *ent, usercmd_t *ucmd );
-extern qboolean PM_AdjustAnglesForLadderMove(gentity_t* ent, usercmd_t* ucmd);
+extern qboolean PM_AdjustAnglesForLadderMove(gentity_t* ent, int ladder, usercmd_t* ucmd);
 extern qboolean PM_AdjustAnglesForHeldByMonster( gentity_t *ent, gentity_t *monster, usercmd_t *ucmd );
 extern qboolean PM_HasAnimation( gentity_t *ent, int animation );
 extern qboolean PM_LeapingSaberAnim( int anim );
@@ -2588,26 +2588,29 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 			ent->client->ps.velocity[2] = savZ;
 		}
 				
-		//Notes: we get the X & Y fine, but the player is then stuck on the ladder for some reason
+		//FIXME: we get the X & Y fine, but the player is then stuck on the ladder for some reason
 
-		//get our func_ladder ent, and move the player to its origin
-		/*int i = PM_FindLadder(ent->currentOrigin);
+		//get our ladder, and move the player to its origin
+		/*int ladder = PM_FindLadder(ent->currentOrigin);
 		{
 			//we only want X & Y axis here
 			vec3_t alignOrigin;
 
-			alignOrigin[0] = pm_ladders[i].origin[0];
-			alignOrigin[1] = pm_ladders[i].origin[1];
+			//alignOrigin[0] - (pm_ladders[ladder].origin[0]) / (pm_ladders[ladder].fwd[0]);
+			
+			alignOrigin[0] = ent->currentOrigin[0];
+			alignOrigin[1] = pm_ladders[ladder].origin[1];
 			alignOrigin[2] = ent->currentOrigin[2];
 
 			G_SetOrigin(ent, alignOrigin);
 			gi.linkentity( ent );
 		}*/
 
+		//no strafing
 		ucmd->rightmove = 0;
 
-		//Notes: would we be better off to bolt the player to the ladder?
-		//overridAngles = (PM_AdjustAnglesForLadderMove(ent, ucmd) ? qtrue : overridAngles);
+		//FIXME: pm_ladders[ladder].fwd isn't getting the angles fron the func_ladder properly
+		//overridAngles = (PM_AdjustAnglesForLadderMove(ent, ladder, ucmd) ? qtrue : overridAngles);
 	}
 
 	if ( ent->client->ps.saberMove == LS_A_JUMP_T__B_ )
