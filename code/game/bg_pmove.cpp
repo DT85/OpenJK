@@ -8175,21 +8175,21 @@ static void PM_Footsteps( void )
 		if (pm->ps->pm_flags & PMF_LADDER)
 		{
 			if (pm->ps->velocity[2])
-			{//going up or down it
+			{
 				int	anim;
+
 				if (pm->ps->velocity[2] > 0)
-				{
-					anim = BOTH_STAND1;
-				}
+					//up
+					anim = BOTH_WALK1;
 				else
-				{
-					anim = BOTH_STAND9;
-				}
+					//down
+					anim = BOTH_WALKBACK1;
+
 				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
 			}
-			else
+			else //on ladder, but not moving
 			{
-				PM_SetAnim(pm, SETANIM_BOTH, BOTH_GUNSIT1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
+				PM_SetAnim(pm, SETANIM_BOTH, BOTH_STAND1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
 				pm->ps->legsAnimTimer += 300;
 			}
 
@@ -8197,9 +8197,11 @@ static void PM_Footsteps( void )
 			{//going up or down it
 				if (fabs(pm->ps->velocity[2]) > 5)
 				{
-					bobmove = 0.005f * fabs(pm->ps->velocity[2]);	// climbing bobs slow
+					bobmove = 0.005f * fabs(pm->ps->velocity[2]); // climbing bobs slow
+
 					if (bobmove > 0.3)
 						bobmove = 0.3F;
+
 					goto DoFootSteps;
 				}
 				return;
