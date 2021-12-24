@@ -2430,13 +2430,13 @@ static qboolean PM_CheckJump( void )
 	// Special case for ladders
 	if (pm->ps->ladder != -1)
 	{
-		vec3_t forward;
+		/*vec3_t*/float forward;
 		//VectorCopy(pm_ladders[pm->ps->ladder].fwd, forward);
-		forward[0] = 0;
-		forward[1] = pm_ladders[pm->ps->ladder].fwd;
-		forward[2] = 0;
-		VectorNormalize(forward);
-		VectorMA(pm->ps->velocity, -50, forward, pm->ps->velocity);
+		//forward[0] = 0;
+		forward/*[1]*/ = pm_ladders[pm->ps->ladder].forward;
+		//forward[2] = 0;
+		//VectorNormalize(forward);
+		VectorMA(pm->ps->velocity, -50, &forward, pm->ps->velocity);
 		pm->ps->pm_flags |= PMF_LADDER_JUMP;
 
 		return qtrue;
@@ -3347,13 +3347,15 @@ PM_AddLadder
 Adds a ladder to the ladder list
 ================
 */
-void PM_AddLadder(vec3_t absmin, vec3_t absmax, /*vec3_t*/float fwd)
+void PM_AddLadder(vec3_t absmin, vec3_t absmax, /*vec3_t*/float forward)
 {
 	pm_ladders[pm_laddercount].origin[0] = (absmax[0] + absmin[0]) / 2;
 	pm_ladders[pm_laddercount].origin[1] = (absmax[1] + absmin[1]) / 2;
 	pm_ladders[pm_laddercount].origin[2] = (absmax[2] + absmin[2]) / 2;
 	//VectorCopy(fwd, pm_ladders[pm_laddercount].fwd);
-	pm_ladders[pm_laddercount].fwd = fwd;
+	pm_ladders[pm_laddercount].forward = forward;
+	pm_ladders[pm_laddercount].top = absmax[2];
+	pm_ladders[pm_laddercount].bottom = absmin[2];
 	pm_laddercount++;
 }
 
@@ -3407,14 +3409,11 @@ static void PM_LadderMove(void)
 	float	accelerate;
 
 	if (PM_CheckJump())
-	{
 		return;
-	}
 
 	PM_Friction();
 
 	scale = PM_CmdScale(&pm->cmd);
-
 	accelerate = pm_accelerate;
 
 	//
@@ -3431,10 +3430,10 @@ static void PM_LadderMove(void)
 		int i;
 		vec3_t fwd;
 		fwd[0] = 0;
-		fwd[1] = pm_ladders[pm->ps->ladder].fwd;
+		fwd[1] = pm_ladders[pm->ps->ladder].forward;
 		fwd[2] = 0;
 
-		VectorNormalize(/*pm_ladders[pm->ps->ladder].*/fwd);
+		VectorNormalize(fwd);
 		VectorNormalize(pml.forward);
 
 		if (!pml.groundPlane)
@@ -3450,43 +3449,37 @@ static void PM_LadderMove(void)
 			VectorAdd(maxs, offset, maxs);
 
 			pm->trace(&tr, pm->ps->origin, mins, maxs, pm->ps->origin, pm->ps->clientNum, pm->tracemask, (EG2_Collision)0, 0);
+
 			if (tr.fraction == 1.0f || !tr.startsolid)
 			{
 				if (pm->cmd.forwardmove >= 0)
-				{
-					VectorAdd(pml.forward, /*pm_ladders[pm->ps->ladder].*/fwd, pml.forward);
-				}
+					VectorAdd(pml.forward, fwd, pml.forward);
 				else
-				{
-					VectorSubtract(pml.forward, /*pm_ladders[pm->ps->ladder].*/fwd, pml.forward);
-				}
+					VectorSubtract(pml.forward, fwd, pml.forward);
 			}
 		}
 
 		for (i = 0; i < 3; i++)
-		{
 			wishvel[i] = scale * pml.forward[i] * pm->cmd.forwardmove + scale * pml.right[i] * pm->cmd.rightmove * pm_ladderScale;
-		}
 
 		// Duck down ladders
 		if (pm->cmd.upmove < 0)
-		{
 			wishvel[2] += scale * pm->cmd.upmove;
-		}
-
-		//clamp wishvel
-		if (wishvel[2] > 100.0f)
-			wishvel[2] = 100.0f;
-		else if (wishvel[2] < -100.0f)
-			wishvel[2] = -100.0f;
 	}
+
+	//clamp velocity
+	if (pm->ps->velocity[0] < 1 && pm->ps->velocity[0] > -1)
+		pm->ps->velocity[0] = 0;
+
+	if (pm->ps->velocity[1] < 1 && pm->ps->velocity[1] > -1)
+		pm->ps->velocity[1] = 0;
 
 	VectorCopy(wishvel, wishdir);
 	wishspeed = VectorNormalize(wishdir);
 
 	PM_Accelerate(wishdir, wishspeed, accelerate);
 
-	PM_StepSlideMove(qfalse);
+	PM_StepSlideMove(qfalse); // no gravity while going up ladder
 }
 
 /*
@@ -8189,14 +8182,51 @@ static void PM_Footsteps( void )
 		{
 			if (pm->ps->velocity[2])
 			{
-				int	anim;
+				int	anim;				
+				float top, bottom;
 
+				//FIXME: need to use percentages, rather than set numbers
+				//because what happens if we have a short ladder?
 				if (pm->ps->velocity[2] > 0)
-					//up
-					anim = BOTH_WALK1;
+				{
+					top = pm_ladders->top - 80;
+					bottom = pm_ladders->bottom + 30; //bottom value + 40 divided by 2
+
+					if (pm->ps->origin[2] >= top)
+					{
+						//hit the top, so play the dismount/mount anim
+						anim = BOTH_JUMP1;
+						Com_Printf("top");
+					}
+					else if (pm->ps->origin[2] <= bottom)
+					{
+						anim = BOTH_WIND;
+						Com_Printf("getting on from bottom");
+					}
+					else
+						//going up
+						anim = BOTH_WALK1;
+				}
 				else
-					//down
-					anim = BOTH_WALKBACK1;
+				{
+					top = pm_ladders->top - 40; //top value - 80 divided by 2
+					bottom = pm_ladders->bottom + 40;
+
+					if (pm->ps->origin[2] <= bottom)
+					{
+						//hit the bottom, so play the dismount/mount anim
+						anim = BOTH_CROUCH1WALK;
+						Com_Printf("bottom");
+					}
+					else if (pm->ps->origin[2] >= top)
+					{
+						anim = BOTH_WIND;
+						Com_Printf("geting on from top");
+					}
+					else
+						//going down
+						anim = BOTH_WALKBACK1;
+				}
 
 				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
 			}

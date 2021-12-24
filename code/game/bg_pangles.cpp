@@ -1347,7 +1347,7 @@ qboolean PM_AdjustAnglesForLadderMove(gentity_t* ent, int ladder, usercmd_t* ucm
 	else
 		angles[PITCH] = ent->client->ps.viewangles[PITCH];
 
-	angles[YAW] = pm_ladders[ladder].fwd;
+	angles[YAW] = pm_ladders[ladder].forward;
 	angles[ROLL] = ent->client->ps.viewangles[ROLL];
 
 	// lock the view viewangles
