@@ -1317,7 +1317,7 @@ void SP_trigger_hurt( gentity_t *self )
 /*QUAKED trigger_ladder (.5 .5 .5) ?
 Indicates a ladder and its normal
 
-"angles"		angle ladder faces
+"forward"		angle that the player faces the ladder
 */
 void SP_trigger_ladder(gentity_t* ent)
 {
@@ -1329,6 +1329,8 @@ void SP_trigger_ladder(gentity_t* ent)
 
 	gi.linkentity(ent);
 
+	//send out each ladder's absmins, absmaxs & forward 
+	//values, so CG_RegisterLadders can grab it
 	gi.SetConfigstring(CS_LADDERS + level.ladderCount++,
 		va("%i,%i,%i,%i,%i,%i,%i",
 			(int)ent->absmin[0], (int)ent->absmin[1], (int)ent->absmin[2],
