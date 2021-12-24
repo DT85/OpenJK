@@ -2590,10 +2590,9 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 				
 		//FIXME: we get the X & Y fine, but the player is then stuck at the bottom of the ladder
 
-		//get our ladder, and move the player to its X&Y origin
+		//get our ladder, and move the player to its X & Y origin only
 		int ladder = PM_FindLadder(ent->currentOrigin);
 		{
-			//we only want X & Y axis here
 			vec3_t alignOrigin;
 
 			alignOrigin[0] = pm_ladders[ladder].origin[0];
