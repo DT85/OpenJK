@@ -8194,12 +8194,13 @@ static void PM_Footsteps( void )
 
 					if (pm->ps->origin[2] >= top)
 					{
-						//hit the top, so play the dismount/mount anim
+						//hit the top, so play the top dismount anim
 						anim = BOTH_JUMP1;
 						Com_Printf("top");
 					}
 					else if (pm->ps->origin[2] <= bottom)
 					{
+						//at the bottom to get on the ladder, so play the bottom mount anim
 						anim = BOTH_WIND;
 						Com_Printf("getting on from bottom");
 					}
@@ -8214,12 +8215,13 @@ static void PM_Footsteps( void )
 
 					if (pm->ps->origin[2] <= bottom)
 					{
-						//hit the bottom, so play the dismount/mount anim
+						//hit the bottom, so play the bottom dismount anim
 						anim = BOTH_CROUCH1WALK;
 						Com_Printf("bottom");
 					}
 					else if (pm->ps->origin[2] >= top)
 					{
+						//at the top to get on the ladder, so play the top mount anim
 						anim = BOTH_WIND;
 						Com_Printf("geting on from top");
 					}
