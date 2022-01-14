@@ -1656,16 +1656,16 @@ qboolean G_RagDoll(gentity_t *ent, vec3_t forcedAngles)
 			{ //lock the anim on the current frame.
 				int blendTime = 500;
 
-				gi.G2API_SetBoneAnim(&ent->ghoul2[0], "lower_lumbar", currentFrame, currentFrame+1, flags, animSpeed,(cg.time?cg.time:level.time), currentFrame, blendTime);
+				gi.G2API_SetBoneAnim(&ent->ghoul2[0], playerExtData[PL_SPINE1].name, currentFrame, currentFrame+1, flags, animSpeed,(cg.time?cg.time:level.time), currentFrame, blendTime);
 				gi.G2API_SetBoneAnim(&ent->ghoul2[0], "model_root", currentFrame, currentFrame+1, flags, animSpeed, (cg.time?cg.time:level.time), currentFrame, blendTime);
 				gi.G2API_SetBoneAnim(&ent->ghoul2[0], "Motion", currentFrame, currentFrame+1, flags, animSpeed, (cg.time?cg.time:level.time), currentFrame, blendTime);
 			}
 		}
 #endif
 
-		gi.G2API_SetBoneAngles( &ent->ghoul2[ent->playerModel], "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 100, (cg.time?cg.time:level.time) );
-		gi.G2API_SetBoneAngles( &ent->ghoul2[ent->playerModel], "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 100, (cg.time?cg.time:level.time) );
-		gi.G2API_SetBoneAngles( &ent->ghoul2[ent->playerModel], "thoracic", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 100, (cg.time?cg.time:level.time) );
+		gi.G2API_SetBoneAngles( &ent->ghoul2[ent->playerModel], playerExtData[PL_SPINE2].name, vec3_origin, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE2].X, playerExtData[PL_SPINE2].Y, playerExtData[PL_SPINE2].Z, NULL, 100, (cg.time?cg.time:level.time) );
+		gi.G2API_SetBoneAngles( &ent->ghoul2[ent->playerModel], playerExtData[PL_SPINE1].name, vec3_origin, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE1].X, playerExtData[PL_SPINE1].Y, playerExtData[PL_SPINE1].Z, NULL, 100, (cg.time?cg.time:level.time) );
+		gi.G2API_SetBoneAngles( &ent->ghoul2[ent->playerModel], playerExtData[PL_SPINE3].name, vec3_origin, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE3].X, playerExtData[PL_SPINE3].Y, playerExtData[PL_SPINE3].Z, NULL, 100, (cg.time?cg.time:level.time) );
 		gi.G2API_SetBoneAngles( &ent->ghoul2[ent->playerModel], "cervical", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 100, (cg.time?cg.time:level.time) );
 
 		VectorCopy(G2Angles, tParms.angles);
@@ -1771,7 +1771,7 @@ qboolean G_RagDoll(gentity_t *ent, vec3_t forcedAngles)
 				VectorSubtract(bOrg, thorPoint, hands);
 				VectorNormalize(hands);
 				VectorScale(hands, 2048.0f, hands);
-				gi.G2API_RagEffectorKick(ent->ghoul2, "thoracic", hands);
+				gi.G2API_RagEffectorKick(ent->ghoul2, playerExtData[PL_SPINE3].name, hands);
 				gi.G2API_RagEffectorKick(ent->ghoul2, "ceyebrow", hands);
 
 				VectorSubtract(ent->client->ragLastOrigin, ent->client->ps.origin, pDif);

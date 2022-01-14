@@ -34,6 +34,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 extern weaponData_t weaponData[WP_NUM_WEAPONS];
 extern ammoData_t ammoData[AMMO_MAX];
 
+extern playerExtData_t playerExtData[PL_NUM_SPINES];
 
 #define PICKUPSOUND "sound/weapons/w_pkup.wav"
 

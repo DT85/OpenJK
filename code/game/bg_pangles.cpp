@@ -111,17 +111,17 @@ void BG_IK_MoveLimb( CGhoul2Info_v &ghoul2, int boltIndex, char *animBone, char 
 		}
 
 		//Now, create our IK bone state.
-		if ( gi.G2API_SetBoneIKState( ghoul2, time, "lower_lumbar", IKS_DYNAMIC, &ikP ) )
+		if ( gi.G2API_SetBoneIKState( ghoul2, time, playerExtData[PL_SPINE1].name, IKS_DYNAMIC, &ikP ) )
 		{
 			//restrict the elbow joint
 			VectorSet( ikP.pcjMins, -90.0f, -20.0f, -20.0f );
 			VectorSet( ikP.pcjMaxs, 30.0f, 20.0f, -20.0f );
-			if ( gi.G2API_SetBoneIKState( ghoul2, time, "upper_lumbar", IKS_DYNAMIC, &ikP ) )
+			if ( gi.G2API_SetBoneIKState( ghoul2, time, playerExtData[PL_SPINE2].name, IKS_DYNAMIC, &ikP ) )
 			{
 				//restrict the elbow joint
 				VectorSet( ikP.pcjMins, -90.0f, -20.0f, -20.0f );
 				VectorSet( ikP.pcjMaxs, 30.0f, 20.0f, -20.0f );
-				if ( gi.G2API_SetBoneIKState( ghoul2, time, "thoracic", IKS_DYNAMIC, &ikP ) )
+				if ( gi.G2API_SetBoneIKState( ghoul2, time, playerExtData[PL_SPINE3].name, IKS_DYNAMIC, &ikP ) )
 				{
 					//restrict the elbow joint
 					VectorSet( ikP.pcjMins, -90.0f, -20.0f, -20.0f );
@@ -212,24 +212,24 @@ void BG_IK_MoveLimb( CGhoul2Info_v &ghoul2, int boltIndex, char *animBone, char 
 		float cFrame, animSpeed;
 		int sFrame, eFrame, flags;
 
-		gi.G2API_SetBoneIKState( ghoul2, time, "lower_lumbar", IKS_NONE, NULL );
-		gi.G2API_SetBoneIKState( ghoul2, time, "upper_lumbar", IKS_NONE, NULL );
-		gi.G2API_SetBoneIKState( ghoul2, time, "thoracic", IKS_NONE, NULL );
+		gi.G2API_SetBoneIKState( ghoul2, time, playerExtData[PL_SPINE1].name, IKS_NONE, NULL );
+		gi.G2API_SetBoneIKState( ghoul2, time, playerExtData[PL_SPINE2].name, IKS_NONE, NULL );
+		gi.G2API_SetBoneIKState( ghoul2, time, playerExtData[PL_SPINE3].name, IKS_NONE, NULL );
 		gi.G2API_SetBoneIKState( ghoul2, time, secondBone, IKS_NONE, NULL );
 		gi.G2API_SetBoneIKState( ghoul2, time, firstBone, IKS_NONE, NULL );
 
 		//then reset the angles/anims on these PCJs
-		gi.G2API_SetBoneAngles( &ghoul2[0], "lower_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 0, time );
-		gi.G2API_SetBoneAngles( &ghoul2[0], "upper_lumbar", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 0, time );
-		gi.G2API_SetBoneAngles( &ghoul2[0], "thoracic", vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 0, time );
+		gi.G2API_SetBoneAngles( &ghoul2[0], playerExtData[PL_SPINE1].name, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 0, time );
+		gi.G2API_SetBoneAngles( &ghoul2[0], playerExtData[PL_SPINE2].name, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 0, time );
+		gi.G2API_SetBoneAngles( &ghoul2[0], playerExtData[PL_SPINE3].name, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 0, time );
 		gi.G2API_SetBoneAngles( &ghoul2[0], secondBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 0, time );
 		gi.G2API_SetBoneAngles( &ghoul2[0], firstBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, NULL, 0, time );
 
 		//Get the anim/frames that the pelvis is on exactly, and match the left arm back up with them again.
 		gi.G2API_GetBoneAnim( &ghoul2[0], animBone, (const int)time, &cFrame, &sFrame, &eFrame, &flags, &animSpeed, 0 );
-		gi.G2API_SetBoneAnim( &ghoul2[0], "lower_lumbar", sFrame, eFrame, flags, animSpeed, time, sFrame, 300 );
-		gi.G2API_SetBoneAnim( &ghoul2[0], "upper_lumbar", sFrame, eFrame, flags, animSpeed, time, sFrame, 300 );
-		gi.G2API_SetBoneAnim( &ghoul2[0], "thoracic", sFrame, eFrame, flags, animSpeed, time, sFrame, 300 );
+		gi.G2API_SetBoneAnim( &ghoul2[0], playerExtData[PL_SPINE1].name, sFrame, eFrame, flags, animSpeed, time, sFrame, 300 );
+		gi.G2API_SetBoneAnim( &ghoul2[0], playerExtData[PL_SPINE2].name, sFrame, eFrame, flags, animSpeed, time, sFrame, 300 );
+		gi.G2API_SetBoneAnim( &ghoul2[0], playerExtData[PL_SPINE3].name, sFrame, eFrame, flags, animSpeed, time, sFrame, 300 );
 		gi.G2API_SetBoneAnim( &ghoul2[0], secondBone, sFrame, eFrame, flags, animSpeed, time, sFrame, 300 );
 		gi.G2API_SetBoneAnim( &ghoul2[0], firstBone, sFrame, eFrame, flags, animSpeed, time, sFrame, 300 );
 
@@ -243,7 +243,7 @@ void BG_IK_MoveLimb( CGhoul2Info_v &ghoul2, int boltIndex, char *animBone, char 
 void PM_IKUpdate( gentity_t *ent )
 {
 	//The bone we're holding them by and the next bone after that
-	char *animBone = "lower_lumbar";
+	char *animBone = playerExtData[PL_SPINE1].name;
 	char *firstBone = "lradius";
 	char *secondBone = "lhumerus";
 	char *defaultBoltName = "*r_hand";

@@ -2157,17 +2157,17 @@ static void CG_G2ClientSpineAngles( centity_t *cent, vec3_t viewAngles, const ve
 	}
 	else
 	{//use all 3 bones
-		thoracicAngles[PITCH] = viewAngles[PITCH]*0.20f;
-		ulAngles[PITCH] = viewAngles[PITCH]*0.40f;
-		llAngles[PITCH] = viewAngles[PITCH]*0.40f+motionBoneCorrectAngles[PITCH];
+		thoracicAngles[PITCH] = viewAngles[PITCH] * playerExtData[PL_SPINE3].pitch;//*0.20f;
+		ulAngles[PITCH] = viewAngles[PITCH] * playerExtData[PL_SPINE2].pitch;//*0.40f;
+		llAngles[PITCH] = viewAngles[PITCH] * playerExtData[PL_SPINE1].pitch + motionBoneCorrectAngles[PITCH];//*0.40f+motionBoneCorrectAngles[PITCH];
 
-		thoracicAngles[YAW] = viewAngles[YAW]*0.20f;
-		ulAngles[YAW] = viewAngles[YAW]*0.35f;
-		llAngles[YAW] = viewAngles[YAW]*0.45f+motionBoneCorrectAngles[YAW];
+		thoracicAngles[YAW] = viewAngles[YAW] * playerExtData[PL_SPINE3].yaw;//*0.20f;
+		ulAngles[YAW] = viewAngles[YAW] * playerExtData[PL_SPINE2].yaw;//*0.35f;
+		llAngles[YAW] = viewAngles[YAW] * playerExtData[PL_SPINE1].yaw + motionBoneCorrectAngles[YAW];//*0.45f+motionBoneCorrectAngles[YAW];
 
-		thoracicAngles[ROLL] = viewAngles[ROLL]*0.20f;
-		ulAngles[ROLL] = viewAngles[ROLL]*0.35f;
-		llAngles[ROLL] = viewAngles[ROLL]*0.45f+motionBoneCorrectAngles[ROLL];
+		thoracicAngles[ROLL] = viewAngles[ROLL] * playerExtData[PL_SPINE3].roll;//*0.20f;
+		ulAngles[ROLL] = viewAngles[ROLL] * playerExtData[PL_SPINE2].roll;//*0.35f;
+		llAngles[ROLL] = viewAngles[ROLL] * playerExtData[PL_SPINE1].roll + motionBoneCorrectAngles[ROLL];//*0.45f+motionBoneCorrectAngles[ROLL];
 	}
 
 	if ( G_IsRidingVehicle( cent->gent ) )// && type == VH_SPEEDER ?
@@ -2189,15 +2189,17 @@ static void CG_G2ClientSpineAngles( centity_t *cent, vec3_t viewAngles, const ve
 			llAngles[YAW] = llAngles[ROLL] = 0.0f;
 			ulAngles[YAW] = ulAngles[ROLL] = 0.0f;
 		}
-		G_BoneOrientationsForClass( cent->gent->client->NPC_class, "upper_lumbar", &oUp, &oRt, &oFwd );
+		G_BoneOrientationsForClass( cent->gent->client->NPC_class, playerExtData[PL_SPINE2].name, &oUp, &oRt, &oFwd );
 		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->upperLumbarBone, ulAngles, BONE_ANGLES_POSTMULT, oUp, oRt, oFwd, cgs.model_draw);
-		G_BoneOrientationsForClass( cent->gent->client->NPC_class, "lower_lumbar", &oUp, &oRt, &oFwd );
+		G_BoneOrientationsForClass( cent->gent->client->NPC_class, playerExtData[PL_SPINE1].name, &oUp, &oRt, &oFwd );
 		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->lowerLumbarBone, llAngles, BONE_ANGLES_POSTMULT, oUp, oRt, oFwd, cgs.model_draw);
 	}
 	else
 	{
-		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->upperLumbarBone, ulAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw);
-		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->lowerLumbarBone, llAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw);
+		//BG_G2SetBoneAngles( cent, cent->gent, cent->gent->upperLumbarBone, ulAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw);
+		//BG_G2SetBoneAngles( cent, cent->gent, cent->gent->lowerLumbarBone, llAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw);
+		BG_G2SetBoneAngles(cent, cent->gent, cent->gent->upperLumbarBone, ulAngles, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE2].X, playerExtData[PL_SPINE2].Y, playerExtData[PL_SPINE2].Z, cgs.model_draw);
+		BG_G2SetBoneAngles(cent, cent->gent, cent->gent->lowerLumbarBone, llAngles, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE1].X, playerExtData[PL_SPINE1].Y, playerExtData[PL_SPINE1].Z, cgs.model_draw);
 	}
 }
 

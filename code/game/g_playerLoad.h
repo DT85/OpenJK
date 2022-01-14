@@ -1,5 +1,6 @@
 /*
 ===========================================================================
+Copyright (C) 1999 - 2005, Id Software, Inc.
 Copyright (C) 2000 - 2013, Raven Software, Inc.
 Copyright (C) 2001 - 2013, Activision, Inc.
 Copyright (C) 2013 - 2015, OpenJK contributors
@@ -20,38 +21,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
 
-//
-// gameinfo.c
-//
+//g_playerLoad.h
 
-// *** This file is used by both the game and the user interface ***
+#ifndef __PLAYERLOAD_H__
+#define __PLAYERLOAD_H__
 
-#include "gameinfo.h"
-#include "../game/weapons.h"
-#include "../game/g_playerLoad.h"
+// Spines
+enum
+{
+	PL_SPINE1,
+	PL_SPINE2,
+	PL_SPINE3,
 
-weaponData_t weaponData[WP_NUM_WEAPONS];
-ammoData_t ammoData[AMMO_MAX];
+	PL_NUM_SPINES
+};
 
-extern void WP_LoadWeaponParms (void);
+typedef struct playerExtData_s
+{
+	char	name[32];		// spine name
+	Eorientations	X, Y, Z;
+	float	pitch, roll, yaw;
 
+} playerExtData_t;
 
-playerExtData_t playerExtData[PL_NUM_SPINES];
-
-extern void PL_LoadPlayerParms(void);
-
-//
-// Initialization - Read in files and parse into infos
-//
-
-/*
-===============
-GI_Init
-===============
-*/
-void GI_Init( gameinfo_import_t *import ) {
-
-	WP_LoadWeaponParms ();
-
-	PL_LoadPlayerParms ();
-}
+#endif
