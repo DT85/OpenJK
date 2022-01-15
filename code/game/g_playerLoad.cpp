@@ -43,6 +43,7 @@ TODO:
 */
 
 #include "g_local.h"
+#include "ghoul2/G2.h"
 
 
 
@@ -50,13 +51,6 @@ struct playerExtParms_s
 {
 	int	spineNum; 	// Current spine number
 } playerExtParms;
-
-void PL_HeadName(const char** holdBuf);
-void PL_NeckName(const char** holdBuf);
-void PL_PelvisName(const char** holdBuf);
-void PL_LThighName(const char** holdBuf);
-void PL_LShinName(const char** holdBuf);
-
 
 void PL_SpineNumber(const char** holdBuf);
 void PL_SpineName(const char** holdBuf);
@@ -284,10 +278,7 @@ static void PL_ParseParms(const char *buffer)
 
 		if (!Q_stricmp(token, "{"))
 		{
-			PL_ParsePlayerParms(&holdBuf);
-
-			if (!Q_stricmp(token, "{"))
-				PL_ParsePlayerSpineParms(&holdBuf);
+			PL_ParsePlayerSpineParms(&holdBuf);
 		}
 
 	}

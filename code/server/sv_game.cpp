@@ -1066,6 +1066,9 @@ void SV_InitGameProgs (void) {
 		Com_Error( ERR_DROP, "Failed to load %s library", gamename );
 	}
 
+	//reload again to hopefully update bone names from game.
+	import.G2API_SetRagDoll = SV_G2API_SetRagDoll;
+
 	if (ge->apiversion != GAME_API_VERSION)
 	{
 		int apiVersion = ge->apiversion;

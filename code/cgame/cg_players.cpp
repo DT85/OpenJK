@@ -2157,17 +2157,17 @@ static void CG_G2ClientSpineAngles( centity_t *cent, vec3_t viewAngles, const ve
 	}
 	else
 	{//use all 3 bones
-		thoracicAngles[PITCH] = viewAngles[PITCH] * playerExtData[PL_SPINE3].pitch;//*0.20f;
-		ulAngles[PITCH] = viewAngles[PITCH] * playerExtData[PL_SPINE2].pitch;//*0.40f;
-		llAngles[PITCH] = viewAngles[PITCH] * playerExtData[PL_SPINE1].pitch + motionBoneCorrectAngles[PITCH];//*0.40f+motionBoneCorrectAngles[PITCH];
+		thoracicAngles[PITCH] = viewAngles[PITCH] * playerExtData[PL_SPINE3].pitch;
+		ulAngles[PITCH] = viewAngles[PITCH] * playerExtData[PL_SPINE2].pitch;
+		llAngles[PITCH] = viewAngles[PITCH] * playerExtData[PL_SPINE1].pitch + motionBoneCorrectAngles[PITCH];
 
-		thoracicAngles[YAW] = viewAngles[YAW] * playerExtData[PL_SPINE3].yaw;//*0.20f;
-		ulAngles[YAW] = viewAngles[YAW] * playerExtData[PL_SPINE2].yaw;//*0.35f;
-		llAngles[YAW] = viewAngles[YAW] * playerExtData[PL_SPINE1].yaw + motionBoneCorrectAngles[YAW];//*0.45f+motionBoneCorrectAngles[YAW];
+		thoracicAngles[YAW] = viewAngles[YAW] * playerExtData[PL_SPINE3].yaw;
+		ulAngles[YAW] = viewAngles[YAW] * playerExtData[PL_SPINE2].yaw;
+		llAngles[YAW] = viewAngles[YAW] * playerExtData[PL_SPINE1].yaw + motionBoneCorrectAngles[YAW];
 
-		thoracicAngles[ROLL] = viewAngles[ROLL] * playerExtData[PL_SPINE3].roll;//*0.20f;
-		ulAngles[ROLL] = viewAngles[ROLL] * playerExtData[PL_SPINE2].roll;//*0.35f;
-		llAngles[ROLL] = viewAngles[ROLL] * playerExtData[PL_SPINE1].roll + motionBoneCorrectAngles[ROLL];//*0.45f+motionBoneCorrectAngles[ROLL];
+		thoracicAngles[ROLL] = viewAngles[ROLL] * playerExtData[PL_SPINE3].roll;
+		ulAngles[ROLL] = viewAngles[ROLL] * playerExtData[PL_SPINE2].roll;
+		llAngles[ROLL] = viewAngles[ROLL] * playerExtData[PL_SPINE1].roll + motionBoneCorrectAngles[ROLL];
 	}
 
 	if ( G_IsRidingVehicle( cent->gent ) )// && type == VH_SPEEDER ?
