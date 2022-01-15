@@ -46,6 +46,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 extern	cvar_t	*r_Ghoul2BlendMultiplier;
 
+//player.dat
 playerExtData_t playerExtData[3];
 
 void G2_Bone_Not_Found(const char *boneName,const char *modName);
