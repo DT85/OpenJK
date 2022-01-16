@@ -1724,9 +1724,9 @@ if (index>=0)
 	G2_Set_Bone_Rag(mod_a,blist,"model_root",ghoul2,parms->scale,parms->position);
 	G2_Set_Bone_Rag(mod_a,blist,"pelvis",ghoul2,parms->scale,parms->position);
 
-	G2_Set_Bone_Rag(mod_a,blist,playerExtData[0].name,ghoul2,parms->scale,parms->position);
-	G2_Set_Bone_Rag(mod_a,blist,playerExtData[1].name,ghoul2,parms->scale,parms->position);
-	G2_Set_Bone_Rag(mod_a,blist,playerExtData[2].name,ghoul2,parms->scale,parms->position);
+	G2_Set_Bone_Rag(mod_a,blist,"lower_lumbar",ghoul2,parms->scale,parms->position);
+	G2_Set_Bone_Rag(mod_a,blist,"upper_lumbar",ghoul2,parms->scale,parms->position);
+	G2_Set_Bone_Rag(mod_a,blist,"thoracic",ghoul2,parms->scale,parms->position);
 	G2_Set_Bone_Rag(mod_a,blist,"cranium",ghoul2,parms->scale,parms->position);
 	G2_Set_Bone_Rag(mod_a,blist,"rhumerus",ghoul2,parms->scale,parms->position);
 	G2_Set_Bone_Rag(mod_a,blist,"lhumerus",ghoul2,parms->scale,parms->position);

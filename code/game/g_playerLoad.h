@@ -26,7 +26,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #ifndef __PLAYERLOAD_H__
 #define __PLAYERLOAD_H__
 
-/*
 // Spines
 enum
 {
@@ -39,11 +38,10 @@ enum
 
 typedef struct playerExtData_s
 {
-	char	name[32];		// spine name
 	Eorientations	X, Y, Z;
 	float	pitch, roll, yaw;
 
 } playerExtData_t;
-*/
+
 
 #endif

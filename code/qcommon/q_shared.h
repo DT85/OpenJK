@@ -2759,21 +2759,4 @@ typedef int( *cmpFunc_t )(const void *a, const void *b);
 void *Q_LinearSearch( const void *key, const void *ptr, size_t count,
 	size_t size, cmpFunc_t cmp );
 
-// Spines
-enum
-{
-	PL_SPINE1,
-	PL_SPINE2,
-	PL_SPINE3,
-
-	PL_NUM_SPINES
-};
-
-typedef struct playerExtData_s
-{
-	char	name[32];		// spine name
-	Eorientations	X, Y, Z;
-	float	pitch, roll, yaw;
-} playerExtData_t;
-
 #endif	// __Q_SHARED_H

@@ -2189,15 +2189,13 @@ static void CG_G2ClientSpineAngles( centity_t *cent, vec3_t viewAngles, const ve
 			llAngles[YAW] = llAngles[ROLL] = 0.0f;
 			ulAngles[YAW] = ulAngles[ROLL] = 0.0f;
 		}
-		G_BoneOrientationsForClass( cent->gent->client->NPC_class, playerExtData[PL_SPINE2].name, &oUp, &oRt, &oFwd );
+		G_BoneOrientationsForClass( cent->gent->client->NPC_class, "upper_lumbar", &oUp, &oRt, &oFwd );
 		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->upperLumbarBone, ulAngles, BONE_ANGLES_POSTMULT, oUp, oRt, oFwd, cgs.model_draw);
-		G_BoneOrientationsForClass( cent->gent->client->NPC_class, playerExtData[PL_SPINE1].name, &oUp, &oRt, &oFwd );
+		G_BoneOrientationsForClass( cent->gent->client->NPC_class, "lower_lumbar", &oUp, &oRt, &oFwd );
 		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->lowerLumbarBone, llAngles, BONE_ANGLES_POSTMULT, oUp, oRt, oFwd, cgs.model_draw);
 	}
 	else
 	{
-		//BG_G2SetBoneAngles( cent, cent->gent, cent->gent->upperLumbarBone, ulAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw);
-		//BG_G2SetBoneAngles( cent, cent->gent, cent->gent->lowerLumbarBone, llAngles, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw);
 		BG_G2SetBoneAngles(cent, cent->gent, cent->gent->upperLumbarBone, ulAngles, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE2].X, playerExtData[PL_SPINE2].Y, playerExtData[PL_SPINE2].Z, cgs.model_draw);
 		BG_G2SetBoneAngles(cent, cent->gent, cent->gent->lowerLumbarBone, llAngles, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE1].X, playerExtData[PL_SPINE1].Y, playerExtData[PL_SPINE1].Z, cgs.model_draw);
 	}
@@ -2508,12 +2506,12 @@ static void CG_G2PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t angles )
 
 		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->craniumBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw );
 		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->cervicalBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw );
-		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->thoracicBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw );
+		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->thoracicBone, vec3_origin, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE3].X, playerExtData[PL_SPINE3].Y, playerExtData[PL_SPINE3].Z, cgs.model_draw );
 
 		cent->pe.torso.pitchAngle = 0;
 		cent->pe.torso.yawAngle = 0;
-		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->upperLumbarBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw );
-		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->lowerLumbarBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw );
+		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->upperLumbarBone, vec3_origin, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE2].X, playerExtData[PL_SPINE2].Y, playerExtData[PL_SPINE2].Z, cgs.model_draw );
+		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->lowerLumbarBone, vec3_origin, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE1].X, playerExtData[PL_SPINE1].Y, playerExtData[PL_SPINE1].Z, cgs.model_draw );
 
 		cent->pe.legs.pitchAngle = angles[0];
 		cent->pe.legs.yawAngle = angles[1];
@@ -2536,12 +2534,12 @@ static void CG_G2PlayerAngles( centity_t *cent, vec3_t legs[3], vec3_t angles )
 
 		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->craniumBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw );
 		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->cervicalBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw );
-		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->thoracicBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw );
+		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->thoracicBone, vec3_origin, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE3].X, playerExtData[PL_SPINE3].Y, playerExtData[PL_SPINE3].Z, cgs.model_draw );
 
 		cent->pe.torso.pitchAngle = 0;
 		cent->pe.torso.yawAngle = 0;
-		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->upperLumbarBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw );
-		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->lowerLumbarBone, vec3_origin, BONE_ANGLES_POSTMULT, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.model_draw );
+		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->upperLumbarBone, vec3_origin, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE2].X, playerExtData[PL_SPINE2].Y, playerExtData[PL_SPINE2].Z, cgs.model_draw );
+		BG_G2SetBoneAngles( cent, cent->gent, cent->gent->lowerLumbarBone, vec3_origin, BONE_ANGLES_POSTMULT, playerExtData[PL_SPINE1].X, playerExtData[PL_SPINE1].Y, playerExtData[PL_SPINE1].Z, cgs.model_draw );
 
 		cent->pe.legs.pitchAngle = angles[0];
 		cent->pe.legs.yawAngle = angles[1];

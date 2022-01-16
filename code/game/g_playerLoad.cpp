@@ -53,7 +53,6 @@ struct playerExtParms_s
 } playerExtParms;
 
 void PL_SpineNumber(const char** holdBuf);
-void PL_SpineName(const char** holdBuf);
 void PL_SpineXYZ(const char** holdBuf);
 void PL_SpinePitch(const char** holdBuf);
 void PL_SpineRoll(const char** holdBuf);
@@ -69,16 +68,9 @@ typedef struct
 
 #define PL_PARM_MAX 12
 
-
-playerExtParms_t PlayerExtParms[PL_PARM_MAX] =
-{
-//use me
-};
-
 playerExtParms_t PlayerExtSpineParms[PL_PARM_MAX] =
 {
-	{ "spinenumber",	PL_SpineNumber },
-	{ "name",			PL_SpineName },
+	{ "spine",			PL_SpineNumber },
 	{ "X",				PL_SpineXYZ },
 	{ "Y",				PL_SpineXYZ },
 	{ "Z",				PL_SpineXYZ },
@@ -110,28 +102,7 @@ static void PL_SpineNumber(const char** holdBuf)
 	playerExtParms.spineNum = spineNum;
 }
 
-void PL_SpineName(const char** holdBuf)
-{
-	int len;
-	const char* tokenStr;
-
-	if (COM_ParseString(holdBuf, &tokenStr))
-	{
-		return;
-	}
-
-	len = strlen(tokenStr);
-	len++;
-	if (len > 32)
-	{
-		len = 32;
-		gi.Printf("WARNING: name too long in external PLAYER.DAT '%s'\n", tokenStr);
-	}
-
-	Q_strncpyz(playerExtData[playerExtParms.spineNum].name, tokenStr, len);
-}
-
-void PL_SpineXYZ(const char** holdBuf)
+static void PL_SpineXYZ(const char** holdBuf)
 {
 	int orientation;
 	const char* tokenStr;
@@ -157,15 +128,15 @@ void PL_SpineXYZ(const char** holdBuf)
 		gi.Printf("WARNING: bad orientation in external player data '%s'\n", tokenStr);
 	}
 
-	if (!Q_stricmp((const char*)holdBuf, "spineX"))
+	if (!Q_stricmp((const char*)holdBuf, "X"))
 		playerExtData[playerExtParms.spineNum].X = (Eorientations)orientation;
-	else if (!Q_stricmp((const char*)holdBuf, "spineY"))
+	else if (!Q_stricmp((const char*)holdBuf, "Y"))
 		playerExtData[playerExtParms.spineNum].Y = (Eorientations)orientation;
-	else if (!Q_stricmp((const char*)holdBuf, "spineZ"))
+	else if (!Q_stricmp((const char*)holdBuf, "Z"))
 		playerExtData[playerExtParms.spineNum].Z = (Eorientations)orientation;
 }
 
-void PL_SpinePitch(const char** holdBuf)
+static void PL_SpinePitch(const char** holdBuf)
 {
 	float	tokenFlt;
 
@@ -178,7 +149,7 @@ void PL_SpinePitch(const char** holdBuf)
 	playerExtData[playerExtParms.spineNum].pitch = tokenFlt;
 }
 
-void PL_SpineRoll(const char** holdBuf)
+static void PL_SpineRoll(const char** holdBuf)
 {
 	float	tokenFlt;
 
@@ -191,7 +162,7 @@ void PL_SpineRoll(const char** holdBuf)
 	playerExtData[playerExtParms.spineNum].roll = tokenFlt;
 }
 
-void PL_SpineYaw(const char** holdBuf)
+static void PL_SpineYaw(const char** holdBuf)
 {
 	float	tokenFlt;
 
@@ -204,37 +175,7 @@ void PL_SpineYaw(const char** holdBuf)
 	playerExtData[playerExtParms.spineNum].yaw = tokenFlt;
 }
 
-static void PL_ParsePlayerParms(const char** holdBuf)
-{
-	const char* token;
-	int		i;
-
-	while (holdBuf)
-	{
-		token = COM_ParseExt(holdBuf, qtrue);
-
-		if (!Q_stricmp(token, "}"))	// End of data for this
-			break;
-
-		// Loop through possible parameters
-		for (i = 0; i < PL_PARM_MAX; ++i)
-		{
-			if (!Q_stricmp(token, PlayerExtParms[i].parmName))
-			{
-				PlayerExtParms[i].func(holdBuf);
-				break;
-			}
-		}
-
-		if (i < PL_PARM_MAX)	// Find parameter???
-			continue;
-
-		Com_Printf("^3WARNING: bad parameter in external player data '%s'\n", token);
-		SkipRestOfLine(holdBuf);
-	}
-}
-
-static void PL_ParsePlayerSpineParms(const char** holdBuf)
+static void PL_ParsePlayerExtSpineParms(const char** holdBuf)
 {
 	const char* token;
 	int		i;
@@ -278,7 +219,7 @@ static void PL_ParseParms(const char *buffer)
 
 		if (!Q_stricmp(token, "{"))
 		{
-			PL_ParsePlayerSpineParms(&holdBuf);
+			PL_ParsePlayerExtSpineParms(&holdBuf);
 		}
 
 	}
@@ -305,6 +246,18 @@ void PL_LoadPlayerParms (void)
 		playerExtData[i].X = POSITIVE_X;
 		playerExtData[i].Y = NEGATIVE_Y;
 		playerExtData[i].Z = NEGATIVE_Z;
+
+		playerExtData[PL_SPINE1].pitch = 0.40f;
+		playerExtData[PL_SPINE1].roll = 0.45f;
+		playerExtData[PL_SPINE1].yaw = 0.45f;
+
+		playerExtData[PL_SPINE2].pitch = 0.40f;
+		playerExtData[PL_SPINE2].roll = 0.35f;
+		playerExtData[PL_SPINE2].yaw = 0.35f;
+
+		playerExtData[PL_SPINE3].pitch = 0.20f;
+		playerExtData[PL_SPINE3].roll = 0.20f;
+		playerExtData[PL_SPINE3].yaw = 0.20f;
 	}
 
 	PL_ParseParms(buffer);
