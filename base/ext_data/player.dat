@@ -1,0 +1,42 @@
+// EXTERNAL PLAYER DATA 
+//
+
+//Fields
+//spine		INT; spine number. 1, 2, 3.
+//X		STRING; spine X Axis. POSITIVE_* or NEGATIVE_* (where * is either X,Y,Z).
+//Y		STRING; spine Y Axis. ""
+//Z		STRING; spine Z Axis. ""
+//pitch		FLOAT; pitch amount.
+//roll		FLOAT; roll amount.
+//yaw		FLOAT; yaw amount.
+
+
+{
+spine	1		// lower_lumbar
+X	POSITIVE_X	// DEFAULT = POSITIVE_X
+Y	NEGATIVE_Y	// DEFAULT = NEGATIVE_Y
+Z	NEGATIVE_Z	// DEFAULT = NEGATIVE_Z
+pitch	0.40		// DEFAULT = 0.40
+roll	0.45		// DEFAULT = 0.45
+yaw	0.45		// DEFAULT = 0.45
+}
+
+{
+spine	2		// upper_lumbar
+X	POSITIVE_X	// DEFAULT = POSITIVE_X
+Y	NEGATIVE_Y	// DEFAULT = NEGATIVE_Y
+Z	NEGATIVE_Z	// DEFAULT = NEGATIVE_Z
+pitch	0.40		// DEFAULT = 0.40
+roll	0.35		// DEFAULT = 0.35
+yaw	0.35		// DEFAULT = 0.35
+}
+
+{
+spine	3		// thoracic
+X	POSITIVE_X	// DEFAULT = POSITIVE_X
+Y	NEGATIVE_Y	// DEFAULT = NEGATIVE_Y
+Z	NEGATIVE_Z	// DEFAULT = NEGATIVE_Z
+pitch	0.20		// DEFAULT = 0.20
+roll	0.20		// DEFAULT = 0.20
+yaw	0.20		// DEFAULT = 0.20
+}
