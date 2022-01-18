@@ -294,6 +294,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	//
 	// movement generated events
 	//
+	case EV_FOOTSTEP_METAL:
+		DEBUGNAME("EV_FOOTSTEP_METAL");
+		if (cg_footsteps.integer) {
+			cgi_S_StartSound (NULL, es->number, CHAN_BODY, cgs.media.footsteps[ FOOTSTEP_METALWALK ][rand()&3] );
+		}
+		break;
 	case EV_FOOTSPLASH:
 		DEBUGNAME("EV_FOOTSPLASH");
 		if (cg_footsteps.integer) {
