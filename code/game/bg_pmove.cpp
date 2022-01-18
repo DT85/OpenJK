@@ -8022,11 +8022,11 @@ static void PM_Footsteps( void )
 					int	anim;
 					if ( pm->ps->velocity[2] > 0 )
 					{
-						anim = BOTH_LADDER_UP1;
+						anim = BOTH_WALK1;//BOTH_LADDER_UP1;
 					}
 					else
 					{
-						anim = BOTH_LADDER_DWN1;
+						anim = BOTH_WALKBACK1;//BOTH_LADDER_DWN1;
 					}
 					PM_SetAnim( pm, SETANIM_LEGS, anim, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 					if ( pm->waterlevel >= 2 )	//arms on ladder
@@ -8042,11 +8042,11 @@ static void PM_Footsteps( void )
 				}
 				else
 				{
-					PM_SetAnim( pm, SETANIM_LEGS, BOTH_LADDER_IDLE, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_RESTART );
+					PM_SetAnim( pm, SETANIM_LEGS, FACE_ALERT/*BOTH_LADDER_IDLE*/, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_RESTART );
 					pm->ps->legsAnimTimer += 300;
 					if ( pm->waterlevel >= 2 )	//arms on ladder
 					{
-						PM_SetAnim( pm, SETANIM_TORSO, BOTH_LADDER_IDLE, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_RESTART );
+						PM_SetAnim( pm, SETANIM_TORSO, FACE_ALERT/*BOTH_LADDER_IDLE*/, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD|SETANIM_FLAG_RESTART );
 						pm->ps->torsoAnimTimer += 300;
 					}
 				}
