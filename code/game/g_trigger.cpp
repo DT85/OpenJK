@@ -1321,11 +1321,9 @@ Indicates a ladder and its normal
 */
 void SP_trigger_ladder(gentity_t* ent)
 {
-	float forward;
+	vec3_t fwd;
 
 	gi.SetBrushModel(ent, ent->model);
-
-	G_SpawnFloat("forward", "0", &forward);
 
 	gi.linkentity(ent);
 
@@ -1335,7 +1333,9 @@ void SP_trigger_ladder(gentity_t* ent)
 		va("%i,%i,%i,%i,%i,%i,%i",
 			(int)ent->absmin[0], (int)ent->absmin[1], (int)ent->absmin[2],
 			(int)ent->absmax[0], (int)ent->absmax[1], (int)ent->absmax[2],
-			(int)forward));
+			(int)ent->s.angles[YAW]));
+
+	//TODO: do we want to also get the s.angles[PITCH] so we can do ladders with a tilt?
 
 	G_FreeEntity(ent);
 }

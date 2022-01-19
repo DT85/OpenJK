@@ -105,7 +105,7 @@ typedef enum {
 typedef struct ladder_s
 {
 	vec3_t	origin;
-	/*vec3_t*/float	forward;
+	vec3_t	fwd;
 	float	top;
 	float	bottom;
 } ladder_t;
@@ -761,7 +761,7 @@ typedef enum {
 } entityType_t;
 
 
-void	PM_AddLadder(vec3_t absmin, vec3_t absmax, /*vec3_t*/float forward);
+void	PM_AddLadder(vec3_t absmin, vec3_t absmax, vec3_t forward);
 int		PM_FindLadder(vec3_t playerPos);
 
 void	EvaluateTrajectory( const trajectory_t *tr, int atTime, vec3_t result );

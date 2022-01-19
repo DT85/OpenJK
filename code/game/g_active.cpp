@@ -2588,20 +2588,20 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 			ent->client->ps.velocity[2] = savZ;
 		}
 				
-		//FIXME: we get the X & Y fine, but the player is then stuck at the bottom of the ladder
-
-		//get our ladder, and move the player to its X & Y origin only
+		//get our ladder
 		int ladder = PM_FindLadder(ent->currentOrigin);
-		{
-			vec3_t alignOrigin;
 
-			alignOrigin[0] = pm_ladders[ladder].origin[0];
-			alignOrigin[1] = pm_ladders[ladder].origin[1];
-			alignOrigin[2] = ent->currentOrigin[2];
+		//set player angle lock based on ladder angle
+		if (pm_ladders[ladder].fwd[1] == 0)
+			ent->client->ps.origin[1] = pm_ladders[ladder].origin[1];
+		else if (pm_ladders[ladder].fwd[1] == 90)
+			ent->client->ps.origin[0] = pm_ladders[ladder].origin[0];
+		else if (pm_ladders[ladder].fwd[1] == -90)
+			ent->client->ps.origin[0] = pm_ladders[ladder].origin[0];
+		else if (pm_ladders[ladder].fwd[1] == 180)
+			ent->client->ps.origin[1] = pm_ladders[ladder].origin[1];
 
-			G_SetOrigin(ent, alignOrigin);
-			gi.linkentity( ent );
-		}
+		gi.linkentity(ent);
 
 		//no strafing
 		ucmd->rightmove = 0;

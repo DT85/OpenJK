@@ -1340,27 +1340,23 @@ qboolean PM_AdjustAnglesForHeldByMonster( gentity_t *ent, gentity_t *monster, us
 
 qboolean PM_AdjustAnglesForLadderMove(gentity_t* ent, int ladder, usercmd_t* ucmd)
 {
-	vec3_t angles, fwd;
-
+	vec3_t angles;
+	
 	if (ucmd->forwardmove)
-		angles[PITCH] = -20;
+		angles[PITCH] = -10;
 	else
-		angles[PITCH] = ent->client->ps.viewangles[PITCH];
+		angles[PITCH] = 0;
 
-	angles[YAW] = pm_ladders[ladder].forward;
-	angles[ROLL] = ent->client->ps.viewangles[ROLL];
-
-	// lock the view viewangles
-	ent->client->ps.viewangles[PITCH] = /*vectoyaw*/(angles[PITCH]);
-	ent->client->ps.viewangles[YAW] = /*vectoyaw*/(angles[YAW]);
+	angles[YAW] = pm_ladders[ladder].fwd[1];
+	angles[ROLL] = 0;
 
 	if (ent->client->ps.viewEntity <= 0 || ent->client->ps.viewEntity >= ENTITYNUM_WORLD)
 	{//don't clamp angles when looking through a viewEntity
-		SetClientViewAngle(ent, ent->client->ps.viewangles);
+		SetClientViewAngle(ent, angles);
 	}
-
-	ucmd->angles[PITCH] = ANGLE2SHORT(ent->client->ps.viewangles[PITCH]) - ent->client->ps.delta_angles[PITCH];
-	ucmd->angles[YAW] = ANGLE2SHORT(ent->client->ps.viewangles[YAW]) - ent->client->ps.delta_angles[YAW];
+	
+	ucmd->angles[PITCH] = ANGLE2SHORT(angles[PITCH]) - ent->client->ps.delta_angles[PITCH];
+	ucmd->angles[YAW] = ANGLE2SHORT(angles[YAW]) - ent->client->ps.delta_angles[YAW];
 
 	return qtrue;
 }

@@ -2430,13 +2430,10 @@ static qboolean PM_CheckJump( void )
 	// Special case for ladders
 	if (pm->ps->ladder != -1)
 	{
-		/*vec3_t*/float forward;
-		//VectorCopy(pm_ladders[pm->ps->ladder].fwd, forward);
-		//forward[0] = 0;
-		forward/*[1]*/ = pm_ladders[pm->ps->ladder].forward;
-		//forward[2] = 0;
-		//VectorNormalize(forward);
-		VectorMA(pm->ps->velocity, -50, &forward, pm->ps->velocity);
+		vec3_t forward;
+		VectorCopy(pm_ladders[pm->ps->ladder].fwd, forward);
+		VectorNormalize(forward);
+		VectorMA(pm->ps->velocity, -50, forward, pm->ps->velocity);
 		pm->ps->pm_flags |= PMF_LADDER_JUMP;
 
 		return qtrue;
@@ -3347,13 +3344,12 @@ PM_AddLadder
 Adds a ladder to the ladder list
 ================
 */
-void PM_AddLadder(vec3_t absmin, vec3_t absmax, /*vec3_t*/float forward)
+void PM_AddLadder(vec3_t absmin, vec3_t absmax, vec3_t forward)
 {
 	pm_ladders[pm_laddercount].origin[0] = (absmax[0] + absmin[0]) / 2;
 	pm_ladders[pm_laddercount].origin[1] = (absmax[1] + absmin[1]) / 2;
 	pm_ladders[pm_laddercount].origin[2] = (absmax[2] + absmin[2]) / 2;
-	//VectorCopy(fwd, pm_ladders[pm_laddercount].fwd);
-	pm_ladders[pm_laddercount].forward = forward;
+	VectorCopy(forward, pm_ladders[pm_laddercount].fwd);
 	pm_ladders[pm_laddercount].top = absmax[2];
 	pm_ladders[pm_laddercount].bottom = absmin[2];
 	pm_laddercount++;
@@ -3428,12 +3424,9 @@ static void PM_LadderMove(void)
 	else
 	{
 		int i;
-		vec3_t fwd;
-		fwd[0] = 0;
-		fwd[1] = pm_ladders[pm->ps->ladder].forward;
-		fwd[2] = 0;
-
-		VectorNormalize(fwd);
+		vec3_t forward;
+		VectorCopy(pm_ladders[pm_laddercount].fwd, forward);
+		VectorNormalize(forward);
 		VectorNormalize(pml.forward);
 
 		if (!pml.groundPlane)
@@ -3453,9 +3446,9 @@ static void PM_LadderMove(void)
 			if (tr.fraction == 1.0f || !tr.startsolid)
 			{
 				if (pm->cmd.forwardmove >= 0)
-					VectorAdd(pml.forward, fwd, pml.forward);
+					VectorAdd(pml.forward, forward, pml.forward);
 				else
-					VectorSubtract(pml.forward, fwd, pml.forward);
+					VectorSubtract(pml.forward, forward, pml.forward);
 			}
 		}
 
@@ -3479,7 +3472,7 @@ static void PM_LadderMove(void)
 
 	PM_Accelerate(wishdir, wishspeed, accelerate);
 
-	PM_StepSlideMove(qfalse); // no gravity while going up ladder
+	PM_StepSlideMove(qfalse);
 }
 
 /*
@@ -8192,17 +8185,17 @@ static void PM_Footsteps( void )
 					top = pm_ladders->top - 80;
 					bottom = pm_ladders->bottom + 30; //bottom value + 40 divided by 2
 
-					if (pm->ps->origin[2] >= top)
+					if (pm->ps->origin[2] == top)
 					{
 						//hit the top, so play the top dismount anim
 						anim = BOTH_JUMP1;
-						Com_Printf("top");
+						Com_Printf("getting off at top\n");
 					}
-					else if (pm->ps->origin[2] <= bottom)
+					else if (pm->ps->origin[2] == bottom)
 					{
 						//at the bottom to get on the ladder, so play the bottom mount anim
 						anim = BOTH_WIND;
-						Com_Printf("getting on from bottom");
+						Com_Printf("getting on from bottom\n");
 					}
 					else
 						//going up
@@ -8213,17 +8206,17 @@ static void PM_Footsteps( void )
 					top = pm_ladders->top - 40; //top value - 80 divided by 2
 					bottom = pm_ladders->bottom + 40;
 
-					if (pm->ps->origin[2] <= bottom)
+					if (pm->ps->origin[2] == bottom)
 					{
 						//hit the bottom, so play the bottom dismount anim
 						anim = BOTH_CROUCH1WALK;
-						Com_Printf("bottom");
+						Com_Printf("getting off at bottom\n");
 					}
-					else if (pm->ps->origin[2] >= top)
+					else if (pm->ps->origin[2] == top)
 					{
 						//at the top to get on the ladder, so play the top mount anim
 						anim = BOTH_WIND;
-						Com_Printf("geting on from top");
+						Com_Printf("geting on from top\n");
 					}
 					else
 						//going down
