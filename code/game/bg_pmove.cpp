@@ -8176,59 +8176,58 @@ static void PM_Footsteps( void )
 			if (pm->ps->velocity[2])
 			{
 				int	anim;				
-				float top, bottom;
+				float top, topGetOff, bottom, bottomGetOff;
 
-				//FIXME: need to use percentages, rather than set numbers
-				//because what happens if we have a short ladder?
+				//subtract 64 (player height) from the top of the trigger brush to get our real top value. 
+				//only need that extra height in the first place so the player hits it before 
+				//actually being on the ladder mesh.
+				top = pm_ladders->top - 64; //this will always be -64 no matter the ladder size
+				topGetOff = top / 4 * 3; //75% of top, so divide top by 4 then times by 3.
+				bottom = pm_ladders->bottom; //straight copy
+				bottomGetOff = bottom + 16; //this will always be +16 no matter the ladder size
+
 				if (pm->ps->velocity[2] > 0)
 				{
-					top = pm_ladders->top - 80;
-					bottom = pm_ladders->bottom + 30; //bottom value + 40 divided by 2
-
-					if (pm->ps->origin[2] == top)
+					if (pm->ps->origin[2] == topGetOff)
 					{
-						//hit the top, so play the top dismount anim
-						anim = BOTH_JUMP1;
+						//approaching the top to get off
+						anim = BOTH_JUMP1; //BOTH_LADDER_GETOFF_TOP
 						Com_Printf("getting off at top\n");
 					}
 					else if (pm->ps->origin[2] == bottom)
 					{
-						//at the bottom to get on the ladder, so play the bottom mount anim
-						anim = BOTH_WIND;
+						//at the bottom to get on
+						anim = BOTH_WIND; //BOTH_LADDER_GETON_BTM
 						Com_Printf("getting on from bottom\n");
 					}
 					else
 						//going up
-						anim = BOTH_WALK1;
+						anim = BOTH_WALK1;  //BOTH_LADDER_UP
 				}
 				else
 				{
-					top = pm_ladders->top - 40; //top value - 80 divided by 2
-					bottom = pm_ladders->bottom + 40;
-
-					if (pm->ps->origin[2] == bottom)
+					if (pm->ps->origin[2] == bottomGetOff)
 					{
-						//hit the bottom, so play the bottom dismount anim
-						anim = BOTH_CROUCH1WALK;
+						//approaching the bottom to get off
+						anim = BOTH_CROUCH1WALK; //BOTH_LADDER_GETOFF_BTM
 						Com_Printf("getting off at bottom\n");
 					}
 					else if (pm->ps->origin[2] == top)
 					{
-						//at the top to get on the ladder, so play the top mount anim
-						anim = BOTH_WIND;
-						Com_Printf("geting on from top\n");
+						//at the top to get on
+						anim = BOTH_CROUCH1WALK; //BOTH_LADDER_GETON_TOP
+						Com_Printf("getting on from top\n");
 					}
 					else
 						//going down
-						anim = BOTH_WALKBACK1;
+						anim = BOTH_RUNBACK1;  //BOTH_LADDER_DOWN
 				}
 
 				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
 			}
 			else //on ladder, but not moving
 			{
-				PM_SetAnim(pm, SETANIM_BOTH, BOTH_STAND1, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
-				pm->ps->legsAnimTimer += 300;
+				PM_SetAnim(pm, SETANIM_BOTH, BOTH_STAND1/*BOTH_LADDER_IDLE*/, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
 			}
 
 			if (pm->ps->velocity[2])
