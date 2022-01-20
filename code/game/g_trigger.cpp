@@ -1317,12 +1317,10 @@ void SP_trigger_hurt( gentity_t *self )
 /*QUAKED trigger_ladder (.5 .5 .5) ?
 Indicates a ladder and its normal
 
-"forward"		angle that the player faces the ladder
+"angle"		angle that the player faces the ladder
 */
 void SP_trigger_ladder(gentity_t* ent)
 {
-	vec3_t fwd;
-
 	gi.SetBrushModel(ent, ent->model);
 
 	gi.linkentity(ent);
