@@ -1525,6 +1525,10 @@ stringID_table_t animTable [MAX_ANIMATIONS+1] =
 	ENUM2STRING(BOTH_LADDER_UP1),		//# Climbing up a ladder with rungs at 16 unit intervals
 	ENUM2STRING(BOTH_LADDER_DWN1),		//# Climbing down a ladder with rungs at 16 unit intervals
 	ENUM2STRING(BOTH_LADDER_IDLE),		//#	Just sitting on the ladder
+	ENUM2STRING(BOTH_LADDER_GETON_BTM),	//# Get on a ladder at the bottom
+	ENUM2STRING(BOTH_LADDER_GETOFF_BTM),//# Get off a ladder at the bottom
+	ENUM2STRING(BOTH_LADDER_GETON_TOP),	//# Get on a ladder at the top
+	ENUM2STRING(BOTH_LADDER_GETOFF_TOP),//# Get off a ladder at the top
 
 	//# #sep ENUM2STRING(BOTH_ FLYING IDLE
 	ENUM2STRING(BOTH_FLY_SHIELDED),		//# For sentry droid, shields in

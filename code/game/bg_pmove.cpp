@@ -173,7 +173,7 @@ const float	pm_flyaccelerate = 8.0f;
 const float	pm_friction = 6.0f;
 const float	pm_waterfriction = 1.0f;
 const float	pm_flightfriction = 3.0f;
-const float	pm_ladderfriction = 6.0f;
+const float	pm_ladderfriction = 10.0f;
 
 //const float	pm_frictionModifier	= 3.0f;	//Used for "careful" mode (when pressing use)
 const float pm_airDecelRate = 1.35f;	//Used for air decelleration away from current movement velocity
@@ -3454,10 +3454,6 @@ static void PM_LadderMove(void)
 
 		for (i = 0; i < 3; i++)
 			wishvel[i] = scale * pml.forward[i] * pm->cmd.forwardmove + scale * pml.right[i] * pm->cmd.rightmove * pm_ladderScale;
-
-		// Duck down ladders
-		if (pm->cmd.upmove < 0)
-			wishvel[2] += scale * pm->cmd.upmove;
 	}
 
 	//clamp velocity
@@ -8089,6 +8085,7 @@ void PM_SwimFloatAnim( void )
 PM_Footsteps
 ===============
 */
+void PM_SetAnimFrameLadder(gentity_t* gent, int startFrame, int endFrame, int currentFrame, int time, int flags, float animSpeed, qboolean torso, qboolean legs);
 static void PM_Footsteps( void )
 {
 	float		bobmove;
@@ -8173,61 +8170,85 @@ static void PM_Footsteps( void )
 	{//in air or submerged in water or in ladder
 		if (pm->ps->pm_flags & PMF_LADDER)
 		{
-			if (pm->ps->velocity[2])
+			int	anim;
+			float top, topGetOff, bottom, bottomGetOff;
+
+			//subtract 64 (player height) from the top of the trigger brush to get our real top value. 
+			//only need that extra height in the first place so the player hits it before 
+			//actually being on the ladder mesh.
+			top = pm_ladders->top - 64; //this will always be -64 no matter the ladder size
+			topGetOff = top / 4 * 3; //75% of top, so divide top by 4 then times by 3.
+			bottom = pm_ladders->bottom; //straight copy
+			bottomGetOff = bottom + 16; //this will always be +16 no matter the ladder size
+
+			if (pm->ps->velocity[2]/*pm->cmd.forwardmove > 0*/)
 			{
-				int	anim;				
-				float top, topGetOff, bottom, bottomGetOff;
-
-				//subtract 64 (player height) from the top of the trigger brush to get our real top value. 
-				//only need that extra height in the first place so the player hits it before 
-				//actually being on the ladder mesh.
-				top = pm_ladders->top - 64; //this will always be -64 no matter the ladder size
-				topGetOff = top / 4 * 3; //75% of top, so divide top by 4 then times by 3.
-				bottom = pm_ladders->bottom; //straight copy
-				bottomGetOff = bottom + 16; //this will always be +16 no matter the ladder size
-
-				if (pm->ps->velocity[2] > 0)
+				if (pm->ps->origin[2] == topGetOff)
 				{
-					if (pm->ps->origin[2] == topGetOff)
-					{
-						//approaching the top to get off
-						anim = BOTH_JUMP1; //BOTH_LADDER_GETOFF_TOP
-						Com_Printf("getting off at top\n");
-					}
-					else if (pm->ps->origin[2] == bottom)
-					{
-						//at the bottom to get on
-						anim = BOTH_WIND; //BOTH_LADDER_GETON_BTM
-						Com_Printf("getting on from bottom\n");
-					}
-					else
-						//going up
-						anim = BOTH_WALK1;  //BOTH_LADDER_UP
+					//approaching the top to get off
+					anim = BOTH_JUMP1; //BOTH_LADDER_GETOFF_TOP
+					Com_Printf("getting off at top\n");
+				}
+				else if (pm->ps->origin[2] == bottom)
+				{
+					//at the bottom to get on
+					anim = BOTH_LADDER_GETON_BTM;
+					Com_Printf("getting on from bottom\n");
+				}
+				else
+					//going up
+					anim = BOTH_LADDER_UP1;
+
+			}
+			else
+			{
+				if (pm->ps->origin[2] == bottomGetOff)
+				{
+					//approaching the bottom to get off
+					anim = BOTH_LADDER_GETOFF_BTM;
+					Com_Printf("getting off at bottom\n");
+				}
+				else if (pm->ps->origin[2] == top)
+				{
+					//at the top to get on
+					anim = BOTH_CROUCH1WALK; //BOTH_LADDER_GETON_TOP
+					Com_Printf("getting on from top\n");
 				}
 				else
 				{
-					if (pm->ps->origin[2] == bottomGetOff)
-					{
-						//approaching the bottom to get off
-						anim = BOTH_CROUCH1WALK; //BOTH_LADDER_GETOFF_BTM
-						Com_Printf("getting off at bottom\n");
-					}
-					else if (pm->ps->origin[2] == top)
-					{
-						//at the top to get on
-						anim = BOTH_CROUCH1WALK; //BOTH_LADDER_GETON_TOP
-						Com_Printf("getting on from top\n");
-					}
-					else
-						//going down
-						anim = BOTH_RUNBACK1;  //BOTH_LADDER_DOWN
+					//going down
+					anim = BOTH_LADDER_DWN1;
 				}
+			}		
 
-				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
-			}
-			else //on ladder, but not moving
+			//copy the anim value to torso & legs in the playerstate
+			pm->gent->client->ps.torsoAnim = pm->gent->client->ps.legsAnim = anim;
+
+			float currentFrame, junk2;
+			int	startFrame, endFrame, junk;
+			int	actualTime = (cg.time ? cg.time : level.time);
+
+			if (pm->cmd.forwardmove) //we're moving, so play normal
 			{
-				PM_SetAnim(pm, SETANIM_BOTH, BOTH_STAND1/*BOTH_LADDER_IDLE*/, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
+				//set the anims
+				PM_SetAnim(pm, SETANIM_TORSO, pm->gent->client->ps.torsoAnim, SETANIM_FLAG_NORMAL, 0);
+				PM_SetAnim(pm, SETANIM_LEGS, pm->gent->client->ps.legsAnim, SETANIM_FLAG_NORMAL, 0);
+
+				//set our anim timers
+				PM_SetTorsoAnimTimer(pm->gent, &pm->ps->torsoAnimTimer, 0);
+				PM_SetLegsAnimTimer(pm->gent, &pm->ps->legsAnimTimer, 0);
+			}
+			else //stopped on the ladder, so pause at the current anim frame
+			{
+				//grab the current anim's frame data
+				gi.G2API_GetBoneAnimIndex(&pm->gent->ghoul2[pm->gent->playerModel], pm->gent->lowerLumbarBone,
+					actualTime, &currentFrame, &startFrame, &endFrame, &junk, &junk2, NULL);
+
+				//customised PM_SetAnimFrame
+				PM_SetAnimFrameLadder(pm->gent, startFrame, endFrame, currentFrame, actualTime, BONE_ANIM_OVERRIDE_LOOP, 1.0f, qtrue, qtrue);
+				//set our anim timers to infinite time, until we move again
+				PM_SetTorsoAnimTimer(pm->gent, &pm->ps->torsoAnimTimer, actualTime);
+				PM_SetLegsAnimTimer(pm->gent, &pm->ps->legsAnimTimer, actualTime);
 			}
 
 			if (pm->ps->velocity[2])
@@ -10100,6 +10121,30 @@ void PM_SetAnimFrame( gentity_t *gent, int frame, qboolean torso, qboolean legs 
 	{
 		gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->rootBone,
 			frame, frame+1, BONE_ANIM_OVERRIDE_FREEZE|BONE_ANIM_BLEND, 1, actualTime, frame, 150 );
+	}
+}
+
+void PM_SetAnimFrameLadder(gentity_t* gent, int startFrame, int endFrame, int currentFrame, int time, int flags, float animSpeed, qboolean torso, qboolean legs)
+{
+	if (!gi.G2API_HaveWeGhoul2Models(gent->ghoul2))
+	{
+		return;
+	}
+
+	if (torso && gent->lowerLumbarBone != -1)//gent->upperLumbarBone
+	{
+		gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->lowerLumbarBone, //gent->upperLumbarBone
+			startFrame, endFrame, flags, animSpeed, time, currentFrame, 150);
+		if (gent->motionBone != -1)
+		{
+			gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->motionBone, //gent->upperLumbarBone
+				startFrame, endFrame, flags, animSpeed, time, currentFrame, 150);
+		}
+	}
+	if (legs && gent->rootBone != -1)
+	{
+		gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->rootBone,
+			startFrame, endFrame, flags, animSpeed, time, currentFrame, 150);
 	}
 }
 
