@@ -8171,84 +8171,83 @@ static void PM_Footsteps( void )
 		if (pm->ps->pm_flags & PMF_LADDER)
 		{
 			int	anim;
-			float top, topGetOff, bottom, bottomGetOff;
+			int playerPos, top, topGetOff, bottom, bottomGetOff;
+
+			//use int, cuz fuck decimals
+			top = floor(pm_ladders->top);
+			bottom = floor(pm_ladders->bottom);
+			playerPos = floor(pm->ps->origin[2]);
 
 			//subtract 64 (player height) from the top of the trigger brush to get our real top value. 
 			//only need that extra height in the first place so the player hits it before 
 			//actually being on the ladder mesh.
-			top = pm_ladders->top - 64; //this will always be -64 no matter the ladder size
+			top = top - 64; //this will always be -64 no matter the ladder size.
 			topGetOff = top / 4 * 3; //75% of top, so divide top by 4 then times by 3.
-			bottom = pm_ladders->bottom; //straight copy
-			bottomGetOff = bottom + 16; //this will always be +16 no matter the ladder size
+			bottom = bottom + 28; //+24 cuz player's origin Z is actually 24 at map Z 0. +4 for fudge incase not quite on ground plane.
+			bottomGetOff = bottom + 16; //this will always be +16 no matter the ladder size.
 
-			if (pm->ps->velocity[2]/*pm->cmd.forwardmove > 0*/)
+			if (pm->ps->velocity[2] > 0)
 			{
-				if (pm->ps->origin[2] == topGetOff)
+				if (playerPos >= topGetOff)
 				{
-					//approaching the top to get off
+					//approaching the top, get off
 					anim = BOTH_JUMP1; //BOTH_LADDER_GETOFF_TOP
-					Com_Printf("getting off at top\n");
+					Com_Printf("approaching the top, get off\n");
 				}
-				else if (pm->ps->origin[2] == bottom)
+				else if (playerPos <= bottom)
 				{
-					//at the bottom to get on
+					//at the bottom, get on
 					anim = BOTH_LADDER_GETON_BTM;
-					Com_Printf("getting on from bottom\n");
+					Com_Printf("at the bottom, get on\n");
 				}
 				else
 					//going up
 					anim = BOTH_LADDER_UP1;
-
 			}
 			else
 			{
-				if (pm->ps->origin[2] == bottomGetOff)
+				if (playerPos <= bottomGetOff)
 				{
-					//approaching the bottom to get off
+					//approaching the bottom, get off
 					anim = BOTH_LADDER_GETOFF_BTM;
-					Com_Printf("getting off at bottom\n");
+					Com_Printf("approaching the bottom, get off\n");
 				}
-				else if (pm->ps->origin[2] == top)
+				else if (playerPos >= top)
 				{
-					//at the top to get on
+					//at the top, get on
 					anim = BOTH_CROUCH1WALK; //BOTH_LADDER_GETON_TOP
-					Com_Printf("getting on from top\n");
+					Com_Printf("at the top, get on\n");
 				}
 				else
-				{
 					//going down
 					anim = BOTH_LADDER_DWN1;
-				}
-			}		
-
-			//copy the anim value to torso & legs in the playerstate
-			pm->gent->client->ps.torsoAnim = pm->gent->client->ps.legsAnim = anim;
-
-			float currentFrame, junk2;
-			int	startFrame, endFrame, junk;
-			int	actualTime = (cg.time ? cg.time : level.time);
-
-			if (pm->cmd.forwardmove) //we're moving, so play normal
+			}
+			
+			if (pm->cmd.forwardmove)
 			{
-				//set the anims
-				PM_SetAnim(pm, SETANIM_TORSO, pm->gent->client->ps.torsoAnim, SETANIM_FLAG_NORMAL, 0);
-				PM_SetAnim(pm, SETANIM_LEGS, pm->gent->client->ps.legsAnim, SETANIM_FLAG_NORMAL, 0);
+				//set the anim
+				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_NORMAL, 0);
 
 				//set our anim timers
-				PM_SetTorsoAnimTimer(pm->gent, &pm->ps->torsoAnimTimer, 0);
-				PM_SetLegsAnimTimer(pm->gent, &pm->ps->legsAnimTimer, 0);
+				PM_SetTorsoAnimTimer(pm->gent, &pm->gent->client->ps.torsoAnimTimer, 0);
+				PM_SetLegsAnimTimer(pm->gent, &pm->gent->client->ps.legsAnimTimer, 0);
 			}
-			else //stopped on the ladder, so pause at the current anim frame
+			else //stopped on the ladder, so pause at the current anim frame		
 			{
+				float currentFrame, junk2;
+				int	startFrame, endFrame, junk;
+				int	actualTime = (cg.time ? cg.time : level.time);
+
 				//grab the current anim's frame data
-				gi.G2API_GetBoneAnimIndex(&pm->gent->ghoul2[pm->gent->playerModel], pm->gent->lowerLumbarBone,
+				gi.G2API_GetBoneAnimIndex(&pm->gent->ghoul2[pm->gent->playerModel], pm->gent->rootBone,
 					actualTime, &currentFrame, &startFrame, &endFrame, &junk, &junk2, NULL);
 
 				//customised PM_SetAnimFrame
 				PM_SetAnimFrameLadder(pm->gent, startFrame, endFrame, currentFrame, actualTime, BONE_ANIM_OVERRIDE_LOOP, 1.0f, qtrue, qtrue);
-				//set our anim timers to infinite time, until we move again
-				PM_SetTorsoAnimTimer(pm->gent, &pm->ps->torsoAnimTimer, actualTime);
-				PM_SetLegsAnimTimer(pm->gent, &pm->ps->legsAnimTimer, actualTime);
+
+				//set our anim timers
+				PM_SetTorsoAnimTimer(pm->gent, &pm->gent->client->ps.torsoAnimTimer, -1);
+				PM_SetLegsAnimTimer(pm->gent, &pm->gent->client->ps.legsAnimTimer, -1);
 			}
 
 			if (pm->ps->velocity[2])
