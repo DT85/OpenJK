@@ -3425,7 +3425,7 @@ static void PM_LadderMove(void)
 	{
 		int i;
 		vec3_t forward;
-		VectorCopy(pm_ladders[pm_laddercount].fwd, forward);
+		VectorCopy(pm_ladders[pm->ps->ladder].fwd, forward);
 		VectorNormalize(forward);
 		VectorNormalize(pml.forward);
 
@@ -3456,7 +3456,6 @@ static void PM_LadderMove(void)
 			wishvel[i] = scale * pml.forward[i] * pm->cmd.forwardmove + scale * pml.right[i] * pm->cmd.rightmove * pm_ladderScale;
 	}
 
-	//clamp velocity
 	if (pm->ps->velocity[0] < 1 && pm->ps->velocity[0] > -1)
 		pm->ps->velocity[0] = 0;
 
@@ -3467,6 +3466,24 @@ static void PM_LadderMove(void)
 	wishspeed = VectorNormalize(wishdir);
 
 	PM_Accelerate(wishdir, wishspeed, accelerate);
+
+	if (wishvel[2] == 0.f)
+	{
+		if (pm->ps->velocity[2] > 0)
+		{
+			pm->ps->velocity[2] -= pm->ps->gravity * pml.frametime;
+			
+			if (pm->ps->velocity[2] < 0)
+				pm->ps->velocity[2] = 0;
+		}
+		else
+		{
+			pm->ps->velocity[2] += pm->ps->gravity * pml.frametime;
+			
+			if (pm->ps->velocity[2] > 0)
+				pm->ps->velocity[2] = 0;
+		}
+	}
 
 	PM_StepSlideMove(qfalse);
 }
@@ -8186,51 +8203,53 @@ static void PM_Footsteps( void )
 			bottom = bottom + 28; //+24 cuz player's origin Z is actually 24 at map Z 0. +4 for fudge incase not quite on ground plane.
 			bottomGetOff = bottom + 16; //this will always be +16 no matter the ladder size.
 
-			if (pm->ps->velocity[2] > 0)
+			//set our anim timers
+			PM_SetTorsoAnimTimer(pm->gent, &pm->gent->client->ps.torsoAnimTimer, 0);
+			PM_SetLegsAnimTimer(pm->gent, &pm->gent->client->ps.legsAnimTimer, 0);
+
+			if (pm->ps->velocity[2])
 			{
-				if (playerPos >= topGetOff)
+				if (pm->ps->velocity[2] > 0)
 				{
-					//approaching the top, get off
-					anim = BOTH_JUMP1; //BOTH_LADDER_GETOFF_TOP
-					Com_Printf("approaching the top, get off\n");
+					if (playerPos >= topGetOff)
+					{
+						//approaching the top, get off
+						anim = BOTH_LADDER_GETOFF_TOP;
+						Com_Printf("approaching the top, get off\n");
+					}
+					/*else if (playerPos <= bottom)
+					{
+						//at the bottom, get on
+						anim = BOTH_LADDER_GETON_BTM;
+						Com_Printf("at the bottom, get on\n");
+					}*/
+					else
+						//going up
+						anim = BOTH_LADDER_UP1;
 				}
-				else if (playerPos <= bottom)
+				else if (pm->ps->velocity[2] < 0)
 				{
-					//at the bottom, get on
-					anim = BOTH_LADDER_GETON_BTM;
-					Com_Printf("at the bottom, get on\n");
+					/*if (playerPos <= bottomGetOff)
+					{
+						//approaching the bottom, get off
+						anim = BOTH_LADDER_GETOFF_BTM;
+						Com_Printf("approaching the bottom, get off\n");
+					}
+					else */if (playerPos >= top)
+					{
+						//at the top, get on
+						anim = BOTH_LADDER_GETON_TOP;
+						Com_Printf("at the top, get on\n");
+					}
+					else
+						//going down
+						anim = BOTH_LADDER_DWN1;
 				}
 				else
-					//going up
-					anim = BOTH_LADDER_UP1;
-			}
-			else
-			{
-				if (playerPos <= bottomGetOff)
-				{
-					//approaching the bottom, get off
-					anim = BOTH_LADDER_GETOFF_BTM;
-					Com_Printf("approaching the bottom, get off\n");
-				}
-				else if (playerPos >= top)
-				{
-					//at the top, get on
-					anim = BOTH_CROUCH1WALK; //BOTH_LADDER_GETON_TOP
-					Com_Printf("at the top, get on\n");
-				}
-				else
-					//going down
-					anim = BOTH_LADDER_DWN1;
-			}
-			
-			if (pm->cmd.forwardmove)
-			{
+					anim = 0;
+
 				//set the anim
 				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_NORMAL, 0);
-
-				//set our anim timers
-				PM_SetTorsoAnimTimer(pm->gent, &pm->gent->client->ps.torsoAnimTimer, 0);
-				PM_SetLegsAnimTimer(pm->gent, &pm->gent->client->ps.legsAnimTimer, 0);
 			}
 			else //stopped on the ladder, so pause at the current anim frame		
 			{
