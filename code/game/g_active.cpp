@@ -2588,34 +2588,7 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 			ent->client->ps.velocity[2] = savZ;
 		}
 				
-		//get our ladder
-		//int ladder = PM_FindLadder(ent->currentOrigin);
-
-		//grab the current anim's frame data
-		float currentFrame, junk2;
-		int	startFrame, endFrame, junk;
-		int	actualTime = (cg.time ? cg.time : level.time);
-
-		gi.G2API_GetBoneAnimIndex(&ent->ghoul2[ent->playerModel], ent->rootBone,
-			actualTime, &currentFrame, &junk, &junk, &junk, &junk2, NULL);
-
-		int curFrame = floor(currentFrame);
-
-		//move the player away a bit from the ladder so we are no longer in the trigger_ladder
-		if /*(ent->client->ps.torsoAnim == BOTH_LADDER_GETOFF_BTM && ent->client->ps.groundEntityNum != ENTITYNUM_NONE)*/(curFrame == 9068) //9071
-		{
-			if (pm_ladders[ent->client->ps.ladder].fwd[1] == 0)
-				ent->client->ps.origin[0] = ent->client->ps.origin[0] - 20;
-			else if (pm_ladders[ent->client->ps.ladder].fwd[1] == 90)
-				ent->client->ps.origin[1] = ent->client->ps.origin[1] - 20;
-			else if (pm_ladders[ent->client->ps.ladder].fwd[1] == -90)
-				ent->client->ps.origin[1] = ent->client->ps.origin[1] + 20;
-			else if (pm_ladders[ent->client->ps.ladder].fwd[1] == 180)
-				ent->client->ps.origin[0] = ent->client->ps.origin[0] + 20;
-
-			Com_Printf("moving away from ladder\n");
-		}
-		else //set player angle lock based on ladder angle
+		//set player angle lock based on ladder angle
 		{			
 			if (pm_ladders[ent->client->ps.ladder].fwd[1] == 0)
 				ent->client->ps.origin[1] = pm_ladders[ent->client->ps.ladder].origin[1];
