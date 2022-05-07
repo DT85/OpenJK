@@ -377,7 +377,7 @@ typedef struct centity_s {
 	int				dl_oldframe;
 	float			dl_backlerp;
 	int				dl_time;
-	char			dl_stylestring[64];
+	char			dl_stylestring[MAX_LIGHT_STYLES];
 	int				dl_sound;
 	int				dl_atten;
 

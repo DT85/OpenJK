@@ -217,7 +217,7 @@ typedef struct spawn_s {
 	void		(*spawn)(gentity_t *ent);
 } spawn_t;
 
-void SP_dlight(gentity_t *ent);
+void SP_misc_dlight(gentity_t *ent);
 void SP_info_player_start (gentity_t *ent);
 void SP_info_player_duel( gentity_t *ent );
 void SP_info_player_duel1( gentity_t *ent );
@@ -498,7 +498,7 @@ void SP_gametype_item ( gentity_t* ent )
 void SP_emplaced_gun( gentity_t *ent );
 
 spawn_t	spawns[] = {
-	{ "dlight",								SP_dlight },
+	{ "misc_dlight",						SP_misc_dlight },
 	{ "emplaced_gun",						SP_emplaced_gun },
 	{ "func_bobbing",						SP_func_bobbing },
 	{ "func_breakable",						SP_func_breakable },
