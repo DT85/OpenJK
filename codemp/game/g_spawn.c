@@ -297,6 +297,7 @@ void SP_path_corner (gentity_t *self);
 void SP_misc_teleporter_dest (gentity_t *self);
 void SP_misc_model(gentity_t *ent);
 void SP_misc_model_static(gentity_t *ent);
+void SP_misc_dlight(gentity_t* ent);
 void SP_misc_model_breakable( gentity_t *ent ) ;
 void SP_misc_G2model(gentity_t *ent);
 void SP_misc_portal_camera(gentity_t *ent);
@@ -549,6 +550,7 @@ spawn_t	spawns[] = {
 	{ "misc_model_health_power_converter",	SP_misc_model_health_power_converter },
 	{ "misc_model_shield_power_converter",	SP_misc_model_shield_power_converter },
 	{ "misc_model_static",					SP_misc_model_static },
+	{ "misc_dlight",						SP_misc_dlight },
 	{ "misc_portal_camera",					SP_misc_portal_camera },
 	{ "misc_portal_surface",				SP_misc_portal_surface },
 	{ "misc_shield_floor_unit",				SP_misc_shield_floor_unit },

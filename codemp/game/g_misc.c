@@ -185,6 +185,49 @@ void SP_light( gentity_t *self ) {
 	misc_lightstyle_set (self);
 }
 
+/*QUAKED misc_dlight (1 0 0) (-10 -10 -10) (10 10 10)
+Dynamic light.
+
+"light" sets light's intensity, affects size. Default 100
+"color" sets the light's color. Default 1 1 1
+*/
+void SP_misc_dlight(gentity_t *ent)
+{
+	G_SetOrigin( ent, ent->s.origin );
+
+	// if the "color" or "light" keys are set, setup constantLight
+	float		light;
+	vec3_t		color;
+	qboolean	lightSet, colorSet;
+
+	lightSet = G_SpawnFloat("light", "100", &light);
+	colorSet = G_SpawnVector("color", "1 1 1", color);
+
+	if (lightSet || colorSet)
+	{
+		int		r, g, b, i;
+
+		r = color[0] * 255;
+		if (r > 255) {
+			r = 255;
+		}
+		g = color[1] * 255;
+		if (g > 255) {
+			g = 255;
+		}
+		b = color[2] * 255;
+		if (b > 255) {
+			b = 255;
+		}
+		i = light / 4;
+		if (i > 255) {
+			i = 255;
+		}
+		ent->s.constantLight = r | (g << 8) | (b << 16) | (i << 24);
+	}
+
+	trap->LinkEntity((sharedEntity_t*)ent);
+}
 
 /*
 =================================================================================
