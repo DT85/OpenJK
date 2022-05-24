@@ -289,6 +289,7 @@ void SP_target_play_music( gentity_t *self );
 void SP_target_push (gentity_t *ent);
 
 void SP_light (gentity_t *self);
+void SP_misc_spotlight (gentity_t* base);
 void SP_info_null (gentity_t *self);
 void SP_info_notnull (gentity_t *self);
 void SP_info_camp (gentity_t *self);
@@ -536,6 +537,7 @@ spawn_t	spawns[] = {
 	{ "info_siege_radaricon",				SP_info_siege_radaricon },
 	{ "item_botroam",						SP_item_botroam },
 	{ "light",								SP_light },
+	{ "misc_spotlight",						SP_misc_spotlight },
 	{ "misc_ammo_floor_unit",				SP_misc_ammo_floor_unit },
 	{ "misc_bsp",							SP_misc_bsp },
 	{ "misc_cubemap",						SP_misc_cubemap },

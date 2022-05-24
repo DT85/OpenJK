@@ -345,18 +345,38 @@ static void CG_EntityEffects( centity_t *cent ) {
 
 
 	// constant light glow
-	if ( cent->currentState.constantLight && cent->currentState.eType != ET_PLAYER && cent->currentState.eType != ET_BODY && cent->currentState.eType != ET_NPC && cent->currentState.eType != ET_INVISIBLE ) {
+	if (cent->currentState.constantLight && cent->currentState.eType != ET_PLAYER && cent->currentState.eType != ET_BODY && cent->currentState.eType != ET_NPC && cent->currentState.eType != ET_INVISIBLE) {
 		int		cl;
 		float	i, r, g, b;
 
-		cl = cent->currentState.constantLight;
-		r = (float) (cl & 0xFF) / 255.0;
-		g = (float) ((cl >> 8) & 0xFF) / 255.0;
-		b = (float) ((cl >> 16) & 0xFF) / 255.0;
-		i = (float) ((cl >> 24) & 0xFF) * 4.0;
-		trap->R_AddLightToScene( cent->lerpOrigin, i, r, g, b );
-	}
+		// misc_spotlight
+		if (cent->currentState.eFlags & EF_NOT_USED_1)
+		{
+			vec3_t	org, dir;
 
+			AngleVectors(cent->lerpAngles, dir, NULL, NULL);
+			VectorMA(cent->lerpOrigin, cent->currentState.g2radius - 30, dir, org); // stay a bit back from the impact point
+
+			cl = cent->currentState.constantLight;
+			r = (float)(cl & 0xFF) / 255.0;
+			g = (float)((cl >> 8) & 0xFF) / 255.0;
+			b = (float)((cl >> 16) & 0xFF) / 255.0;
+			i = (float)((cl >> 24) & 0xFF) * 4.0;
+
+			// only if we're turned on.
+			if (cent->currentState.hasLookTarget)
+				trap->R_AddLightToScene(org, i, r, g, b);
+		}
+		else
+		{
+			cl = cent->currentState.constantLight;
+			r = (float)(cl & 0xFF) / 255.0;
+			g = (float)((cl >> 8) & 0xFF) / 255.0;
+			b = (float)((cl >> 16) & 0xFF) / 255.0;
+			i = (float)((cl >> 24) & 0xFF) * 4.0;
+			trap->R_AddLightToScene(cent->lerpOrigin, i, r, g, b);
+		}
+	}
 }
 
 localEntity_t *FX_AddOrientedLine(vec3_t start, vec3_t end, vec3_t normal, float stScale, float scale,
