@@ -151,7 +151,7 @@ static void misc_lightstyle_set ( gentity_t *ent)
 	}
 }
 
-void misc_dlight_use ( gentity_t *ent, gentity_t *other, gentity_t *activator )
+void light_use ( gentity_t *ent, gentity_t *other, gentity_t *activator )
 {
 	G_ActivateBehavior(ent,BSET_USE);
 
@@ -172,7 +172,7 @@ void SP_light( gentity_t *self ) {
 	G_SetOrigin( self, self->s.origin );
 	trap->LinkEntity( (sharedEntity_t *)self );
 
-	self->use = misc_dlight_use;
+	self->use = light_use;
 
 	self->s.eType = ET_GENERAL;
 	self->alt_fire = qfalse;
@@ -185,8 +185,8 @@ void SP_light( gentity_t *self ) {
 	misc_lightstyle_set (self);
 }
 
-/*QUAKED misc_spotlight (1 0 0) (-10 -10 0) (10 10 10) START_OFF HEALTH USE_MODEL SOLID
-Search spotlight that must be targeted at a func_train or other entity. Can also be used as just a targeted light.
+/*QUAKED misc_dlight (1 0 0) (-10 -10 0) (10 10 10) START_OFF HEALTH USE_MODEL SOLID
+Dynamic light.
 
   START_OFF - Starts off.
   HEALTH - Enables health. Default = 300.
@@ -197,100 +197,52 @@ Search spotlight that must be targeted at a func_train or other entity. Can also
   "light" - Radius & intensity. Default 300
   "model" - Set the MD3 to use. Default = "models/map_objects/imp_mine/spotlight.md3"
   "targetname" - Toggles it on/off
-  "target" - What to point at
 */
-void misc_spotlight_think(gentity_t* ent)
+void misc_dlight_think(gentity_t* ent)
 {
-	vec3_t		dir, end;
-	trace_t		tr;
-
-	// dumb hack flag so that we can set the light position cgame side.
-	ent->s.eFlags |= EF_NOT_USED_1;
-
-	VectorSubtract(ent->enemy->r.currentOrigin, ent->r.currentOrigin, dir);
-	VectorNormalize(dir);
-	vectoangles(dir, ent->s.apos.trBase);
-	ent->s.apos.trType = TR_INTERPOLATE;
-
-	VectorMA(ent->r.currentOrigin, 2048, dir, end); // just pick some max trace distance
-	trap->Trace(&tr, ent->r.currentOrigin, vec3_origin, vec3_origin, end, ent->s.number, CONTENTS_SOLID, qfalse, 0, 0);
-
-	ent->s.g2radius = tr.fraction * 2048.0f;
-
+	ent->s.eFlags |= EF_DLIGHT;
 	ent->nextthink = level.time + 50;
 }
 
-void misc_spotlight_use(gentity_t* self, gentity_t* other, gentity_t* activator)
+void misc_dlight_use(gentity_t* self, gentity_t* other, gentity_t* activator)
 {
 	if (self->think == NULL)
 	{
 		// start thinking now, otherwise, we'll wait until we are used
-		self->think = misc_spotlight_think;
+		self->think = misc_dlight_think;
 		self->nextthink = level.time + FRAMETIME;
 	}
 	else
 	{
-		self->think = NULL;
-		self->s.eFlags &= ~EF_NOT_USED_1;
+		self->think = 0;
+		self->s.eFlags &= ~EF_DLIGHT;
 	}
 }
 
-void misc_spotlight_link(gentity_t* ent)
+void misc_dlight_link(gentity_t* ent)
 {
-	gentity_t* target = 0;
-
-	target = G_Find(target, FOFS(targetname), ent->target);
-
-	if (!target)
-	{
-		Com_Printf(S_COLOR_RED "ERROR: spotlight_link: bogus target %s\n", ent->target);
-		G_FreeEntity(ent);
-		return;
-	}
-
-	ent->enemy = target;
-
 	// Start Off?
 	if (ent->spawnflags & 1)
 	{
-		ent->think = NULL;
-		ent->s.eFlags &= ~EF_NOT_USED_1;
-
-		// tell cgame that we're off.
-		ent->s.hasLookTarget = qfalse;
+		ent->think = 0;
+		ent->s.eFlags &= ~EF_DLIGHT;
 	}
 	else
 	{
-		// tell cgame that we're on.
-		ent->s.hasLookTarget = qtrue;
-
 		// start thinking now, otherwise, we'll wait until we are used
-		ent->think = misc_spotlight_think;
+		ent->think = misc_dlight_think;
 		ent->nextthink = level.time + FRAMETIME;
 	}
 }
 
 //-----------------------------------------------------
-void SP_misc_spotlight(gentity_t* base)
+void SP_misc_dlight(gentity_t* base)
 //-----------------------------------------------------
 {
-	if (!base->target)
-	{
-		Com_Printf(S_COLOR_RED "ERROR: misc_spotlight must have a target\n");
-		G_FreeEntity(base);
-		return;
-	}
-
-	G_SetAngles(base, base->s.angles);
 	G_SetOrigin(base, base->s.origin);
 
 	if (base->spawnflags & 4)
-	{
-		if (base->model)
-			base->s.modelindex = G_ModelIndex(base->model);
-		else
-			base->s.modelindex = G_ModelIndex("models/map_objects/imp_mine/spotlight.md3");
-	}
+		base->s.modelindex = G_ModelIndex(base->model);
 
 	if (base->spawnflags & 2)
 		G_SpawnInt("health", "300", &base->health);
@@ -326,8 +278,162 @@ void SP_misc_spotlight(gentity_t* base)
 
 		if (i > 255)
 			i = 255;
+
+		base->s.toggleDlight = r | (g << 8) | (b << 16) | (i << 24);
+	}
+
+	// Block movement
+	if (base->spawnflags & 8)
+		base->r.contents = CONTENTS_SOLID | CONTENTS_OPAQUE | CONTENTS_BODY | CONTENTS_MONSTERCLIP | CONTENTS_BOTCLIP;//Was CONTENTS_SOLID, but only architecture should be this
+	else if (base->health)
+		//Can only be shot
+		base->r.contents = CONTENTS_SHOTCLIP;
+
+	base->use = misc_dlight_use;
+
+	// The thing we need to target may not have spawned yet, so try back in a bit
+	base->think = misc_dlight_link;
+	base->nextthink = level.time + 100;
+
+	trap->LinkEntity((sharedEntity_t*)base);
+}
+
+/*QUAKED misc_spotlight (1 0 0) (-10 -10 0) (10 10 10) START_OFF HEALTH USE_MODEL SOLID
+Search spotlight that must be targeted at a func_train or other entity. Can also be used as just a targeted light.
+
+  START_OFF - Starts off.
+  HEALTH - Enables health. Default = 300.
+  USE_MODEL - Enables model. Default off.
+  SOLID - Is solid.
+
+  "_color" - Red Green Blue color of the spotlight. Default 1 1 1
+  "light" - Radius & intensity. Default 300
+  "model" - Set the MD3 to use. Default = "models/map_objects/imp_mine/spotlight.md3"
+  "targetname" - Toggles it on/off
+  "target" - What to point at
+*/
+void misc_spotlight_think(gentity_t* ent)
+{
+	vec3_t		dir, end;
+	trace_t		tr;
+
+	// dumb hack flag so that we can set the light position cgame side.
+	ent->s.eFlags |= EF_SPOTLIGHT;
+
+	VectorSubtract(ent->enemy->r.currentOrigin, ent->r.currentOrigin, dir);
+	VectorNormalize(dir);
+	vectoangles(dir, ent->s.apos.trBase);
+	ent->s.apos.trType = TR_INTERPOLATE;
+
+	VectorMA(ent->r.currentOrigin, 2048, dir, end); // just pick some max trace distance
+	trap->Trace(&tr, ent->r.currentOrigin, vec3_origin, vec3_origin, end, ent->s.number, CONTENTS_SOLID, qfalse, 0, 0);
+
+	ent->s.g2radius = tr.fraction * 2048.0f;
+	ent->nextthink = level.time + 50;
+}
+
+void misc_spotlight_use(gentity_t* self, gentity_t* other, gentity_t* activator)
+{
+	if (self->think == NULL)
+	{
+		// start thinking now, otherwise, we'll wait until we are used
+		self->think = misc_spotlight_think;
+		self->nextthink = level.time + FRAMETIME;
+	}
+	else
+	{
+		self->think = 0;
+		self->s.eFlags &= ~EF_SPOTLIGHT;
+	}
+}
+
+void misc_spotlight_link(gentity_t* ent)
+{
+	gentity_t* target = 0;
+
+	target = G_Find(target, FOFS(targetname), ent->target);
+
+	if (!target)
+	{
+		Com_Printf(S_COLOR_RED "ERROR: misc_spotlight_link: bogus target %s\n", ent->target);
+		G_FreeEntity(ent);
+		return;
+	}
+
+	ent->enemy = target;
+
+	// Start Off?
+	if (ent->spawnflags & 1)
+	{
+		ent->think = 0;
+		ent->s.eFlags &= ~EF_SPOTLIGHT;
+	}
+	else
+	{
+		// start thinking now, otherwise, we'll wait until we are used
+		ent->think = misc_spotlight_think;
+		ent->nextthink = level.time + FRAMETIME;
+	}
+}
+
+//-----------------------------------------------------
+void SP_misc_spotlight(gentity_t* base)
+//-----------------------------------------------------
+{
+	if (!base->target)
+	{
+		Com_Printf(S_COLOR_RED "ERROR: misc_spotlight must have a target\n");
+		G_FreeEntity(base);
+		return;
+	}
+
+	G_SetAngles(base, base->s.angles);
+	G_SetOrigin(base, base->s.origin);
+
+	if (base->spawnflags & 4)
+	{
+		if (base->model)
+			base->s.modelindex = G_ModelIndex(base->model);
+		else
+			base->s.modelindex = G_ModelIndex("models/map_objects/imp_mine/spotlight.md3");
+	}
+
+	if (base->spawnflags & 2)
+		G_SpawnInt("health", "300", &base->health);
+
+	float	light;
+	vec3_t	color;
+	qboolean	lightSet, colorSet;
+
+	// if the "_color" or "light" keys are set, setup spotlight
+	lightSet = G_SpawnFloat("light", "300", &light);
+	colorSet = G_SpawnVector("_color", "1 1 1", color);
+
+	if (lightSet || colorSet)
+	{
+		int	r, g, b, i;
+
+		r = color[0] * 255;
+
+		if (r > 255)
+			r = 255;
+
+		g = color[1] * 255;
+
+		if (g > 255)
+			g = 255;
+
+		b = color[2] * 255;
+
+		if (b > 255)
+			b = 255;
+
+		i = light / 4;
+
+		if (i > 255)
+			i = 255;
 		
-		base->s.constantLight = r | (g << 8) | (b << 16) | (i << 24);
+		base->s.toggleDlight = r | (g << 8) | (b << 16) | (i << 24);
 	}
 
 	// Block movement

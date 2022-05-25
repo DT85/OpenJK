@@ -629,11 +629,11 @@ typedef enum {
 #define EF_ALT_FIRING			(1<<10)		// for alt-fires, mostly for lightning guns though
 #define	EF_JETPACK_ACTIVE		(1<<11)		//jetpack is activated
 
-#define EF_NOT_USED_1			(1<<12)		// not used
+#define EF_SPOTLIGHT			(1<<12)		// misc_spotlight
 
 #define	EF_TALK					(1<<13)		// draw a talk balloon
 #define	EF_CONNECTION			(1<<14)		// draw a connection trouble sprite
-#define	EF_NOT_USED_6			(1<<15)		// not used
+#define	EF_DLIGHT				(1<<15)		// dlight
 
 #define	EF_NOT_USED_2			(1<<16)		// not used
 #define	EF_NOT_USED_3			(1<<17)		// not used
