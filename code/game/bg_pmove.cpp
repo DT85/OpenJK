@@ -8119,7 +8119,7 @@ void PM_SwimFloatAnim( void )
 PM_Footsteps
 ===============
 */
-void PM_SetAnimFrame(gentity_t* gent, int frame, qboolean torso, qboolean legs);
+void PM_SetAnimFrameCustom(gentity_t* gent, int currentFrame, int time, int flags, float animSpeed, int blendTime, qboolean torso, qboolean legs);
 static void PM_Footsteps( void )
 {
 	float		bobmove;
@@ -8260,7 +8260,7 @@ static void PM_Footsteps( void )
 				}
 
 				//set the anim
-				PM_SetAnim(pm, SETANIM_BOTH, anim, /*SETANIM_FLAG_NORMAL*/SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
+				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
 
 				if (fabs(pm->ps->velocity[2]) > 5)
 				{
@@ -8272,28 +8272,17 @@ static void PM_Footsteps( void )
 					goto DoFootSteps;
 				}
 			}
-			/*else //stopped on the ladder, so pause at the current anim frame		
+			else //stopped on the ladder, so pause at the current anim frame		
 			{
 				float currentFrame, junk2;
-				int	junk;
+				int	startFrame, endFrame, junk;
+				int	actualTime = (cg.time ? cg.time : level.time);
 
 				//grab the current anim's frame data
 				gi.G2API_GetBoneAnimIndex(&pm->gent->ghoul2[pm->gent->playerModel], pm->gent->rootBone,
-					(cg.time ? cg.time : level.time), &currentFrame, &junk, &junk, &junk, &junk2, NULL);
+					actualTime, &currentFrame, &startFrame, &endFrame, &junk, &junk2, NULL);
 
-				int curFrame = floor(currentFrame);
-
-				PM_SetAnimFrame(pm->gent, curFrame, qtrue, qtrue);
-			}*/
-			else
-			{
-				PM_SetAnim(pm, SETANIM_LEGS, BOTH_LADDER_IDLE, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
-				pm->ps->legsAnimTimer += 300;
-				//if (pm->waterlevel >= 2)	//arms on ladder
-				{
-					PM_SetAnim(pm, SETANIM_TORSO, BOTH_LADDER_IDLE, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
-					pm->ps->torsoAnimTimer += 300;
-				}
+				PM_SetAnimFrameCustom(pm->gent, currentFrame, actualTime, BONE_ANIM_OVERRIDE_FREEZE, 1.0f, 0, qtrue, qtrue);
 			}
 			return;
 		}
@@ -10154,6 +10143,26 @@ void PM_SetAnimFrame( gentity_t *gent, int frame, qboolean torso, qboolean legs 
 		gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->rootBone,
 			frame, frame+1, BONE_ANIM_OVERRIDE_FREEZE|BONE_ANIM_BLEND, 1, actualTime, frame, 150 );
 	}
+}
+
+void PM_SetAnimFrameCustom( gentity_t* gent, int frame, int time, int flags, float animSpeed, int blendTime, qboolean torso, qboolean legs )
+{
+	if ( !gi.G2API_HaveWeGhoul2Models( gent->ghoul2 ) )
+		return;
+
+	if ( torso && gent->lowerLumbarBone != -1 )
+	{
+		gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->lowerLumbarBone,
+			frame, frame + 1, flags, animSpeed, time, frame, blendTime);
+
+		if ( gent->motionBone != -1 )
+			gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->motionBone,
+				frame, frame + 1, flags, animSpeed, time, frame, blendTime);
+	}
+
+	if ( legs && gent->rootBone != -1 )
+		gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->rootBone,
+			frame, frame + 1, flags, animSpeed, time, frame, blendTime);
 }
 
 int PM_SaberLockWinAnim( saberLockResult_t result, int breakType )
