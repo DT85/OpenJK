@@ -1340,23 +1340,23 @@ qboolean PM_AdjustAnglesForHeldByMonster( gentity_t *ent, gentity_t *monster, us
 
 qboolean PM_AdjustAnglesForLadderMove(gentity_t* ent, int ladder, usercmd_t* ucmd)
 {
-	vec3_t angles;
+	vec3_t newViewAngles;
 	
 	if (ucmd->forwardmove)
-		angles[PITCH] = -10;
+		newViewAngles[PITCH] = -10;
 	else
-		angles[PITCH] = 0;
+		newViewAngles[PITCH] = 0;
 
-	angles[YAW] = pm_ladders[ladder].fwd[1];
-	angles[ROLL] = 0;
+	newViewAngles[YAW] = pm_ladders[ladder].fwd[1];
+	newViewAngles[ROLL] = 0;
 
 	if (ent->client->ps.viewEntity <= 0 || ent->client->ps.viewEntity >= ENTITYNUM_WORLD)
 	{//don't clamp angles when looking through a viewEntity
-		SetClientViewAngle(ent, angles);
+		SetClientViewAngle( ent, newViewAngles );
 	}
 	
-	ucmd->angles[PITCH] = ANGLE2SHORT(angles[PITCH]) - ent->client->ps.delta_angles[PITCH];
-	ucmd->angles[YAW] = ANGLE2SHORT(angles[YAW]) - ent->client->ps.delta_angles[YAW];
+	ucmd->angles[PITCH] = ANGLE2SHORT( newViewAngles[PITCH]) - ent->client->ps.delta_angles[PITCH];
+	ucmd->angles[YAW] = ANGLE2SHORT( newViewAngles[YAW]) - ent->client->ps.delta_angles[YAW];
 
 	return qtrue;
 }

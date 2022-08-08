@@ -3244,7 +3244,7 @@ static void PM_WalkMove( void ) {
 	}
 
 	// clamp the speed lower if wading or walking on the bottom
-	if (pm->waterlevel && !(pm->watertype & CONTENTS_LADDER)) {
+	if (pm->waterlevel) {
 		float	waterScale;
 
 		waterScale = pm->waterlevel / 3.0;
@@ -3389,6 +3389,39 @@ int PM_FindLadder(vec3_t playerPos)
 	}
 
 	return result;
+}
+
+/*
+===================
+PM_LadderCheck
+===================
+*/
+qboolean PM_LadderCheck(vec3_t org)
+{
+	vec3_t point;
+	int contents;
+
+	point[0] = org[0];
+	point[1] = org[1];
+	point[2] = org[2] + DEFAULT_MINS_2 + 1;
+	contents = pm->pointcontents(point, pm->ps->clientNum);
+	
+	if (!(pm->ps->pm_flags & PMF_LADDER_JUMP) && (contents & CONTENTS_LADDER))
+	{
+		if (pm->ps->ladder == -1)
+			pm->ps->ladder = PM_FindLadder(org);
+
+		pm->ps->pm_flags |= PMF_LADDER;
+
+		return qtrue;
+	}
+	else
+	{
+		pm->ps->ladder = -1;
+		pm->ps->pm_flags &= ~PMF_LADDER;
+
+		return qfalse;
+	}
 }
 
 /*
@@ -5694,22 +5727,6 @@ static void PM_SetWaterLevelAtPoint( vec3_t org, int *waterlevel, int *watertype
 	point[1] = org[1];
 	point[2] = org[2] + DEFAULT_MINS_2 + 1;
 	cont = pm->pointcontents(point, pm->ps->clientNum);
-
-	// See if we are on a ladder too
-	if (!(pm->ps->pm_flags & PMF_LADDER_JUMP) && (cont & CONTENTS_LADDER))
-	{
-		if (pm->ps->ladder == -1)
-		{
-			pm->ps->ladder = PM_FindLadder(pm->ps->origin);
-		}
-
-		pm->ps->pm_flags |= PMF_LADDER;
-	}
-	else
-	{
-		pm->ps->ladder = -1;
-		pm->ps->pm_flags &= ~PMF_LADDER;
-	}
 
 	if (gi.totalMapContents() & (MASK_WATER))
 	{
@@ -8102,7 +8119,7 @@ void PM_SwimFloatAnim( void )
 PM_Footsteps
 ===============
 */
-void PM_SetAnimFrameLadder(gentity_t* gent, int startFrame, int endFrame, int currentFrame, int time, int flags, float animSpeed, qboolean torso, qboolean legs);
+void PM_SetAnimFrame(gentity_t* gent, int frame, qboolean torso, qboolean legs);
 static void PM_Footsteps( void )
 {
 	float		bobmove;
@@ -8187,7 +8204,7 @@ static void PM_Footsteps( void )
 	{//in air or submerged in water or in ladder
 		if (pm->ps->pm_flags & PMF_LADDER)
 		{
-			int	anim;
+			int	anim = 0;
 			int playerPos, top, topGetOff, bottom, bottomGetOff;
 
 			//use int, cuz fuck decimals
@@ -8202,10 +8219,6 @@ static void PM_Footsteps( void )
 			topGetOff = top / 4 * 3; //75% of top, so divide top by 4 then times by 3.
 			bottom = bottom + 28; //+24 cuz player's origin Z is actually 24 at map Z 0. +4 for fudge incase not quite on ground plane.
 			bottomGetOff = bottom + 16; //this will always be +16 no matter the ladder size.
-
-			//set our anim timers
-			PM_SetTorsoAnimTimer(pm->gent, &pm->gent->client->ps.torsoAnimTimer, 0);
-			PM_SetLegsAnimTimer(pm->gent, &pm->gent->client->ps.legsAnimTimer, 0);
 
 			if (pm->ps->velocity[2])
 			{
@@ -8227,7 +8240,7 @@ static void PM_Footsteps( void )
 						//going up
 						anim = BOTH_LADDER_UP1;
 				}
-				else if (pm->ps->velocity[2] < 0)
+				else
 				{
 					/*if (playerPos <= bottomGetOff)
 					{
@@ -8245,32 +8258,10 @@ static void PM_Footsteps( void )
 						//going down
 						anim = BOTH_LADDER_DWN1;
 				}
-				else
-					anim = 0;
 
 				//set the anim
-				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_NORMAL, 0);
-			}
-			else //stopped on the ladder, so pause at the current anim frame		
-			{
-				float currentFrame, junk2;
-				int	startFrame, endFrame, junk;
-				int	actualTime = (cg.time ? cg.time : level.time);
+				PM_SetAnim(pm, SETANIM_BOTH, anim, /*SETANIM_FLAG_NORMAL*/SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
 
-				//grab the current anim's frame data
-				gi.G2API_GetBoneAnimIndex(&pm->gent->ghoul2[pm->gent->playerModel], pm->gent->rootBone,
-					actualTime, &currentFrame, &startFrame, &endFrame, &junk, &junk2, NULL);
-
-				//customised PM_SetAnimFrame
-				PM_SetAnimFrameLadder(pm->gent, startFrame, endFrame, currentFrame, actualTime, BONE_ANIM_OVERRIDE_LOOP, 1.0f, qtrue, qtrue);
-
-				//set our anim timers
-				PM_SetTorsoAnimTimer(pm->gent, &pm->gent->client->ps.torsoAnimTimer, -1);
-				PM_SetLegsAnimTimer(pm->gent, &pm->gent->client->ps.legsAnimTimer, -1);
-			}
-
-			if (pm->ps->velocity[2])
-			{//going up or down it
 				if (fabs(pm->ps->velocity[2]) > 5)
 				{
 					bobmove = 0.005f * fabs(pm->ps->velocity[2]); // climbing bobs slow
@@ -8280,8 +8271,31 @@ static void PM_Footsteps( void )
 
 					goto DoFootSteps;
 				}
-				return;
 			}
+			/*else //stopped on the ladder, so pause at the current anim frame		
+			{
+				float currentFrame, junk2;
+				int	junk;
+
+				//grab the current anim's frame data
+				gi.G2API_GetBoneAnimIndex(&pm->gent->ghoul2[pm->gent->playerModel], pm->gent->rootBone,
+					(cg.time ? cg.time : level.time), &currentFrame, &junk, &junk, &junk, &junk2, NULL);
+
+				int curFrame = floor(currentFrame);
+
+				PM_SetAnimFrame(pm->gent, curFrame, qtrue, qtrue);
+			}*/
+			else
+			{
+				PM_SetAnim(pm, SETANIM_LEGS, BOTH_LADDER_IDLE, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
+				pm->ps->legsAnimTimer += 300;
+				//if (pm->waterlevel >= 2)	//arms on ladder
+				{
+					PM_SetAnim(pm, SETANIM_TORSO, BOTH_LADDER_IDLE, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD | SETANIM_FLAG_RESTART);
+					pm->ps->torsoAnimTimer += 300;
+				}
+			}
+			return;
 		}
 		else
 		{
@@ -10139,30 +10153,6 @@ void PM_SetAnimFrame( gentity_t *gent, int frame, qboolean torso, qboolean legs 
 	{
 		gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->rootBone,
 			frame, frame+1, BONE_ANIM_OVERRIDE_FREEZE|BONE_ANIM_BLEND, 1, actualTime, frame, 150 );
-	}
-}
-
-void PM_SetAnimFrameLadder(gentity_t* gent, int startFrame, int endFrame, int currentFrame, int time, int flags, float animSpeed, qboolean torso, qboolean legs)
-{
-	if (!gi.G2API_HaveWeGhoul2Models(gent->ghoul2))
-	{
-		return;
-	}
-
-	if (torso && gent->lowerLumbarBone != -1)//gent->upperLumbarBone
-	{
-		gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->lowerLumbarBone, //gent->upperLumbarBone
-			startFrame, endFrame, flags, animSpeed, time, currentFrame, 150);
-		if (gent->motionBone != -1)
-		{
-			gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->motionBone, //gent->upperLumbarBone
-				startFrame, endFrame, flags, animSpeed, time, currentFrame, 150);
-		}
-	}
-	if (legs && gent->rootBone != -1)
-	{
-		gi.G2API_SetBoneAnimIndex(&gent->ghoul2[gent->playerModel], gent->rootBone,
-			startFrame, endFrame, flags, animSpeed, time, currentFrame, 150);
 	}
 }
 
@@ -15140,7 +15130,8 @@ void Pmove( pmove_t *pmove )
 
 	PM_DropTimers();
 
-	if (pm->ps->pm_flags & PMF_LADDER)
+	//Check for a ladder
+	if (PM_LadderCheck(pm->ps->origin))
 	{
 		PM_LadderMove();
 	}

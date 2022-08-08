@@ -1317,7 +1317,7 @@ void SP_trigger_hurt( gentity_t *self )
 /*QUAKED trigger_ladder (.5 .5 .5) ?
 Indicates a ladder and its normal
 
-"angle"		angle that the player faces the ladder
+"angle"		yaw angle that the player faces the ladder
 */
 void SP_trigger_ladder(gentity_t* ent)
 {

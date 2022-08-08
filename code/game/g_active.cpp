@@ -2588,7 +2588,7 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 			ent->client->ps.velocity[2] = savZ;
 		}
 				
-		//set player angle lock based on ladder angle
+		//set the player origin & lock it to the center of ladder, based on the ladder angle from map ent
 		{			
 			if (pm_ladders[ent->client->ps.ladder].fwd[1] == 0)
 				ent->client->ps.origin[1] = pm_ladders[ent->client->ps.ladder].origin[1];
@@ -4463,7 +4463,7 @@ void	ClientAlterSpeed(gentity_t *ent, usercmd_t *ucmd, qboolean	controlledByPlay
 			if ( !(ucmd->buttons & BUTTON_USE) )
 			{//Not leaning
 				qboolean Flying = (qboolean)(ucmd->upmove && ent->client->moveType == MT_FLYSWIM);
-				qboolean Climbing = (qboolean)(ucmd->upmove && ent->watertype&CONTENTS_LADDER );
+				qboolean Climbing = (qboolean)(ucmd->upmove && client->ps.pm_flags & PMF_LADDER);
 
 				client->ps.friction = 6;
 
