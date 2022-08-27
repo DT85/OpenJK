@@ -162,13 +162,14 @@ pml_t		pml;
 const float	pm_stopspeed = 100.0f;
 const float	pm_duckScale = 0.50f;
 const float	pm_swimScale = 0.50f;
-const float	pm_ladderScale = 0.5f;
+const float	pm_ladderScale = 1.0f;
 
 const float	pm_vehicleaccelerate = 36.0f;
 const float	pm_accelerate = 12.0f;
 const float	pm_airaccelerate = 4.0f;
 const float	pm_wateraccelerate = 4.0f;
 const float	pm_flyaccelerate = 8.0f;
+const float	pm_ladderaccelerate = 12.0f;
 
 const float	pm_friction = 6.0f;
 const float	pm_waterfriction = 1.0f;
@@ -3443,7 +3444,7 @@ static void PM_LadderMove(void)
 	PM_Friction();
 
 	scale = PM_CmdScale(&pm->cmd);
-	accelerate = pm_accelerate;
+	accelerate = pm_ladderaccelerate;
 
 	//
 	// user intentions
@@ -3504,15 +3505,17 @@ static void PM_LadderMove(void)
 	{
 		if (pm->ps->velocity[2] > 0)
 		{
-			pm->ps->velocity[2] -= pm->ps->gravity * pml.frametime;
+			//pm->ps->velocity[2] -= pm->ps->gravity * pml.frametime;
+			pm->ps->velocity[2] = 50; //just make us move automatically
 			
 			if (pm->ps->velocity[2] < 0)
 				pm->ps->velocity[2] = 0;
 		}
 		else
 		{
-			pm->ps->velocity[2] += pm->ps->gravity * pml.frametime;
-			
+			//pm->ps->velocity[2] += pm->ps->gravity * pml.frametime;
+			pm->ps->velocity[2] = -50; //just make us move automatically
+
 			if (pm->ps->velocity[2] > 0)
 				pm->ps->velocity[2] = 0;
 		}
@@ -8208,8 +8211,8 @@ static void PM_Footsteps( void )
 			int playerPos, top, topGetOff, bottom, bottomGetOff;
 
 			//use int, cuz fuck decimals
-			top = floor(pm_ladders->top);
-			bottom = floor(pm_ladders->bottom);
+			top = floor(pm_ladders[pm->ps->ladder].top);
+			bottom = floor(pm_ladders[pm->ps->ladder].bottom);
 			playerPos = floor(pm->ps->origin[2]);
 
 			//subtract 64 (player height) from the top of the trigger brush to get our real top value. 
