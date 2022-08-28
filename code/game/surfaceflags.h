@@ -51,7 +51,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define CONTENTS_LIGHTSABER		(0x00040000u)	// ""
 #define CONTENTS_TELEPORTER		(0x00080000u)	// ""
 #define CONTENTS_ITEM			(0x00100000u)	// ""
-#define CONTENTS_UNUSED00200000	(0x00200000u)	//
+#define CONTENTS_LADDERTOP		(0x00200000u)	// press 'use' when in this to get on the ladder from the top
 #define CONTENTS_UNUSED00400000	(0x00400000u)	//
 #define CONTENTS_UNUSED00800000	(0x00800000u)	//
 #define CONTENTS_UNUSED01000000	(0x01000000u)	//

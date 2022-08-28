@@ -2451,103 +2451,103 @@ void G_FixMins( gentity_t *ent )
 	}//crap, stuck!
 }
 
-
-qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
+extern qboolean PM_FinishedCurrentLegsAnim(gentity_t* self);
+qboolean G_CheckClampUcmd(gentity_t* ent, usercmd_t* ucmd)
 {
 	qboolean overridAngles = qfalse;
 
-	if ( ent->client->NPC_class == CLASS_PROTOCOL
+	if (ent->client->NPC_class == CLASS_PROTOCOL
 		|| ent->client->NPC_class == CLASS_R2D2
 		|| ent->client->NPC_class == CLASS_R5D2
 		|| ent->client->NPC_class == CLASS_GONK
-		|| ent->client->NPC_class == CLASS_MOUSE )
+		|| ent->client->NPC_class == CLASS_MOUSE)
 	{//these droids *cannot* strafe (looks bad)
-		if ( ucmd->rightmove )
+		if (ucmd->rightmove)
 		{
 			//clear the strafe
 			ucmd->rightmove = 0;
 			//movedir is invalid now, but PM_WalkMove will rebuild it from the ucmds, with the appropriate speed
-			VectorClear( ent->client->ps.moveDir );
+			VectorClear(ent->client->ps.moveDir);
 		}
 	}
 
-	if ( ent->client->ps.pullAttackEntNum < ENTITYNUM_WORLD
-		&& ent->client->ps.pullAttackTime > level.time )
+	if (ent->client->ps.pullAttackEntNum < ENTITYNUM_WORLD
+		&& ent->client->ps.pullAttackTime > level.time)
 	{
-		return G_PullAttack( ent, ucmd );
+		return G_PullAttack(ent, ucmd);
 	}
 
-	if ( (ent->s.number < MAX_CLIENTS||G_ControlledByPlayer(ent))
+	if ((ent->s.number < MAX_CLIENTS || G_ControlledByPlayer(ent))
 		&& ent->s.weapon == WP_MELEE
-		&& ent->client->ps.torsoAnim == BOTH_KYLE_GRAB )
+		&& ent->client->ps.torsoAnim == BOTH_KYLE_GRAB)
 	{//see if we grabbed enemy
-		if ( ent->client->ps.torsoAnimTimer <= 200 )
+		if (ent->client->ps.torsoAnimTimer <= 200)
 		{//close to end of anim
-			if ( G_GrabClient( ent, ucmd ) )
+			if (G_GrabClient(ent, ucmd))
 			{//grabbed someone!
 			}
 			else
 			{//missed
-				NPC_SetAnim( ent, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
+				NPC_SetAnim(ent, SETANIM_BOTH, BOTH_KYLE_MISS, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
 				ent->client->ps.weaponTime = ent->client->ps.torsoAnimTimer;
 			}
 		}
 		ucmd->rightmove = ucmd->forwardmove = ucmd->upmove = 0;
 	}
 
-	if ( (!ent->s.number&&ent->aimDebounceTime>level.time)
-		|| (ent->client->ps.pm_time && (ent->client->ps.pm_flags&PMF_TIME_KNOCKBACK))
-		|| ent->forcePushTime > level.time )
+	if ((!ent->s.number && ent->aimDebounceTime > level.time)
+		|| (ent->client->ps.pm_time && (ent->client->ps.pm_flags & PMF_TIME_KNOCKBACK))
+		|| ent->forcePushTime > level.time)
 	{//being knocked back, can't do anything!
 		ucmd->buttons = 0;
 		ucmd->forwardmove = 0;
 		ucmd->rightmove = 0;
 		ucmd->upmove = 0;
-		if ( ent->NPC )
+		if (ent->NPC)
 		{
-			VectorClear( ent->client->ps.moveDir );
+			VectorClear(ent->client->ps.moveDir);
 		}
 	}
 
-	overridAngles = (PM_AdjustAnglesForKnockdown( ent, ucmd, qfalse )?qtrue:overridAngles);
-	if ( PM_GetupAnimNoMove( ent->client->ps.legsAnim ) )
+	overridAngles = (PM_AdjustAnglesForKnockdown(ent, ucmd, qfalse) ? qtrue : overridAngles);
+	if (PM_GetupAnimNoMove(ent->client->ps.legsAnim))
 	{
 		ucmd->forwardmove = ucmd->rightmove = 0;//ucmd->upmove = ?
 	}
 	//check saberlock
-	if ( ent->client->ps.saberLockTime > level.time )
+	if (ent->client->ps.saberLockTime > level.time)
 	{//in saberlock
 		ucmd->forwardmove = ucmd->rightmove = ucmd->upmove = 0;
-		if ( ent->client->ps.saberLockTime - level.time > SABER_LOCK_DELAYED_TIME )
+		if (ent->client->ps.saberLockTime - level.time > SABER_LOCK_DELAYED_TIME)
 		{//2 second delay before either can push
 			//FIXME: base on difficulty
 			ucmd->buttons = 0;
 		}
 		else
 		{
-			ucmd->buttons &= ~(ucmd->buttons&~BUTTON_ATTACK);
+			ucmd->buttons &= ~(ucmd->buttons & ~BUTTON_ATTACK);
 		}
-		overridAngles = (PM_AdjustAnglesForSaberLock( ent, ucmd )?qtrue:overridAngles);
-		if ( ent->NPC )
+		overridAngles = (PM_AdjustAnglesForSaberLock(ent, ucmd) ? qtrue : overridAngles);
+		if (ent->NPC)
 		{
-			VectorClear( ent->client->ps.moveDir );
+			VectorClear(ent->client->ps.moveDir);
 		}
 	}
 	//check force drain
-	if ( (ent->client->ps.forcePowersActive&(1<<FP_DRAIN)) )
+	if ((ent->client->ps.forcePowersActive & (1 << FP_DRAIN)))
 	{//draining
 		ucmd->forwardmove = ucmd->rightmove = ucmd->upmove = 0;
-		ucmd->buttons &= ~(BUTTON_ATTACK|BUTTON_ALT_ATTACK|BUTTON_FORCE_FOCUS);
-		if ( ent->NPC )
+		ucmd->buttons &= ~(BUTTON_ATTACK | BUTTON_ALT_ATTACK | BUTTON_FORCE_FOCUS);
+		if (ent->NPC)
 		{
-			VectorClear( ent->client->ps.moveDir );
+			VectorClear(ent->client->ps.moveDir);
 		}
 	}
 
-	if ( ent->client->ps.saberMove == LS_A_LUNGE )
+	if (ent->client->ps.saberMove == LS_A_LUNGE)
 	{//can't move during lunge
 		ucmd->rightmove = ucmd->upmove = 0;
-		if ( ent->client->ps.legsAnimTimer > 500 && (ent->s.number || !player_locked) )
+		if (ent->client->ps.legsAnimTimer > 500 && (ent->s.number || !player_locked))
 		{
 			ucmd->forwardmove = 127;
 		}
@@ -2555,25 +2555,54 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 		{
 			ucmd->forwardmove = 0;
 		}
-		if ( ent->NPC )
+		if (ent->NPC)
 		{//invalid now
-			VectorClear( ent->client->ps.moveDir );
+			VectorClear(ent->client->ps.moveDir);
 		}
 	}
 
-	if ( ent->client->ps.legsAnim == BOTH_FORCEWALLRUNFLIP_ALT
-		&& ent->client->ps.legsAnimTimer )
+	if (ent->client->ps.legsAnim == BOTH_FORCEWALLRUNFLIP_ALT
+		&& ent->client->ps.legsAnimTimer)
 	{
-		vec3_t vFwd, fwdAng = {0,ent->currentAngles[YAW],0};
-		AngleVectors( fwdAng, vFwd, NULL, NULL );
-		if ( ent->client->ps.groundEntityNum == ENTITYNUM_NONE )
+		vec3_t vFwd, fwdAng = { 0,ent->currentAngles[YAW],0 };
+		AngleVectors(fwdAng, vFwd, NULL, NULL);
+		if (ent->client->ps.groundEntityNum == ENTITYNUM_NONE)
 		{
 			float savZ = ent->client->ps.velocity[2];
-			VectorScale( vFwd, 100, ent->client->ps.velocity );
+			VectorScale(vFwd, 100, ent->client->ps.velocity);
 			ent->client->ps.velocity[2] = savZ;
 		}
 		ucmd->forwardmove = ucmd->rightmove = ucmd->upmove = 0;
-		overridAngles = (PM_AdjustAnglesForWallRunUpFlipAlt( ent, ucmd )?qtrue:overridAngles);
+		overridAngles = (PM_AdjustAnglesForWallRunUpFlipAlt(ent, ucmd) ? qtrue : overridAngles);
+	}
+
+	// platform at the top of the ladder
+	if (ent->client->ps.pm_flags2 & PMF2_LADDER_TOP && (ucmd->buttons & BUTTON_USE))
+	{
+		// find the nearest ladder
+		ent->client->ps.ladder = PM_FindLadder(ent->client->ps.origin);
+
+		int top = floor(pm_ladders[ent->client->ps.ladder].top);
+		int playerPosZ = floor(ent->client->ps.origin[2]);
+
+		// subtract 64 (player height) from the top of the trigger brush to get our real top value. 
+		// only need that extra height in the first place so the player hits the trigger before 
+		// actually being on the ladder mesh.
+		top = top - 64; //this will always be -64 no matter the ladder size.
+		int topGetOff = top / 4 * 3; //75% of top.
+		int topGetOn = top * 0.85; //85% of top.
+
+		// move player into the 'trigger_ladder' so we go down it without further input.
+		ent->client->ps.origin[2] = topGetOn;
+
+		if (pm_ladders[ent->client->ps.ladder].fwd[1] == 0)
+			ent->client->ps.origin[0] = pm_ladders[ent->client->ps.ladder].origin[0] - 5;
+		else if (pm_ladders[ent->client->ps.ladder].fwd[1] == 90)
+			ent->client->ps.origin[1] = pm_ladders[ent->client->ps.ladder].origin[1] - 5;
+		else if (pm_ladders[ent->client->ps.ladder].fwd[1] == -90)
+			ent->client->ps.origin[1] = pm_ladders[ent->client->ps.ladder].origin[1] + 5;
+		else if (pm_ladders[ent->client->ps.ladder].fwd[1] == 180)
+			ent->client->ps.origin[0] = pm_ladders[ent->client->ps.ladder].origin[0] + 5;
 	}
 
 	if ( ent->client->ps.pm_flags & PMF_LADDER )
@@ -2589,16 +2618,14 @@ qboolean G_CheckClampUcmd( gentity_t *ent, usercmd_t *ucmd )
 		}
 				
 		//set the player origin & lock it to the center of ladder, based on the ladder angle from map ent
-		{			
-			if (pm_ladders[ent->client->ps.ladder].fwd[1] == 0)
-				ent->client->ps.origin[1] = pm_ladders[ent->client->ps.ladder].origin[1];
-			else if (pm_ladders[ent->client->ps.ladder].fwd[1] == 90)
-				ent->client->ps.origin[0] = pm_ladders[ent->client->ps.ladder].origin[0];
-			else if (pm_ladders[ent->client->ps.ladder].fwd[1] == -90)
-				ent->client->ps.origin[0] = pm_ladders[ent->client->ps.ladder].origin[0];
-			else if (pm_ladders[ent->client->ps.ladder].fwd[1] == 180)
-				ent->client->ps.origin[1] = pm_ladders[ent->client->ps.ladder].origin[1];
-		}
+		if (pm_ladders[ent->client->ps.ladder].fwd[1] == 0)
+			ent->client->ps.origin[1] = pm_ladders[ent->client->ps.ladder].origin[1];
+		else if (pm_ladders[ent->client->ps.ladder].fwd[1] == 90)
+			ent->client->ps.origin[0] = pm_ladders[ent->client->ps.ladder].origin[0];
+		else if (pm_ladders[ent->client->ps.ladder].fwd[1] == -90)
+			ent->client->ps.origin[0] = pm_ladders[ent->client->ps.ladder].origin[0];
+		else if (pm_ladders[ent->client->ps.ladder].fwd[1] == 180)
+			ent->client->ps.origin[1] = pm_ladders[ent->client->ps.ladder].origin[1];
 
 		gi.linkentity(ent);
 

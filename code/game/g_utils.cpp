@@ -1638,6 +1638,9 @@ qboolean CanUseInfrontOf(gentity_t *ent)
 		return qfalse;
 	}
 
+	if (ent->client->ps.pm_flags2 & PMF2_LADDER_TOP)
+		return qtrue;
+
 	if (ent->client->ps.viewEntity != ent->s.number)
 	{
 		ent = &g_entities[ent->client->ps.viewEntity];

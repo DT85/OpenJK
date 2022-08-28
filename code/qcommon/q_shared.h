@@ -1581,6 +1581,7 @@ public:
 	int			pm_type;
 	int			bobCycle;			// for view bobbing and footstep generation
 	int			pm_flags;			// ducked, jump_held, etc
+	int			pm_flags2;			// ducked, jump_held, etc
 	int			pm_time;
 
 	vec3_t		origin;

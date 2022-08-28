@@ -108,6 +108,7 @@ typedef struct ladder_s
 	vec3_t	fwd;
 	float	top;
 	float	bottom;
+	qboolean	isTopPlatform;
 } ladder_t;
 
 // pmove->pm_flags
@@ -134,6 +135,8 @@ typedef struct ladder_s
 #define PMF_LADDER			(1<<20)//1,048,576	// On a ladder
 #define PMF_LADDER_JUMP		(1<<21)//2,097,152	// Jumped off a ladder
 #define	PMF_ALL_TIMES	(PMF_TIME_WATERJUMP|PMF_TIME_LAND|PMF_TIME_KNOCKBACK|PMF_TIME_NOFRICTION)
+
+#define PMF2_LADDER_TOP		(1<<0)
 
 #define	MAXTOUCH	32
 typedef struct gentity_s gentity_t;

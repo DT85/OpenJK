@@ -3406,7 +3406,7 @@ qboolean PM_LadderCheck(vec3_t org)
 	point[1] = org[1];
 	point[2] = org[2] + DEFAULT_MINS_2 + 1;
 	contents = pm->pointcontents(point, pm->ps->clientNum);
-	
+
 	if (!(pm->ps->pm_flags & PMF_LADDER_JUMP) && (contents & CONTENTS_LADDER))
 	{
 		if (pm->ps->ladder == -1)
@@ -3427,6 +3427,33 @@ qboolean PM_LadderCheck(vec3_t org)
 
 /*
 ===================
+PM_LadderTop
+===================
+*/
+void PM_LadderTop(void)
+{
+	vec3_t point;
+	int contents;
+
+	point[0] = pm->ps->origin[0];
+	point[1] = pm->ps->origin[1];
+	point[2] = pm->ps->origin[2] + DEFAULT_MINS_2 + 1;
+	contents = pm->pointcontents(point, pm->ps->clientNum);
+
+	// approaching the ladder at the top, play mount
+	if (contents & CONTENTS_LADDERTOP)
+	{
+		pm->ps->pm_flags2 |= PMF2_LADDER_TOP;
+
+		//if (pm->cmd.buttons & BUTTON_USE)
+		//	PM_SetAnim(pm, SETANIM_BOTH, BOTH_LADDER_GETON_TOP, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
+	}
+	else
+		pm->ps->pm_flags2 &= ~PMF2_LADDER_TOP;	
+}
+
+/*
+===================
 PM_LadderMove
 ===================
 */
@@ -3440,6 +3467,19 @@ static void PM_LadderMove(void)
 
 	if (PM_CheckJump())
 		return;
+
+	int top = floor(pm_ladders[pm->ps->ladder].top);
+	int playerPosZ = floor(pm->ps->origin[2]);
+
+	// subtract 64 (player height) from the top of the trigger brush to get our real top value. 
+	// only need that extra height in the first place so the player hits the trigger before 
+	// actually being on the ladder mesh.
+	top = top - 64; //this will always be -64 no matter the ladder size.
+	int topGetOff = top / 4 * 3; //75% of top.
+
+	// on the ladder & approaching the top, play dismount
+	if (playerPosZ == topGetOff && pm->ps->velocity[2] > 0)
+		PM_SetAnim(pm, SETANIM_BOTH, BOTH_LADDER_GETOFF_TOP, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
 
 	PM_Friction();
 
@@ -3522,6 +3562,9 @@ static void PM_LadderMove(void)
 	}
 
 	PM_StepSlideMove(qfalse);
+
+	// always point legs forward
+	pm->ps->movementDir = 0;
 }
 
 /*
@@ -8208,62 +8251,16 @@ static void PM_Footsteps( void )
 		if (pm->ps->pm_flags & PMF_LADDER)
 		{
 			int	anim = 0;
-			int playerPos, top, topGetOff, bottom, bottomGetOff;
-
-			//use int, cuz fuck decimals
-			top = floor(pm_ladders[pm->ps->ladder].top);
-			bottom = floor(pm_ladders[pm->ps->ladder].bottom);
-			playerPos = floor(pm->ps->origin[2]);
-
-			//subtract 64 (player height) from the top of the trigger brush to get our real top value. 
-			//only need that extra height in the first place so the player hits it before 
-			//actually being on the ladder mesh.
-			top = top - 64; //this will always be -64 no matter the ladder size.
-			topGetOff = top / 4 * 3; //75% of top, so divide top by 4 then times by 3.
-			bottom = bottom + 28; //+24 cuz player's origin Z is actually 24 at map Z 0. +4 for fudge incase not quite on ground plane.
-			bottomGetOff = bottom + 16; //this will always be +16 no matter the ladder size.
 
 			if (pm->ps->velocity[2])
 			{
-				if (pm->ps->velocity[2] > 0)
-				{
-					if (playerPos >= topGetOff)
-					{
-						//approaching the top, get off
-						anim = BOTH_LADDER_GETOFF_TOP;
-						Com_Printf("approaching the top, get off\n");
-					}
-					/*else if (playerPos <= bottom)
-					{
-						//at the bottom, get on
-						anim = BOTH_LADDER_GETON_BTM;
-						Com_Printf("at the bottom, get on\n");
-					}*/
-					else
-						//going up
-						anim = BOTH_LADDER_UP1;
-				}
-				else
-				{
-					/*if (playerPos <= bottomGetOff)
-					{
-						//approaching the bottom, get off
-						anim = BOTH_LADDER_GETOFF_BTM;
-						Com_Printf("approaching the bottom, get off\n");
-					}
-					else */if (playerPos >= top)
-					{
-						//at the top, get on
-						anim = BOTH_LADDER_GETON_TOP;
-						Com_Printf("at the top, get on\n");
-					}
-					else
-						//going down
-						anim = BOTH_LADDER_DWN1;
-				}
+				if (pm->ps->velocity[2] >= 0)
+					anim = BOTH_LADDER_UP1;
+				else if (pm->ps->velocity[2] < 0)
+					anim = BOTH_LADDER_DWN1;				
 
 				//set the anim
-				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
+				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_NORMAL, 0);
 
 				if (fabs(pm->ps->velocity[2]) > 5)
 				{
@@ -8274,18 +8271,6 @@ static void PM_Footsteps( void )
 
 					goto DoFootSteps;
 				}
-			}
-			else //stopped on the ladder, so pause at the current anim frame		
-			{
-				float currentFrame, junk2;
-				int	startFrame, endFrame, junk;
-				int	actualTime = (cg.time ? cg.time : level.time);
-
-				//grab the current anim's frame data
-				gi.G2API_GetBoneAnimIndex(&pm->gent->ghoul2[pm->gent->playerModel], pm->gent->rootBone,
-					actualTime, &currentFrame, &startFrame, &endFrame, &junk, &junk2, NULL);
-
-				PM_SetAnimFrameCustom(pm->gent, currentFrame, actualTime, BONE_ANIM_OVERRIDE_FREEZE, 1.0f, 0, qtrue, qtrue);
 			}
 			return;
 		}
@@ -15141,6 +15126,8 @@ void Pmove( pmove_t *pmove )
 	}
 
 	PM_DropTimers();
+
+	PM_LadderTop();
 
 	//Check for a ladder
 	if (PM_LadderCheck(pm->ps->origin))
