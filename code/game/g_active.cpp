@@ -2576,7 +2576,7 @@ qboolean G_CheckClampUcmd(gentity_t* ent, usercmd_t* ucmd)
 		overridAngles = (PM_AdjustAnglesForWallRunUpFlipAlt(ent, ucmd) ? qtrue : overridAngles);
 	}
 
-	// platform at the top of the ladder
+	// at the top of the ladder
 	if (ent->client->ps.pm_flags2 & PMF2_LADDER_TOP && (ucmd->buttons & BUTTON_USE))
 	{
 		// find the nearest ladder
@@ -2605,7 +2605,8 @@ qboolean G_CheckClampUcmd(gentity_t* ent, usercmd_t* ucmd)
 			ent->client->ps.origin[0] = pm_ladders[ent->client->ps.ladder].origin[0] + 5;
 	}
 
-	if ( ent->client->ps.pm_flags & PMF_LADDER )
+	// on the ladder
+	if ( ent->client->ps.pm_flags2 & PMF2_LADDER )
 	{
 		vec3_t vFwd, fwdAng = { 0,ent->currentAngles[YAW],0 };
 		AngleVectors(fwdAng, vFwd, NULL, NULL);
@@ -2616,7 +2617,7 @@ qboolean G_CheckClampUcmd(gentity_t* ent, usercmd_t* ucmd)
 			VectorScale(vFwd, 100, ent->client->ps.velocity);
 			ent->client->ps.velocity[2] = savZ;
 		}
-				
+
 		//set the player origin & lock it to the center of ladder, based on the ladder angle from map ent
 		if (pm_ladders[ent->client->ps.ladder].fwd[1] == 0)
 			ent->client->ps.origin[1] = pm_ladders[ent->client->ps.ladder].origin[1];
@@ -4490,7 +4491,7 @@ void	ClientAlterSpeed(gentity_t *ent, usercmd_t *ucmd, qboolean	controlledByPlay
 			if ( !(ucmd->buttons & BUTTON_USE) )
 			{//Not leaning
 				qboolean Flying = (qboolean)(ucmd->upmove && ent->client->moveType == MT_FLYSWIM);
-				qboolean Climbing = (qboolean)(ucmd->upmove && client->ps.pm_flags & PMF_LADDER);
+				qboolean Climbing = (qboolean)(ucmd->upmove && client->ps.pm_flags2 & PMF2_LADDER);
 
 				client->ps.friction = 6;
 

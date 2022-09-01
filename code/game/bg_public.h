@@ -108,7 +108,6 @@ typedef struct ladder_s
 	vec3_t	fwd;
 	float	top;
 	float	bottom;
-	qboolean	isTopPlatform;
 } ladder_t;
 
 // pmove->pm_flags
@@ -132,11 +131,11 @@ typedef struct ladder_s
 #define PMF_BUMPED			(1<<17)//131072	// Bumped into something
 #define PMF_FORCE_FOCUS_HELD	(1<<18)//262144	// Holding down the saberthrow/kick button
 #define PMF_FIX_MINS		(1<<19)//524288	// Mins raised for dual forward jump, fix them
-#define PMF_LADDER			(1<<20)//1,048,576	// On a ladder
-#define PMF_LADDER_JUMP		(1<<21)//2,097,152	// Jumped off a ladder
 #define	PMF_ALL_TIMES	(PMF_TIME_WATERJUMP|PMF_TIME_LAND|PMF_TIME_KNOCKBACK|PMF_TIME_NOFRICTION)
 
-#define PMF2_LADDER_TOP		(1<<0)
+#define PMF2_LADDER_TOP		(1<<0)//1	// entering a ladder at the top
+#define PMF2_LADDER			(1<<1)//2	// On a ladder
+#define PMF2_LADDER_JUMP	(1<<2)//4	// Jumped off a ladder
 
 #define	MAXTOUCH	32
 typedef struct gentity_s gentity_t;
@@ -762,7 +761,6 @@ typedef enum {
 							// by setting eType to ET_EVENTS + eventNum
 							// this avoids having to set eFlags and eventNum
 } entityType_t;
-
 
 void	PM_AddLadder(vec3_t absmin, vec3_t absmax, vec3_t forward);
 int		PM_FindLadder(vec3_t playerPos);

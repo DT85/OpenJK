@@ -110,7 +110,7 @@ void CG_ToggleBinoculars( void )
 			return;
 		}
 
-		if ( cg.snap->ps.viewEntity || ( cg_entities[cg.snap->ps.clientNum].currentState.eFlags & ( EF_LOCKED_TO_WEAPON | EF_IN_ATST )) || cg.snap->ps.pm_flags & PMF_LADDER )
+		if ( cg.snap->ps.viewEntity || ( cg_entities[cg.snap->ps.clientNum].currentState.eFlags & ( EF_LOCKED_TO_WEAPON | EF_IN_ATST )) || cg.snap->ps.pm_flags2 & PMF2_LADDER )
 		{
 			// can't zoom when you have a viewEntity or driving an atst or in an emplaced gun
 			return;
@@ -169,7 +169,7 @@ void CG_ToggleLAGoggles( void )
 			return;
 		}
 
-		if ( cg.snap->ps.viewEntity || ( cg_entities[cg.snap->ps.clientNum].currentState.eFlags & ( EF_LOCKED_TO_WEAPON | EF_IN_ATST )) || cg.snap->ps.pm_flags & PMF_LADDER)
+		if ( cg.snap->ps.viewEntity || ( cg_entities[cg.snap->ps.clientNum].currentState.eFlags & ( EF_LOCKED_TO_WEAPON | EF_IN_ATST )) || cg.snap->ps.pm_flags2 & PMF2_LADDER)
 		{
 			// can't zoom when you have a viewEntity or driving an atst or in an emplaced gun
 			return;

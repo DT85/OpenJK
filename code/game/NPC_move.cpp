@@ -788,7 +788,7 @@ qboolean NPC_MoveToGoal( qboolean tryStraight ) //FIXME: tryStraight not even us
 		return qtrue;
 	}
 
-	if ( NPC->client->ps.pm_flags & PMF_LADDER )
+	if ( NPC->client->ps.pm_flags2 & PMF2_LADDER )
 	{//Do we still want to do this?
 		vec3_t	dir;
 		VectorSubtract( NPCInfo->goalEntity->currentOrigin, NPC->currentOrigin, dir );

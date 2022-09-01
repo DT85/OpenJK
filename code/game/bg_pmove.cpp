@@ -714,7 +714,7 @@ static void PM_Friction( void ) {
 	}
 
 	// apply ladder friction
-	if (pm->ps->pm_flags & PMF_LADDER)
+	if (pm->ps->pm_flags2 & PMF2_LADDER)
 	{
 		if (!pml.groundPlane)
 		{
@@ -2432,10 +2432,11 @@ static qboolean PM_CheckJump( void )
 	if (pm->ps->ladder != -1)
 	{
 		vec3_t forward;
+
 		VectorCopy(pm_ladders[pm->ps->ladder].fwd, forward);
 		VectorNormalize(forward);
 		VectorMA(pm->ps->velocity, -50, forward, pm->ps->velocity);
-		pm->ps->pm_flags |= PMF_LADDER_JUMP;
+		pm->ps->pm_flags2 |= PMF2_LADDER_JUMP;
 
 		return qtrue;
 	}
@@ -3407,19 +3408,19 @@ qboolean PM_LadderCheck(vec3_t org)
 	point[2] = org[2] + DEFAULT_MINS_2 + 1;
 	contents = pm->pointcontents(point, pm->ps->clientNum);
 
-	if (!(pm->ps->pm_flags & PMF_LADDER_JUMP) && (contents & CONTENTS_LADDER))
+	if (!(pm->ps->pm_flags2 & PMF2_LADDER_JUMP) && (contents & CONTENTS_LADDER))
 	{
 		if (pm->ps->ladder == -1)
 			pm->ps->ladder = PM_FindLadder(org);
 
-		pm->ps->pm_flags |= PMF_LADDER;
+		pm->ps->pm_flags2 |= PMF2_LADDER;
 
 		return qtrue;
 	}
 	else
 	{
 		pm->ps->ladder = -1;
-		pm->ps->pm_flags &= ~PMF_LADDER;
+		pm->ps->pm_flags2 &= ~PMF2_LADDER;
 
 		return qfalse;
 	}
@@ -3440,7 +3441,7 @@ void PM_LadderTop(void)
 	point[2] = pm->ps->origin[2] + DEFAULT_MINS_2 + 1;
 	contents = pm->pointcontents(point, pm->ps->clientNum);
 
-	// approaching the ladder at the top, play mount
+	// at the top, play mount & set flag
 	if (contents & CONTENTS_LADDERTOP)
 	{
 		pm->ps->pm_flags2 |= PMF2_LADDER_TOP;
@@ -3458,7 +3459,7 @@ PM_LadderMove
 ===================
 */
 static void PM_LadderMove(void)
-{
+{	
 	float	wishspeed;
 	float	scale;
 	vec3_t	wishdir;
@@ -3547,7 +3548,7 @@ static void PM_LadderMove(void)
 		{
 			//pm->ps->velocity[2] -= pm->ps->gravity * pml.frametime;
 			pm->ps->velocity[2] = 50; //just make us move automatically
-			
+
 			if (pm->ps->velocity[2] < 0)
 				pm->ps->velocity[2] = 0;
 		}
@@ -6018,7 +6019,7 @@ static void PM_CheckDuck (void)
 		pm->ps->pm_flags |= PMF_DUCKED;
 		return;
 	}
-	if ( pm->cmd.upmove < 0 && !(pm->ps->pm_flags & PMF_LADDER))
+	if ( pm->cmd.upmove < 0 && !(pm->ps->pm_flags2 & PMF2_LADDER))
 	{	// trying to duck
 		pm->maxs[2] = crouchheight;
 		pm->ps->viewheight = crouchheight + STANDARD_VIEWHEIGHT_OFFSET;//CROUCH_VIEWHEIGHT;
@@ -8248,7 +8249,7 @@ static void PM_Footsteps( void )
 	if (pm->ps->groundEntityNum == ENTITYNUM_NONE
 		|| pm->ps->waterHeightLevel >= WHL_TORSO)
 	{//in air or submerged in water or in ladder
-		if (pm->ps->pm_flags & PMF_LADDER)
+		if (pm->ps->pm_flags2 & PMF2_LADDER)
 		{
 			int	anim = 0;
 
@@ -8260,7 +8261,7 @@ static void PM_Footsteps( void )
 					anim = BOTH_LADDER_DWN1;				
 
 				//set the anim
-				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_NORMAL, 0);
+				PM_SetAnim(pm, SETANIM_BOTH, anim, SETANIM_FLAG_NORMAL, 150);
 
 				if (fabs(pm->ps->velocity[2]) > 5)
 				{
@@ -8858,7 +8859,7 @@ DoFootSteps:
 	// if we just crossed a cycle boundary, play an apropriate footstep event
 	if ( ( ( old + 64 ) ^ ( pm->ps->bobCycle + 64 ) ) & 128 )
 	{
-		if ( pm->ps->pm_flags & PMF_LADDER )
+		if ( pm->ps->pm_flags2 & PMF2_LADDER )
 		{
 			if ( !pm->noFootsteps )
 			{
@@ -15219,7 +15220,7 @@ void Pmove( pmove_t *pmove )
 	{//on ground
 		pm->ps->forceJumpZStart = 0;
 		pm->ps->jumpZStart = 0;
-		pm->ps->pm_flags &= ~PMF_LADDER_JUMP;
+		pm->ps->pm_flags2 &= ~PMF2_LADDER_JUMP;
 		pm->ps->pm_flags &= ~PMF_JUMPING;
 		pm->ps->pm_flags &= ~PMF_TRIGGER_PUSHED;
 		pm->ps->pm_flags &= ~PMF_SLOW_MO_FALL;
