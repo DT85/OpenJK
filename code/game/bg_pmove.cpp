@@ -3441,13 +3441,13 @@ void PM_LadderTop(void)
 	point[2] = pm->ps->origin[2] + DEFAULT_MINS_2 + 1;
 	contents = pm->pointcontents(point, pm->ps->clientNum);
 
-	// at the top, play mount & set flag
 	if (contents & CONTENTS_LADDERTOP)
 	{
 		pm->ps->pm_flags2 |= PMF2_LADDER_TOP;
 
-		//if (pm->cmd.buttons & BUTTON_USE)
-		//	PM_SetAnim(pm, SETANIM_BOTH, BOTH_LADDER_GETON_TOP, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
+		// play the top mount anim if the 'use' button is pressed
+		if (pm->cmd.buttons & BUTTON_USE)
+			PM_SetAnim(pm, SETANIM_BOTH, BOTH_LADDER_GETON_TOP, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
 	}
 	else
 		pm->ps->pm_flags2 &= ~PMF2_LADDER_TOP;	
@@ -3471,14 +3471,9 @@ static void PM_LadderMove(void)
 
 	int top = floor(pm_ladders[pm->ps->ladder].top);
 	int playerPosZ = floor(pm->ps->origin[2]);
+	int topGetOff = top * 0.75; // 75% of ladder trigger top value.
 
-	// subtract 64 (player height) from the top of the trigger brush to get our real top value. 
-	// only need that extra height in the first place so the player hits the trigger before 
-	// actually being on the ladder mesh.
-	top = top - 64; //this will always be -64 no matter the ladder size.
-	int topGetOff = top / 4 * 3; //75% of top.
-
-	// on the ladder & approaching the top, play dismount
+	// approaching the top, play the top dismount anim
 	if (playerPosZ == topGetOff && pm->ps->velocity[2] > 0)
 		PM_SetAnim(pm, SETANIM_BOTH, BOTH_LADDER_GETOFF_TOP, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD, 0);
 
@@ -3546,16 +3541,18 @@ static void PM_LadderMove(void)
 	{
 		if (pm->ps->velocity[2] > 0)
 		{
+			// move the player automatically up the ladder
+			pm->ps->velocity[2] = 50;
 			//pm->ps->velocity[2] -= pm->ps->gravity * pml.frametime;
-			pm->ps->velocity[2] = 50; //just make us move automatically
 
 			if (pm->ps->velocity[2] < 0)
 				pm->ps->velocity[2] = 0;
 		}
 		else
 		{
+			// move the player automatically down the ladder
+			pm->ps->velocity[2] = -50;
 			//pm->ps->velocity[2] += pm->ps->gravity * pml.frametime;
-			pm->ps->velocity[2] = -50; //just make us move automatically
 
 			if (pm->ps->velocity[2] > 0)
 				pm->ps->velocity[2] = 0;

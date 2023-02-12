@@ -2576,25 +2576,23 @@ qboolean G_CheckClampUcmd(gentity_t* ent, usercmd_t* ucmd)
 		overridAngles = (PM_AdjustAnglesForWallRunUpFlipAlt(ent, ucmd) ? qtrue : overridAngles);
 	}
 
-	// at the top of the ladder
+	// at the top of the ladder to get on
 	if (ent->client->ps.pm_flags2 & PMF2_LADDER_TOP && (ucmd->buttons & BUTTON_USE))
 	{
 		// find the nearest ladder
 		ent->client->ps.ladder = PM_FindLadder(ent->client->ps.origin);
 
+		// move player into the ladder trigger map ent.
 		int top = floor(pm_ladders[ent->client->ps.ladder].top);
-		int playerPosZ = floor(ent->client->ps.origin[2]);
+		int topGetOn = top * 0.85; // 85% of ladder top value.
 
-		// subtract 64 (player height) from the top of the trigger brush to get our real top value. 
-		// only need that extra height in the first place so the player hits the trigger before 
-		// actually being on the ladder mesh.
-		top = top - 64; //this will always be -64 no matter the ladder size.
-		int topGetOff = top / 4 * 3; //75% of top.
-		int topGetOn = top * 0.85; //85% of top.
+		//if (ent->client->ps.torsoAnimTimer >= 100
+		//	&& PM_AnimLength(ent->client->clientInfo.animFileIndex, (animNumber_t)ent->client->ps.torsoAnim) - ent->client->ps.torsoAnimTimer >= 1450)
+		{
+			ent->client->ps.origin[2] = topGetOn;
+		}
 
-		// move player into the 'trigger_ladder' so we go down it without further input.
-		ent->client->ps.origin[2] = topGetOn;
-
+		// snap the player to the ladder. based on the ladder angle from map ent
 		if (pm_ladders[ent->client->ps.ladder].fwd[1] == 0)
 			ent->client->ps.origin[0] = pm_ladders[ent->client->ps.ladder].origin[0] - 5;
 		else if (pm_ladders[ent->client->ps.ladder].fwd[1] == 90)
@@ -2603,10 +2601,12 @@ qboolean G_CheckClampUcmd(gentity_t* ent, usercmd_t* ucmd)
 			ent->client->ps.origin[1] = pm_ladders[ent->client->ps.ladder].origin[1] + 5;
 		else if (pm_ladders[ent->client->ps.ladder].fwd[1] == 180)
 			ent->client->ps.origin[0] = pm_ladders[ent->client->ps.ladder].origin[0] + 5;
+
+		overridAngles = (PM_AdjustAnglesForLadderMove(ent, ent->client->ps.ladder, ucmd) ? qtrue : overridAngles);
 	}
 
 	// on the ladder
-	if ( ent->client->ps.pm_flags2 & PMF2_LADDER )
+	if (ent->client->ps.pm_flags2 & PMF2_LADDER)
 	{
 		vec3_t vFwd, fwdAng = { 0,ent->currentAngles[YAW],0 };
 		AngleVectors(fwdAng, vFwd, NULL, NULL);
@@ -2618,7 +2618,7 @@ qboolean G_CheckClampUcmd(gentity_t* ent, usercmd_t* ucmd)
 			ent->client->ps.velocity[2] = savZ;
 		}
 
-		//set the player origin & lock it to the center of ladder, based on the ladder angle from map ent
+		// snap the player to the ladder. based on the ladder angle from map ent
 		if (pm_ladders[ent->client->ps.ladder].fwd[1] == 0)
 			ent->client->ps.origin[1] = pm_ladders[ent->client->ps.ladder].origin[1];
 		else if (pm_ladders[ent->client->ps.ladder].fwd[1] == 90)
