@@ -3831,360 +3831,184 @@ R_LoadMDXM - load a Ghoul 2 Mesh file
 */
 
 /*
-
-Some information used in the creation of the JK2 - JKA bone remap table
-
-These are the old bones:
-Complete list of all 72 bones:
-
+This is table of all MBII bones (83 total), with JK2 bones (72 total) remapped:
 */
-
-int OldToNewRemapTable[72] = {
-0,// Bone 0:   "model_root":           Parent: ""  (index -1)
-1,// Bone 1:   "pelvis":               Parent: "model_root"  (index 0)
-2,// Bone 2:   "Motion":               Parent: "pelvis"  (index 1)
-3,// Bone 3:   "lfemurYZ":             Parent: "pelvis"  (index 1)
-4,// Bone 4:   "lfemurX":              Parent: "pelvis"  (index 1)
-5,// Bone 5:   "ltibia":               Parent: "pelvis"  (index 1)
-6,// Bone 6:   "ltalus":               Parent: "pelvis"  (index 1)
-6,// Bone 7:   "ltarsal":              Parent: "pelvis"  (index 1)
-7,// Bone 8:   "rfemurYZ":             Parent: "pelvis"  (index 1)
-8,// Bone 9:   "rfemurX":	            Parent: "pelvis"  (index 1)
-9,// Bone10:   "rtibia":	            Parent: "pelvis"  (index 1)
-10,// Bone11:   "rtalus":	            Parent: "pelvis"  (index 1)
-10,// Bone12:   "rtarsal":              Parent: "pelvis"  (index 1)
-11,// Bone13:   "lower_lumbar":         Parent: "pelvis"  (index 1)
-12,// Bone14:   "upper_lumbar":	        Parent: "lower_lumbar"  (index 13)
-13,// Bone15:   "thoracic":	            Parent: "upper_lumbar"  (index 14)
-14,// Bone16:   "cervical":	            Parent: "thoracic"  (index 15)
-15,// Bone17:   "cranium":              Parent: "cervical"  (index 16)
-16,// Bone18:   "ceyebrow":	            Parent: "face_always_"  (index 71)
-17,// Bone19:   "jaw":                  Parent: "face_always_"  (index 71)
-18,// Bone20:   "lblip2":	            Parent: "face_always_"  (index 71)
-19,// Bone21:   "leye":		            Parent: "face_always_"  (index 71)
-20,// Bone22:   "rblip2":	            Parent: "face_always_"  (index 71)
-21,// Bone23:   "ltlip2":               Parent: "face_always_"  (index 71)
-22,// Bone24:   "rtlip2":	            Parent: "face_always_"  (index 71)
-23,// Bone25:   "reye":		            Parent: "face_always_"  (index 71)
-24,// Bone26:   "rclavical":            Parent: "thoracic"  (index 15)
-25,// Bone27:   "rhumerus":             Parent: "thoracic"  (index 15)
-26,// Bone28:   "rhumerusX":            Parent: "thoracic"  (index 15)
-27,// Bone29:   "rradius":              Parent: "thoracic"  (index 15)
-28,// Bone30:   "rradiusX":             Parent: "thoracic"  (index 15)
-29,// Bone31:   "rhand":                Parent: "thoracic"  (index 15)
-29,// Bone32:   "mc7":                  Parent: "thoracic"  (index 15)
-34,// Bone33:   "r_d5_j1":              Parent: "thoracic"  (index 15)
-35,// Bone34:   "r_d5_j2":              Parent: "thoracic"  (index 15)
-35,// Bone35:   "r_d5_j3":              Parent: "thoracic"  (index 15)
-30,// Bone36:   "r_d1_j1":              Parent: "thoracic"  (index 15)
-31,// Bone37:   "r_d1_j2":              Parent: "thoracic"  (index 15)
-31,// Bone38:   "r_d1_j3":              Parent: "thoracic"  (index 15)
-32,// Bone39:   "r_d2_j1":              Parent: "thoracic"  (index 15)
-33,// Bone40:   "r_d2_j2":              Parent: "thoracic"  (index 15)
-33,// Bone41:   "r_d2_j3":              Parent: "thoracic"  (index 15)
-32,// Bone42:   "r_d3_j1":			    Parent: "thoracic"  (index 15)
-33,// Bone43:   "r_d3_j2":		        Parent: "thoracic"  (index 15)
-33,// Bone44:   "r_d3_j3":              Parent: "thoracic"  (index 15)
-34,// Bone45:   "r_d4_j1":              Parent: "thoracic"  (index 15)
-35,// Bone46:   "r_d4_j2":	            Parent: "thoracic"  (index 15)
-35,// Bone47:   "r_d4_j3":		        Parent: "thoracic"  (index 15)
-36,// Bone48:   "rhang_tag_bone":	    Parent: "thoracic"  (index 15)
-37,// Bone49:   "lclavical":            Parent: "thoracic"  (index 15)
-38,// Bone50:   "lhumerus":	            Parent: "thoracic"  (index 15)
-39,// Bone51:   "lhumerusX":	        Parent: "thoracic"  (index 15)
-40,// Bone52:   "lradius":	            Parent: "thoracic"  (index 15)
-41,// Bone53:   "lradiusX":	            Parent: "thoracic"  (index 15)
-42,// Bone54:   "lhand":	            Parent: "thoracic"  (index 15)
-42,// Bone55:   "mc5":		            Parent: "thoracic"  (index 15)
-43,// Bone56:   "l_d5_j1":	            Parent: "thoracic"  (index 15)
-44,// Bone57:   "l_d5_j2":	            Parent: "thoracic"  (index 15)
-44,// Bone58:   "l_d5_j3":	            Parent: "thoracic"  (index 15)
-43,// Bone59:   "l_d4_j1":	            Parent: "thoracic"  (index 15)
-44,// Bone60:   "l_d4_j2":	            Parent: "thoracic"  (index 15)
-44,// Bone61:   "l_d4_j3":	            Parent: "thoracic"  (index 15)
-45,// Bone62:   "l_d3_j1":	            Parent: "thoracic"  (index 15)
-46,// Bone63:   "l_d3_j2":	            Parent: "thoracic"  (index 15)
-46,// Bone64:   "l_d3_j3":	            Parent: "thoracic"  (index 15)
-45,// Bone65:   "l_d2_j1":	            Parent: "thoracic"  (index 15)
-46,// Bone66:   "l_d2_j2":	            Parent: "thoracic"  (index 15)
-46,// Bone67:   "l_d2_j3":	            Parent: "thoracic"  (index 15)
-47,// Bone68:   "l_d1_j1":				Parent: "thoracic"  (index 15)
-48,// Bone69:   "l_d1_j2":	            Parent: "thoracic"  (index 15)
-48,// Bone70:   "l_d1_j3":				Parent: "thoracic"  (index 15)
-52// Bone71:   "face_always_":			Parent: "cranium"  (index 17)
+int JK2ToMBIIRemapTable[72] = {
+0,// MBII Bone: "model_root"		JK2 Bone: 0 "model_root"
+1,// MBII Bone: "pelvis"			JK2 Bone: 1 "pelvis"
+2,// MBII Bone: "Motion"			JK2 Bone: 2 "Motion"
+3,// MBII Bone: "lfemurYZ"			JK2 Bone: 3 "lfemurYZ"
+4,// MBII Bone: "lfemurX"			JK2 Bone: 4 "lfemurX"
+5,// MBII Bone: "ltibia"			JK2 Bone: 5 "ltibia"
+6,// MBII Bone: "ltalus"			JK2 Bone: 6 "ltalus"
+7,// MBII Bone: "ltarsal"			JK2 Bone: 7 "ltarsal"
+8,// MBII Bone: "rfemurYZ"			JK2 Bone: 8 "rfemurYZ"
+9,// MBII Bone: "rfemurX"			JK2 Bone: 9 "rfemurX"
+10,// MBII Bone: "rtibia"			JK2 Bone: 10 "rtibia"
+11,// MBII Bone: "rtalus"			JK2 Bone: 11 "rtalus"
+12,// MBII Bone: "rtarsal" 			JK2 Bone: 12 "rtarsal"
+13,// MBII Bone: "lower_lumbar"		JK2 Bone: 13 "lower_lumbar"
+14,// MBII Bone: "upper_lumbar"		JK2 Bone: 14 "upper_lumbar"
+15,// MBII Bone: "thoracic"			JK2 Bone: 15 "thoracic"
+16,// MBII Bone: "cervical"			JK2 Bone: 16 "cervical"
+17,// MBII Bone: "cranium"			JK2 Bone: 17 "cranium"
+18,// MBII Bone: "ceyebrow"			JK2 Bone: 18 "ceyebrow"
+19,// MBII Bone: "jaw"				JK2 Bone: 19 "jaw"
+//20,// MBII Bone: "lblip1"
+21,// MBII Bone: "lblip2"			JK2 Bone: 20 "lblip2"
+//22,// MBII Bone: "lbeyelid"
+//23,// MBII Bone: "leyebrow2" 
+24,// MBII Bone: "leye"				JK2 Bone: 21 "leye"
+//25,// MBII Bone: "lteyelid"
+//26,// MBII Bone: "rblip1"
+27,// MBII Bone: "rblip2"			JK2 Bone: 22 "rblip2"
+//28,// MBII Bone: "ltlip1"
+29,// MBII Bone: "ltlip2"			JK2 Bone: 23 "ltlip2"
+//30,// MBII Bone: "rtlip1"
+31,// MBII Bone: "rtlip2"			JK2 Bone: 24 "rtlip2"
+//32,// MBII Bone: "rbeyelid"
+33,// MBII Bone: "reye"				JK2 Bone: 25 "reye"
+//34,// MBII Bone: "reyebrow2"
+//35,// MBII Bone: "rteyelid"
+36,// MBII Bone: "rclavical"		JK2 Bone: 26 "rclavical"
+37,// MBII Bone: "rhumerus"			JK2 Bone: 27 "rhumerus"
+38,// MBII Bone: "rhumerusX"		JK2 Bone: 28 "rhumerusX"
+39,// MBII Bone: "rradius"			JK2 Bone: 29 "rradius"
+40,// MBII Bone: "rradiusX"			JK2 Bone: 30 "rradiusX"
+41,// MBII Bone: "rhand"			JK2 Bone: 31 "rhand"
+41,// MBII Bone: "rhand"			JK2 Bone: 32 "mc7"
+42,// MBII Bone: "r_d5_j1"  		JK2 Bone: 33 "r_d5_j1"
+43,// MBII Bone: "r_d5_j2"  		JK2 Bone: 34 "r_d5_j2"
+44,// MBII Bone: "r_d5_j3" 			JK2 Bone: 35 "r_d5_j3"
+45,// MBII Bone: "r_d1_j1"			JK2 Bone: 36 "r_d1_j1"
+46,// MBII Bone: "r_d1_j2"			JK2 Bone: 37 "r_d1_j2"
+47,// MBII Bone: "r_d1_j3"  		JK2 Bone: 38 "r_d1_j3"
+48,// MBII Bone: "r_d2_j1"			JK2 Bone: 39 "r_d2_j1"
+49,// MBII Bone: "r_d2_j2"			JK2 Bone: 40 "r_d2_j2"
+50,// MBII Bone: "r_d2_j3" 			JK2 Bone: 41 "r_d2_j3"
+51,// MBII Bone: "r_d3_j1"  		JK2 Bone: 42 "r_d3_j1"
+52,// MBII Bone: "r_d3_j2"  		JK2 Bone: 43 "r_d3_j2"
+53,// MBII Bone: "r_d3_j3"  		JK2 Bone: 44 "r_d3_j3"
+54,// MBII Bone: "r_d4_j1"			JK2 Bone: 45 "r_d4_j1"
+55,// MBII Bone: "r_d4_j2"			JK2 Bone: 46 "r_d4_j2"
+56,// MBII Bone: "r_d4_j3" 			JK2 Bone: 47 "r_d4_j3"
+57,// MBII Bone: "rhang_tag_bone"	JK2 Bone: 48 "rhang_tag_bone"
+58,// MBII Bone: "lclavical"		JK2 Bone: 49 "lclavical"
+59,// MBII Bone: "lhumerus"			JK2 Bone: 50 "lhumerus"
+60,// MBII Bone: "lhumerusX"		JK2 Bone: 51 "lhumerusX"
+61,// MBII Bone: "lradius"			JK2 Bone: 52 "lradius"
+62,// MBII Bone: "lradiusX"			JK2 Bone: 53 "lradiusX"
+63,// MBII Bone: "lhand"			JK2 Bone: 54 "lhand"
+63,// MBII Bone: "lhand"			JK2 Bone: 55 "mc5"
+64,// MBII Bone: "l_d5_j1" 			JK2 Bone: 56 "l_d5_j1"
+65,// MBII Bone: "l_d5_j2" 			JK2 Bone: 57 "l_d5_j2"
+66,// MBII Bone: "l_d5_j3" 			JK2 Bone: 58 "l_d5_j3"
+67,// MBII Bone: "l_d4_j1"			JK2 Bone: 59 "l_d4_j1"
+68,// MBII Bone: "l_d4_j2"			JK2 Bone: 60 "l_d4_j2"
+69,// MBII Bone: "l_d4_j3" 			JK2 Bone: 61 "l_d4_j3"
+70,// MBII Bone: "l_d3_j1"			JK2 Bone: 62 "l_d3_j1" 
+71,// MBII Bone: "l_d3_j2" 			JK2 Bone: 63 "l_d3_j2"
+72,// MBII Bone: "l_d3_j3" 			JK2 Bone: 64 "l_d3_j3"
+73,// MBII Bone: "l_d2_j1"			JK2 Bone: 65 "l_d2_j1"
+74,// MBII Bone: "l_d2_j2"			JK2 Bone: 66 "l_d2_j2"
+75,// MBII Bone: "l_d2_j3" 			JK2 Bone: 67 "l_d2_j3"
+76,// MBII Bone: "l_d1_j1"			JK2 Bone: 68 "l_d1_j1"
+77,// MBII Bone: "l_d1_j2"			JK2 Bone: 69 "l_d1_j2"
+78,// MBII Bone: "l_d1_j3" 			JK2 Bone: 70 "l_d1_j3"
+//79,// MBII Bone: "ltail"
+//80,// MBII Bone: "rtail"
+//81,// MBII Bone: "lhang_tag_bone"
+82,// MBII Bone: "face_always_"		JK2 Bone: 71 "face_always_"
 };
 
-
 /*
-
-Bone   0:   "model_root":
-            Parent: ""  (index -1)
-            #Kids:  1
-            Child 0: (index 1), name "pelvis"
-
-Bone   1:   "pelvis":
-            Parent: "model_root"  (index 0)
-            #Kids:  4
-            Child 0: (index 2), name "Motion"
-            Child 1: (index 3), name "lfemurYZ"
-            Child 2: (index 7), name "rfemurYZ"
-            Child 3: (index 11), name "lower_lumbar"
-
-Bone   2:   "Motion":
-            Parent: "pelvis"  (index 1)
-            #Kids:  0
-
-Bone   3:   "lfemurYZ":
-            Parent: "pelvis"  (index 1)
-            #Kids:  3
-            Child 0: (index 4), name "lfemurX"
-            Child 1: (index 5), name "ltibia"
-            Child 2: (index 49), name "ltail"
-
-Bone   4:   "lfemurX":
-            Parent: "lfemurYZ"  (index 3)
-            #Kids:  0
-
-Bone   5:   "ltibia":
-            Parent: "lfemurYZ"  (index 3)
-            #Kids:  1
-            Child 0: (index 6), name "ltalus"
-
-Bone   6:   "ltalus":
-            Parent: "ltibia"  (index 5)
-            #Kids:  0
-
-Bone   7:   "rfemurYZ":
-            Parent: "pelvis"  (index 1)
-            #Kids:  3
-            Child 0: (index 8), name "rfemurX"
-            Child 1: (index 9), name "rtibia"
-            Child 2: (index 50), name "rtail"
-
-Bone   8:   "rfemurX":
-            Parent: "rfemurYZ"  (index 7)
-            #Kids:  0
-
-Bone   9:   "rtibia":
-            Parent: "rfemurYZ"  (index 7)
-            #Kids:  1
-            Child 0: (index 10), name "rtalus"
-
-Bone  10:   "rtalus":
-            Parent: "rtibia"  (index 9)
-            #Kids:  0
-
-Bone  11:   "lower_lumbar":
-            Parent: "pelvis"  (index 1)
-            #Kids:  1
-            Child 0: (index 12), name "upper_lumbar"
-
-Bone  12:   "upper_lumbar":
-            Parent: "lower_lumbar"  (index 11)
-            #Kids:  1
-            Child 0: (index 13), name "thoracic"
-
-Bone  13:   "thoracic":
-            Parent: "upper_lumbar"  (index 12)
-            #Kids:  5
-            Child 0: (index 14), name "cervical"
-            Child 1: (index 24), name "rclavical"
-            Child 2: (index 25), name "rhumerus"
-            Child 3: (index 37), name "lclavical"
-            Child 4: (index 38), name "lhumerus"
-
-Bone  14:   "cervical":
-            Parent: "thoracic"  (index 13)
-            #Kids:  1
-            Child 0: (index 15), name "cranium"
-
-Bone  15:   "cranium":
-            Parent: "cervical"  (index 14)
-            #Kids:  1
-            Child 0: (index 52), name "face_always_"
-
-Bone  16:   "ceyebrow":
-            Parent: "face_always_"  (index 52)
-            #Kids:  0
-
-Bone  17:   "jaw":
-            Parent: "face_always_"  (index 52)
-            #Kids:  0
-
-Bone  18:   "lblip2":
-            Parent: "face_always_"  (index 52)
-            #Kids:  0
-
-Bone  19:   "leye":
-            Parent: "face_always_"  (index 52)
-            #Kids:  0
-
-Bone  20:   "rblip2":
-            Parent: "face_always_"  (index 52)
-            #Kids:  0
-
-Bone  21:   "ltlip2":
-            Parent: "face_always_"  (index 52)
-            #Kids:  0
-
-Bone  22:   "rtlip2":
-            Parent: "face_always_"  (index 52)
-            #Kids:  0
-
-Bone  23:   "reye":
-            Parent: "face_always_"  (index 52)
-            #Kids:  0
-
-Bone  24:   "rclavical":
-            Parent: "thoracic"  (index 13)
-            #Kids:  0
-
-Bone  25:   "rhumerus":
-            Parent: "thoracic"  (index 13)
-            #Kids:  2
-            Child 0: (index 26), name "rhumerusX"
-            Child 1: (index 27), name "rradius"
-
-Bone  26:   "rhumerusX":
-            Parent: "rhumerus"  (index 25)
-            #Kids:  0
-
-Bone  27:   "rradius":
-            Parent: "rhumerus"  (index 25)
-            #Kids:  9
-            Child 0: (index 28), name "rradiusX"
-            Child 1: (index 29), name "rhand"
-            Child 2: (index 30), name "r_d1_j1"
-            Child 3: (index 31), name "r_d1_j2"
-            Child 4: (index 32), name "r_d2_j1"
-            Child 5: (index 33), name "r_d2_j2"
-            Child 6: (index 34), name "r_d4_j1"
-            Child 7: (index 35), name "r_d4_j2"
-            Child 8: (index 36), name "rhang_tag_bone"
-
-Bone  28:   "rradiusX":
-            Parent: "rradius"  (index 27)
-            #Kids:  0
-
-Bone  29:   "rhand":
-            Parent: "rradius"  (index 27)
-            #Kids:  0
-
-Bone  30:   "r_d1_j1":
-            Parent: "rradius"  (index 27)
-            #Kids:  0
-
-Bone  31:   "r_d1_j2":
-            Parent: "rradius"  (index 27)
-            #Kids:  0
-
-Bone  32:   "r_d2_j1":
-            Parent: "rradius"  (index 27)
-            #Kids:  0
-
-Bone  33:   "r_d2_j2":
-            Parent: "rradius"  (index 27)
-            #Kids:  0
-
-Bone  34:   "r_d4_j1":
-            Parent: "rradius"  (index 27)
-            #Kids:  0
-
-Bone  35:   "r_d4_j2":
-            Parent: "rradius"  (index 27)
-            #Kids:  0
-
-Bone  36:   "rhang_tag_bone":
-            Parent: "rradius"  (index 27)
-            #Kids:  0
-
-Bone  37:   "lclavical":
-            Parent: "thoracic"  (index 13)
-            #Kids:  0
-
-Bone  38:   "lhumerus":
-            Parent: "thoracic"  (index 13)
-            #Kids:  2
-            Child 0: (index 39), name "lhumerusX"
-            Child 1: (index 40), name "lradius"
-
-Bone  39:   "lhumerusX":
-            Parent: "lhumerus"  (index 38)
-            #Kids:  0
-
-Bone  40:   "lradius":
-            Parent: "lhumerus"  (index 38)
-            #Kids:  9
-            Child 0: (index 41), name "lradiusX"
-            Child 1: (index 42), name "lhand"
-            Child 2: (index 43), name "l_d4_j1"
-            Child 3: (index 44), name "l_d4_j2"
-            Child 4: (index 45), name "l_d2_j1"
-            Child 5: (index 46), name "l_d2_j2"
-            Child 6: (index 47), name "l_d1_j1"
-            Child 7: (index 48), name "l_d1_j2"
-            Child 8: (index 51), name "lhang_tag_bone"
-
-Bone  41:   "lradiusX":
-            Parent: "lradius"  (index 40)
-            #Kids:  0
-
-Bone  42:   "lhand":
-            Parent: "lradius"  (index 40)
-            #Kids:  0
-
-Bone  43:   "l_d4_j1":
-            Parent: "lradius"  (index 40)
-            #Kids:  0
-
-Bone  44:   "l_d4_j2":
-            Parent: "lradius"  (index 40)
-            #Kids:  0
-
-Bone  45:   "l_d2_j1":
-            Parent: "lradius"  (index 40)
-            #Kids:  0
-
-Bone  46:   "l_d2_j2":
-            Parent: "lradius"  (index 40)
-            #Kids:  0
-
-Bone  47:   "l_d1_j1":
-            Parent: "lradius"  (index 40)
-            #Kids:  0
-
-Bone  48:   "l_d1_j2":
-            Parent: "lradius"  (index 40)
-            #Kids:  0
-
-Bone  49:   "ltail":
-            Parent: "lfemurYZ"  (index 3)
-            #Kids:  0
-
-Bone  50:   "rtail":
-            Parent: "rfemurYZ"  (index 7)
-            #Kids:  0
-
-Bone  51:   "lhang_tag_bone":
-            Parent: "lradius"  (index 40)
-            #Kids:  0
-
-Bone  52:   "face_always_":
-            Parent: "cranium"  (index 15)
-            #Kids:  8
-            Child 0: (index 16), name "ceyebrow"
-            Child 1: (index 17), name "jaw"
-            Child 2: (index 18), name "lblip2"
-            Child 3: (index 19), name "leye"
-            Child 4: (index 20), name "rblip2"
-            Child 5: (index 21), name "ltlip2"
-            Child 6: (index 22), name "rtlip2"
-            Child 7: (index 23), name "reye"
-
-
-
+This is table of all MBII bones (83 total), with JKA bones (53 total) remapped:
 */
-
+int JKAToMBIIRemapTable[53] = {
+0,// MBII Bone: "model_root"		JKA Bone: 0 "model_root"
+1,// MBII Bone: "pelvis"			JKA Bone: 1 "pelvis"
+2,// MBII Bone: "Motion"			JKA Bone: 2 "Motion"
+3,// MBII Bone: "lfemurYZ"			JKA Bone: 3 "lfemurYZ"
+4,// MBII Bone: "lfemurX"			JKA Bone: 4 "lfemurX"
+5,// MBII Bone: "ltibia"			JKA Bone: 5 "ltibia"
+6,// MBII Bone: "ltalus"			JKA Bone: 6 "ltalus"
+//7,// MBII Bone: "ltarsal"
+8,// MBII Bone: "rfemurYZ"			JKA Bone: 7 "rfemurYZ"
+9,// MBII Bone: "rfemurX"			JKA Bone: 8 "rfemurX"
+10,// MBII Bone: "rtibia"			JKA Bone: 9 "rtibia"
+11,// MBII Bone: "rtalus"			JKA Bone: 10 "rtalus"
+//12,// MBII Bone: "rtarsal"
+13,// MBII Bone: "lower_lumbar"		JKA Bone: 11 "lower_lumbar"
+14,// MBII Bone: "upper_lumbar"		JKA Bone: 12 "upper_lumbar"
+15,// MBII Bone: "thoracic"			JKA Bone: 13 "thoracic"
+16,// MBII Bone: "cervical"			JKA Bone: 14 "cervical"
+17,// MBII Bone: "cranium"			JKA Bone: 15 "cranium"
+18,// MBII Bone: "ceyebrow"			JKA Bone: 16 "ceyebrow"
+19,// MBII Bone: "jaw"				JKA Bone: 17 "jaw"
+//20,// MBII Bone: "lblip1"
+21,// MBII Bone: "lblip2"			JKA Bone: 18 "lblip2"
+//22,// MBII Bone: "lbeyelid"
+//23,// MBII Bone: "leyebrow2" 
+24,// MBII Bone: "leye"				JKA Bone: 19 "leye"
+//25,// MBII Bone: "lteyelid"
+//26,// MBII Bone: "rblip1"
+27,// MBII Bone: "rblip2"			JKA Bone: 20 "rblip2"
+//28,// MBII Bone: "ltlip1"
+29,// MBII Bone: "ltlip2"			JKA Bone: 21 "ltlip2"
+//30,// MBII Bone: "rtlip1"
+31,// MBII Bone: "rtlip2"			JKA Bone: 22 "rtlip2"
+//32,// MBII Bone: "rbeyelid"
+33,// MBII Bone: "reye"				JKA Bone: 23 "reye"
+//34,// MBII Bone: "reyebrow2"
+//35,// MBII Bone: "rteyelid"
+36,// MBII Bone: "rclavical"		JKA Bone: 24 "rclavical"
+37,// MBII Bone: "rhumerus"			JKA Bone: 25 "rhumerus"
+38,// MBII Bone: "rhumerusX"		JKA Bone: 26 "rhumerusX"
+39,// MBII Bone: "rradius"			JKA Bone: 27 "rradius"
+40,// MBII Bone: "rradiusX"			JKA Bone: 28 "rradiusX"
+41,// MBII Bone: "rhand"			JKA Bone: 29 "rhand"
+//42,// MBII Bone: "r_d5_j1" 
+//43,// MBII Bone: "r_d5_j2" 
+//44,// MBII Bone: "r_d5_j3"
+45,// MBII Bone: "r_d1_j1"			JKA Bone: 30 "r_d1_j1"
+46,// MBII Bone: "r_d1_j2"			JKA Bone: 31 "r_d1_j2"
+//47,// MBII Bone: "r_d1_j3" 
+48,// MBII Bone: "r_d2_j1"			JKA Bone: 32 "r_d2_j1"
+49,// MBII Bone: "r_d2_j2"			JKA Bone: 33 "r_d2_j2"
+//50,// MBII Bone: "r_d2_j3"
+//51,// MBII Bone: "r_d3_j1" 
+//52,// MBII Bone: "r_d3_j2" 
+//53,// MBII Bone: "r_d3_j3" 
+54,// MBII Bone: "r_d4_j1"			JKA Bone: 34 "r_d4_j1"
+55,// MBII Bone: "r_d4_j2"			JKA Bone: 35 "r_d4_j2"
+//56,// MBII Bone: "r_d4_j3" 
+57,// MBII Bone: "rhang_tag_bone"	JKA Bone: 36 "rhang_tag_bone"
+58,// MBII Bone: "lclavical"		JKA Bone: 37 "lclavical"
+59,// MBII Bone: "lhumerus"			JKA Bone: 38 "lhumerus"
+60,// MBII Bone: "lhumerusX"		JKA Bone: 39 "lhumerusX"
+61,// MBII Bone: "lradius"			JKA Bone: 40 "lradius"
+62,// MBII Bone: "lradiusX"			JKA Bone: 41 "lradiusX"
+63,// MBII Bone: "lhand"			JKA Bone: 42 "lhand"
+//64,// MBII Bone: "l_d5_j1" 
+//65,// MBII Bone: "l_d5_j2" 
+//66,// MBII Bone: "l_d5_j3" 
+67,// MBII Bone: "l_d4_j1"			JKA Bone: 43 "l_d4_j1"
+68,// MBII Bone: "l_d4_j2"			JKA Bone: 44 "l_d4_j2"
+//69,// MBII Bone: "l_d4_j3" 
+//70,// MBII Bone: "l_d3_j1" 
+//71,// MBII Bone: "l_d3_j2" 
+//72,// MBII Bone: "l_d3_j3" 
+73,// MBII Bone: "l_d2_j1"			JKA Bone: 45 "l_d2_j1"
+74,// MBII Bone: "l_d2_j2"			JKA Bone: 46 "l_d2_j2"
+//75,// MBII Bone: "l_d2_j3" 
+76,// MBII Bone: "l_d1_j1"			JKA Bone: 47 "l_d1_j1"
+77,// MBII Bone: "l_d1_j2"			JKA Bone: 48 "l_d1_j2"
+//78,// MBII Bone: "l_d1_j3" 
+79,// MBII Bone: "ltail"			JKA Bone: 49 "ltail"
+80,// MBII Bone: "rtail"			JKA Bone: 50 "rtail"
+81,// MBII Bone: "lhang_tag_bone"	JKA Bone: 51 "lhang_tag_bone"
+82,// MBII Bone: "face_always_"		JKA Bone: 52 "face_always_"
+};
 
 qboolean R_LoadMDXM( model_t *mod, void *buffer, const char *mod_name, qboolean &bAlreadyCached ) {
 	int					i,l, j;
@@ -4271,10 +4095,20 @@ qboolean R_LoadMDXM( model_t *mod, void *buffer, const char *mod_name, qboolean 
 		return qtrue;	// All done. Stop, go no further, do not LittleLong(), do not pass Go...
 	}
 
-	bool isAnOldModelFile = false;
+	bool isJK2ModelFile = false;
 	if (mdxm->numBones == 72 && strstr(mdxm->animName,"_humanoid") )
 	{
-		isAnOldModelFile = true;
+		isJK2ModelFile = true;
+
+		ri.Printf(PRINT_ALL, S_COLOR_YELLOW  "Converting detected JK2 model - %s with %i bones\n", mod_name, mdxm->numBones);
+	}
+
+	bool isJKAModelFile = false;
+	if (mdxm->numBones == 53 && strstr(mdxm->animName,"_humanoid") )
+	{
+		isJKAModelFile = true;
+
+		ri.Printf(PRINT_ALL, S_COLOR_YELLOW  "Converting detected JKA model - %s with %i bones\n", mod_name, mdxm->numBones);
 	}
 
 	surfInfo = (mdxmSurfHierarchy_t *)( (byte *)mdxm + mdxm->ofsSurfHierarchy);
@@ -4402,29 +4236,45 @@ qboolean R_LoadMDXM( model_t *mod, void *buffer, const char *mod_name, qboolean 
 				v++;
 			}
 #endif
-
-			if (isAnOldModelFile)
+			// Remap JK2 models to the MBII GLA
+			if (isJK2ModelFile)
 			{
 				int *boneRef = (int *) ( (byte *)surf + surf->ofsBoneReferences );
+
 				for ( j = 0 ; j < surf->numBoneReferences ; j++ )
 				{
 					assert(boneRef[j] >= 0 && boneRef[j] < 72);
+
 					if (boneRef[j] >= 0 && boneRef[j] < 72)
-					{
-						boneRef[j]=OldToNewRemapTable[boneRef[j]];
-					}
+						boneRef[j] = JK2ToMBIIRemapTable[boneRef[j]];
 					else
-					{
 						boneRef[j]=0;
-					}
 				}
 			}
+
+			// Remap JKA models to the MBII GLA
+			if (isJKAModelFile)
+			{
+				int* boneRef = (int*)((byte*)surf + surf->ofsBoneReferences);
+
+				for (j = 0; j < surf->numBoneReferences; j++)
+				{
+					assert(boneRef[j] >= 0 && boneRef[j] < 53);
+
+					if (boneRef[j] >= 0 && boneRef[j] < 53)
+						boneRef[j] = JKAToMBIIRemapTable[boneRef[j]];
+					else
+						boneRef[j] = 0;
+				}
+			}
+
 			// find the next surface
 			surf = (mdxmSurface_t *)( (byte *)surf + surf->ofsEnd );
 		}
 		// find the next LOD
 		lod = (mdxmLOD_t *)( (byte *)lod + lod->ofsEnd );
 	}
+
 	return qtrue;
 }
 
