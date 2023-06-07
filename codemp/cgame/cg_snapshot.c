@@ -45,13 +45,7 @@ static void CG_ResetEntity( centity_t *cent ) {
 	VectorCopy (cent->currentState.origin, cent->lerpOrigin);
 	VectorCopy (cent->currentState.angles, cent->lerpAngles);
 
-	if (cent->currentState.eFlags & EF_G2ANIMATING)
-	{ //reset the animation state
-		cent->pe.torso.animationNumber = -1;
-		cent->pe.legs.animationNumber = -1;
-	}
-
-	if (cent->currentState.eFlags & EF_G2MODEL)
+	if (cent->currentState.eFlags & EF_G2ANIMATING || cent->currentState.eFlags & EF_MISCG2MODEL)
 	{ //reset the animation state
 		cent->pe.torso.animationNumber = -1;
 		cent->pe.legs.animationNumber = -1;

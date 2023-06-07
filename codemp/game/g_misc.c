@@ -477,7 +477,7 @@ void misc_model_breakable_init( gentity_t *ent )
 /*QUAKED misc_G2model (1 0 0) (-16 -16 -16) (16 16 16)
 "model"			.glm file to display
 "radius"		<0> ghoul2 radius (default: 120)
-"angles"		<x y z> angles (spawnflag 1)
+"angles"		<x y z> angles (default: 0 0 0)
 "startFrame"	<0> animation start frame (default: 0)
 "endFrame"		<0> animation end frame (default: 0)
 "modelScale"	<0.0> scale
@@ -487,17 +487,15 @@ void misc_model_breakable_init( gentity_t *ent )
 NOTE:
 Player model tags require the '*' to be removed.
 
-ANGLES			(spawnflag 1)
-ANIM			(spawnflag 2)
-DLIGHT_1TAG		(spawnflag 4)
-DLIGHT_2TAGS	(spawnflag 8)
+DLIGHT_1TAG		(spawnflag 1)
+DLIGHT_2TAGS	(spawnflag 2)
+SPOTLIGHT		(spawnflag 4)
 */
 void SP_misc_G2model( gentity_t *ent ) 
 {
-	ent->s.modelindex = G_ModelIndex( ent->model );
-	int g2Model = trap->G2API_InitGhoul2Model(&ent->ghoul2, ent->model, ent->s.modelindex, 0, 0, 0, 0);
+	ent->s.modelindex = G_ModelIndex(ent->model);
 	ent->s.modelGhoul2 = 1;
-	ent->s.g2radius = 120;
+	ent->s.eFlags |= EF_MISCG2MODEL;
 	ent->r.mins[0] = -16;
 	ent->r.mins[1] = -16;
 	ent->r.mins[2] = -16;
@@ -505,74 +503,71 @@ void SP_misc_G2model( gentity_t *ent )
 	ent->r.maxs[1] = 16;
 	ent->r.maxs[2] = 16;
 
-	ent->s.eFlags |= EF_G2MODEL;
+	int g2Model = trap->G2API_InitGhoul2Model(&ent->ghoul2, ent->model, ent->s.modelindex, 0, 0, 0, 0);
 
-	//radius
+	// Radius
+	//
 	G_SpawnInt("radius", "120", &ent->s.g2radius);
 
-	//origin & angles
+	// Origin & Angles
+	//
 	G_SetOrigin( ent, ent->s.origin );
 
 	vec3_t angles;
+	G_SpawnVector("angles", "0 0 0", angles);
+	G_SetAngles(ent, angles);
 
-	if (ent->spawnflags & 1) //ANGLES
-	{
-		G_SpawnVector("angles", "0 0 0", angles);
-
-		G_SetAngles(ent, angles);
-	}
-	else
-	{
-		G_SetAngles(ent, ent->s.angles);
-	}
-
-	//scale
+	// Scale
+	//
 	float modelScaleVal;
-
 	G_SpawnFloat("modelscale", "100", &modelScaleVal);
+
+	//copy input to cgame
 	ent->s.iModelScale = modelScaleVal;
 
+	//cap scaling
 	if (ent->s.iModelScale)
 	{
 		if (ent->s.iModelScale > 1023)
-		{
 			ent->s.iModelScale = 1023;
-		}
 
 		ent->modelScale[0] = ent->modelScale[1] = ent->modelScale[2] = ent->s.iModelScale / 100.0f;
 	}
 
-	//animation
-	if (ent->spawnflags & 2) //ANIM
+	// Animation
+	//
 	{
 		int startFrame = 0;
-		int endFrame = 0;	
+		int endFrame = 0;
 
 		G_SpawnInt("startframe", "0", &startFrame);
 		G_SpawnInt("endframe", "0", &endFrame);
 
-		//send to cgame
+		//copy input to cgame
 		ent->s.torsoAnim = startFrame;
 		ent->s.legsAnim = endFrame;
 	}
 
-	//dlights on tags
-	vec3_t		color;
-	float		light;
-	qboolean	lightSet, colorSet;
+	// Dlights On Tags
+	//
+	vec3_t		light1Color, light2Color;
+	float		light1, light2;
+	qboolean	light1Set, light2Set, light1ColorSet, light2ColorSet;
 	char		*tag1Str, *tag2Str;
 	
-	if (ent->spawnflags & 4) //DLIGHT_1TAG
+	//1 dLight tag
+	if (ent->spawnflags & 1) //DLIGHT_1TAG
 	{
-		//send to cgame
+		//copy input to cgame
 		ent->s.eFlags |= EF_NOT_USED_5;
 		G_SpawnString("tag1", "*flash1", &tag1Str);
 		ent->s.time = G_BoneIndex(tag1Str);
 	}
 
-	if (ent->spawnflags & 8) //DLIGHT_2TAGS
+	//2 dlight tags
+	if (ent->spawnflags & 2) //DLIGHT_2TAGS
 	{
-		//send to cgame
+		//copy input to cgame
 		ent->s.eFlags |= EF_NOT_USED_6;
 		G_SpawnString("tag1", "*flash1", &tag1Str);
 		G_SpawnString("tag2", "*flash2", &tag2Str);
@@ -580,30 +575,60 @@ void SP_misc_G2model( gentity_t *ent )
 		ent->s.time2 = G_BoneIndex(tag2Str);
 	}
 
-	lightSet = G_SpawnFloat("light", "0", &light);
-	colorSet = G_SpawnVector("color", "1 1 1", color);
+	//light1 & color1
+	light1Set = G_SpawnFloat("light1", "0", &light1);
+	light1ColorSet = G_SpawnVector("color1", "1 1 1", light1Color);
 
-	if (lightSet || colorSet) {
-		int		r, g, b, i;
+	if (light1Set || light1ColorSet) 
+	{
+		int	r, g, b, i;
 
-		r = color[0] * 255;
+		r = light1Color[0] * 255;
 		if (r > 255)
 			r = 255;
 
-		g = color[1] * 255;
+		g = light1Color[1] * 255;
 		if (g > 255)
 			g = 255;
 
-		b = color[2] * 255;
+		b = light1Color[2] * 255;
 		if (b > 255)
 			b = 255;
 
-		i = light / 4;
+		i = light1 / 4;
 		if (i > 255)
 			i = 255;
 
-		//send to cgame
+		//copy input to cgame
 		ent->s.constantLight = r | (g << 8) | (b << 16) | (i << 24);
+	}
+
+	//light2 & color2
+	light2Set = G_SpawnFloat("light2", "0", &light2);
+	light2ColorSet = G_SpawnVector("color2", "1 1 1", light2Color);
+
+	if (light2Set || light2ColorSet) 
+	{
+		int	r, g, b, i;
+
+		r = light2Color[0] * 255;
+		if (r > 255)
+			r = 255;
+
+		g = light2Color[1] * 255;
+		if (g > 255)
+			g = 255;
+
+		b = light2Color[2] * 255;
+		if (b > 255)
+			b = 255;
+
+		i = light2 / 4;
+		if (i > 255)
+			i = 255;
+
+		//copy input to cgame
+		ent->s.constantLight2 = r | (g << 8) | (b << 16) | (i << 24);
 	}
 
 	trap->LinkEntity((sharedEntity_t *)ent);

@@ -630,7 +630,7 @@ typedef enum {
 #define	EF_JETPACK_ACTIVE		(1<<11)		//jetpack is activated
 
 //#define EF_NOT_USED_1			(1<<12)		// not used
-#define	EF_G2MODEL				(1<<12)		// for misc_g2model
+#define	EF_MISCG2MODEL			(1<<12)		// for misc_g2model
 
 #define	EF_TALK					(1<<13)		// draw a talk balloon
 #define	EF_CONNECTION			(1<<14)		// draw a connection trouble sprite

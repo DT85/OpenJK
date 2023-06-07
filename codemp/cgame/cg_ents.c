@@ -345,9 +345,11 @@ static void CG_EntityEffects( centity_t *cent ) {
 
 
 	// constant light glow
-	if ( cent->currentState.constantLight && cent->currentState.eType != ET_PLAYER && cent->currentState.eType != ET_BODY && cent->currentState.eType != ET_NPC && cent->currentState.eType != ET_INVISIBLE ) {
-		int		cl;
-		float	i, r, g, b;
+	if ( cent->currentState.constantLight && cent->currentState.eType != ET_PLAYER && cent->currentState.eType != ET_BODY && cent->currentState.eType != ET_NPC && cent->currentState.eType != ET_INVISIBLE ||
+		cent->currentState.constantLight2 && cent->currentState.eType != ET_PLAYER && cent->currentState.eType != ET_BODY && cent->currentState.eType != ET_NPC && cent->currentState.eType != ET_INVISIBLE ) 
+	{
+		int	cl;
+		float i, r, g, b;
 
 		cl = cent->currentState.constantLight;
 		r = (float) (cl & 0xFF) / 255.0;
@@ -355,31 +357,42 @@ static void CG_EntityEffects( centity_t *cent ) {
 		b = (float) ((cl >> 16) & 0xFF) / 255.0;
 		i = (float) ((cl >> 24) & 0xFF) * 4.0;
 
-		if (cent->currentState.eFlags & EF_G2MODEL && cent->ghoul2)	{
-			vec3_t	org, org2;
-			mdxaBone_t	boltMatrix, boltMatrix2;
+		if (cent->currentState.eFlags & EF_MISCG2MODEL && cent->ghoul2)	
+		{
+			vec3_t	org1, org2;
+			mdxaBone_t	boltMatrix1, boltMatrix2;
 			int bolt1, bolt2;
 			const char *tag1Str, *tag2Str;
 
-			if (cent->currentState.eFlags & EF_NOT_USED_5) {
+			// 1 DLight Tag
+			if (cent->currentState.eFlags & EF_NOT_USED_5)
+			{
 				tag1Str = CG_ConfigString(CS_G2BONES + cent->currentState.time);
 				bolt1 = trap->G2API_AddBolt(cent->ghoul2, 0, tag1Str);
 
-				trap->G2API_GetBoltMatrix(cent->ghoul2, 0, bolt1, &boltMatrix, cent->lerpAngles, cent->lerpOrigin, cg.time,
+				trap->G2API_GetBoltMatrix(cent->ghoul2, 0, bolt1, &boltMatrix1, cent->lerpAngles, cent->lerpOrigin, cg.time,
 					cgs.gameModels, cent->modelScale);
-				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, org);
-				trap->R_AddLightToScene(org, i, r, g, b);
+				BG_GiveMeVectorFromMatrix(&boltMatrix1, ORIGIN, org1);
+				trap->R_AddLightToScene(org1, i, r, g, b);
 			}
 
-			if (cent->currentState.eFlags & EF_NOT_USED_6) {				
+			// 2 DLight Tags
+			if (cent->currentState.eFlags & EF_NOT_USED_6) 
+			{
 				tag1Str = CG_ConfigString(CS_G2BONES + cent->currentState.time);
 				tag2Str = CG_ConfigString(CS_G2BONES + cent->currentState.time2);
 
 				bolt1 = trap->G2API_AddBolt(cent->ghoul2, 0, tag1Str);
-				trap->G2API_GetBoltMatrix(cent->ghoul2, 0, bolt1, &boltMatrix, cent->lerpAngles, cent->lerpOrigin, cg.time,
+				trap->G2API_GetBoltMatrix(cent->ghoul2, 0, bolt1, &boltMatrix1, cent->lerpAngles, cent->lerpOrigin, cg.time,
 					cgs.gameModels, cent->modelScale);
-				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, org);
-				trap->R_AddLightToScene(org, i, r, g, b);
+				BG_GiveMeVectorFromMatrix(&boltMatrix1, ORIGIN, org1);
+				trap->R_AddLightToScene(org1, i, r, g, b);
+
+				cl = cent->currentState.constantLight2;
+				r = (float)(cl & 0xFF) / 255.0;
+				g = (float)((cl >> 8) & 0xFF) / 255.0;
+				b = (float)((cl >> 16) & 0xFF) / 255.0;
+				i = (float)((cl >> 24) & 0xFF) * 4.0;
 
 				bolt2 = trap->G2API_AddBolt(cent->ghoul2, 0, tag2Str);
 				trap->G2API_GetBoltMatrix(cent->ghoul2, 0, bolt2, &boltMatrix2, cent->lerpAngles, cent->lerpOrigin, cg.time,
@@ -1044,7 +1057,7 @@ static void CG_General( centity_t *cent ) {
 		}
 	}
 
-	if ((cent->currentState.eFlags & EF_G2MODEL) && cent->ghoul2)
+	if ((cent->currentState.eFlags & EF_MISCG2MODEL) && cent->ghoul2)
 	{ //mini-animation routine for general objects that want to play quick ghoul2 anims
 		//obviously lacks much of the functionality contained in player/npc animation.
 		//we actually use torsoAnim as the start frame and legsAnim as the end frame and
