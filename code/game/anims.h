@@ -40,6 +40,21 @@ typedef enum //# animNumber_e
 	FACE_SMILE,				//#
 	FACE_FROWN,				//#
 	FACE_DEAD,				//#
+	FACE_AE,
+	FACE_AH,
+	FACE_BMP,
+	FACE_CHJ,
+	FACE_EE,
+	FACE_ER,
+	FACE_FV,
+	FACE_IH,
+	FACE_KGHNG,
+	FACE_OH,
+	FACE_R,
+	FACE_SZ,
+	FACE_TLDN,
+	FACE_TH,
+	FACE_WOO,
 
 	//=================================================
 	//ANIMS IN WHICH UPPER AND LOWER OBJECTS ARE IN MD3

@@ -145,6 +145,21 @@ typedef enum //# setType_e
 	SET_FACENORMAL,		//## %f="0.0" # Set face to Normal expression for number of seconds
 	SET_FACEEYESCLOSED,	//## %f="0.0" # Set face to Eyes closed
 	SET_FACEEYESOPENED,	//## %f="0.0" # Set face to Eyes open
+	SET_FACE_AE,
+	SET_FACE_AH,
+	SET_FACE_BMP,
+	SET_FACE_CHJ,
+	SET_FACE_EE,
+	SET_FACE_ER,
+	SET_FACE_FV,
+	SET_FACE_IH,
+	SET_FACE_KGHNG,
+	SET_FACE_OH,
+	SET_FACE_R,
+	SET_FACE_SZ,
+	SET_FACE_TLDN,
+	SET_FACE_TH,
+	SET_FACE_WOO,
 	SET_WAIT,		//## %f="0.0" # Change an entity's wait field
 	SET_FOLLOWDIST,		//## %f="0.0" # How far away to stay from leader in BS_FOLLOW_LEADER
 	SET_SCALE,			//## %f="0.0" # Scale the entity model

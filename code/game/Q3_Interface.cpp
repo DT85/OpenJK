@@ -339,6 +339,21 @@ stringID_table_t setTable[] =
 	ENUM2STRING(SET_FACENORMAL),
 	ENUM2STRING(SET_FACEEYESCLOSED),
 	ENUM2STRING(SET_FACEEYESOPENED),
+	ENUM2STRING(SET_FACE_AE),
+	ENUM2STRING(SET_FACE_AH),
+	ENUM2STRING(SET_FACE_BMP),
+	ENUM2STRING(SET_FACE_CHJ),
+	ENUM2STRING(SET_FACE_EE),
+	ENUM2STRING(SET_FACE_ER),
+	ENUM2STRING(SET_FACE_FV),
+	ENUM2STRING(SET_FACE_IH),
+	ENUM2STRING(SET_FACE_KGHNG),
+	ENUM2STRING(SET_FACE_OH),
+	ENUM2STRING(SET_FACE_R),
+	ENUM2STRING(SET_FACE_SZ),
+	ENUM2STRING(SET_FACE_TLDN),
+	ENUM2STRING(SET_FACE_TH),
+	ENUM2STRING(SET_FACE_WOO),
 	ENUM2STRING(SET_SCROLLTEXT),
 	ENUM2STRING(SET_LCARSTEXT),
 	ENUM2STRING(SET_CENTERTEXT),
@@ -6054,8 +6069,92 @@ static void Q3_Face( int entID,int expression, float holdtime)
 		ent->client->facial_timer = level.time + Q_flrand(6000.0, 10000.0);
 		ent->client->facial_blink = level.time + Q_flrand(3000.0, 5000.0);
 		break;
-	}
 
+	// AE, AH, BMP,	CHJ, EE, ER, FV, IH, KGHNG, OH,	R, SZ, TLDN, TH, WOO
+	case SET_FACE_AE:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_AE;
+		break;
+
+	case SET_FACE_AH:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_AH;
+		break;
+
+	case SET_FACE_BMP:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_BMP;
+		break;
+
+	case SET_FACE_CHJ:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_CHJ;
+		break;
+
+	case SET_FACE_EE:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_EE;
+		break;
+
+	case SET_FACE_ER:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_ER;
+		break;
+
+	case SET_FACE_FV:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_FV;
+		break;
+
+	case SET_FACE_IH:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_IH;
+		break;
+
+	case SET_FACE_KGHNG:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_KGHNG;
+		break;
+
+	case SET_FACE_OH:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_OH;
+		break;
+
+	case SET_FACE_R:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_R;
+		break;
+
+	case SET_FACE_TLDN:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_TLDN;
+		break;
+
+	case SET_FACE_TH:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_TH;
+		break;
+
+	case SET_FACE_WOO:
+		ent->client->facial_blink = -(level.time + holdtime);
+		ent->client->facial_timer = -(level.time + holdtime);
+		ent->client->facial_anim = FACE_WOO;
+		break;
+	}
 }
 
 
@@ -9018,6 +9117,21 @@ void	CQuake3GameInterface::Set( int taskID, int entID, const char *type_name, co
 	case SET_FACEHAPPY:
 	case SET_FACESHOCKED:
 	case SET_FACENORMAL:
+	case SET_FACE_AE:
+	case SET_FACE_AH:
+	case SET_FACE_BMP:
+	case SET_FACE_CHJ:
+	case SET_FACE_EE:
+	case SET_FACE_ER:
+	case SET_FACE_FV:
+	case SET_FACE_IH:
+	case SET_FACE_KGHNG:
+	case SET_FACE_OH:
+	case SET_FACE_R:
+	case SET_FACE_SZ:
+	case SET_FACE_TLDN:
+	case SET_FACE_TH:
+	case SET_FACE_WOO:
 		float_data = atof((char *) data);
 		Q3_Face(entID, toSet, float_data);
 		break;
@@ -10029,6 +10143,21 @@ int		CQuake3GameInterface::GetFloat( int entID, const char *name, float *value )
 	case SET_FACEHAPPY:		//## %f="0.0" # Set face to Happy expression for number of seconds
 	case SET_FACESHOCKED:		//## %f="0.0" # Set face to Shocked expression for number of seconds
 	case SET_FACENORMAL:		//## %f="0.0" # Set face to Normal expression for number of seconds
+	case SET_FACE_AE:
+	case SET_FACE_AH:
+	case SET_FACE_BMP:
+	case SET_FACE_CHJ:
+	case SET_FACE_EE:
+	case SET_FACE_ER:
+	case SET_FACE_FV:
+	case SET_FACE_IH:
+	case SET_FACE_KGHNG:
+	case SET_FACE_OH:
+	case SET_FACE_R:
+	case SET_FACE_SZ:
+	case SET_FACE_TLDN:
+	case SET_FACE_TH:
+	case SET_FACE_WOO:
 		DebugPrint( WL_WARNING, "GetFloat: SET_FACE___ not implemented\n" );
 		return false;
 		break;
