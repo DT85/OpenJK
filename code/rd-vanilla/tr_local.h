@@ -1188,6 +1188,7 @@ extern	cvar_t	*r_shownormals;					// draws wireframe normals
 extern	cvar_t	*r_clear;						// force screen clear every frame
 
 extern	cvar_t	*r_shadows;						// controls shadows: 0 = none, 1 = blur, 2 = stencil, 3 = black planar projection
+extern  cvar_t	*r_noSelfShadow;				// Fluffy (StencilNoSelfShadows)
 extern	cvar_t	*r_flares;						// light flares
 
 extern	cvar_t	*r_intensity;
