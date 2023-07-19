@@ -666,7 +666,8 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, bool drawSt
 	originalTime = backEnd.refdef.floatTime;
 
 	// clear the z buffer, set the modelview, etc
-	RB_BeginDrawingView ();
+	if (drawStencilSources == 0) //Fluffy (StencilNoSelfShadows): Only reset z-buffer on first pass
+		RB_BeginDrawingView ();
 
 	// draw everything
 	oldEntityNum = -1;
@@ -960,8 +961,11 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs, bool drawSt
 	if (!didShadowPass)
 	{
 		// darken down any stencil shadows
-		RB_ShadowFinish();
-		didShadowPass = true;
+		if (drawStencilSources == 0) //Fluffy (StencilNoSelfShadows): Only render stencil shadows in first pass
+		{
+			RB_ShadowFinish();
+			didShadowPass = true;
+		}
 	}
 
 // add light flares on lights that aren't obscured
