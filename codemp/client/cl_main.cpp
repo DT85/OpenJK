@@ -36,6 +36,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "cl_lan.h"
 #include "snd_local.h"
 #include "sys/sys_loadlib.h"
+#include "bullet_phys/bullet_public.h"
 
 cvar_t	*cl_renderer;
 
@@ -2476,6 +2477,8 @@ void CL_InitRef( void ) {
 
 	ri.PD_Store = PD_Store;
 	ri.PD_Load = PD_Load;
+
+	ri.CM_LoadObj = CM_LoadObj;
 
 	ret = GetRefAPI( REF_API_VERSION, &ri );
 

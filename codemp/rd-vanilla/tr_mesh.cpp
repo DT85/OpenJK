@@ -420,3 +420,90 @@ void R_AddMD3Surfaces( trRefEntity_t *ent ) {
 	}
 
 }
+
+void R_AddObjSurfaces(trRefEntity_t* ent) {
+	//int			i;
+	objModel_t		*mod = tr.currentModel->obj;
+	objSurface_t	*surf;
+	shader_t		*shader = 0;
+	//int			cull;
+	//int			lod;
+	int				fogNum;
+	qboolean		personalModel;
+
+	// don't add third_person objects if not in a portal
+	personalModel = (qboolean)((ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal);
+
+	//
+	// compute LOD
+	//
+	//lod = R_ComputeLOD( ent );
+
+	//
+	// cull the entire model if merged bounding box of both frames
+	// is outside the view frustum.
+	//
+	/*
+	cull = R_CullModel ( header, ent );
+	if ( cull == CULL_OUT ) {
+		return;
+	}
+	*/
+
+	//
+	// set up lighting now that we know we aren't culled
+	//
+	if (!personalModel || r_shadows->integer > 1) {
+		R_SetupEntityLighting(&tr.refdef, ent);
+	}
+
+	//
+	// see if we are in a fog volume
+	//
+	/*
+	fogNum = R_ComputeFogNum( header, ent );
+	*/
+	fogNum = 0;
+
+	//
+	// draw all surfaces
+	//
+	surf = mod->surfaces;
+
+	for (int i = 0; i < mod->numSurfaces; surf++, i++) {
+		if (ent->e.customShader) {
+			shader = R_GetShaderByHandle(ent->e.customShader);
+		}
+		else if (surf->shaderIndex) {
+			shader = tr.shaders[surf->shaderIndex];
+		}
+		else {
+			shader = tr.defaultShader;
+		}
+		// we will add shadows even if the main object isn't visible in the view
+
+		// stencil shadows can't do personal models unless I polyhedron clip
+		if (!personalModel
+			&& r_shadows->integer == 2
+			&& fogNum == 0
+			&& !(ent->e.renderfx & (RF_NOSHADOW | RF_DEPTHHACK))
+			&& shader->sort == SS_OPAQUE) {
+			R_AddDrawSurf((surfaceType_t*)surf, tr.shadowShader, 0, qfalse);
+		}
+
+		// projection shadows work fine with personal models
+		if (r_shadows->integer == 3
+			&& fogNum == 0
+			&& (ent->e.renderfx & RF_SHADOW_PLANE)
+			&& shader->sort == SS_OPAQUE) {
+			R_AddDrawSurf((surfaceType_t*)surf, tr.projectionShadowShader, 0, qfalse);
+		}
+
+		// don't add third_person objects if not viewing through a portal
+		if (!personalModel) {
+			R_AddDrawSurf((surfaceType_t*)surf, shader, fogNum, qfalse);
+		}
+	}
+}
+
+

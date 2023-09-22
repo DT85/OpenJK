@@ -516,7 +516,6 @@ static void CMod_LoadVisibility( const lump_t *l, clipMap_t &cm ) {
 CMod_LoadPatches
 =================
 */
-#define	MAX_PATCH_VERTS		1024
 static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts, clipMap_t &cm ) {
 	drawVert_t	*dv, *dv_p;
 	dsurface_t	*in;
@@ -524,8 +523,6 @@ static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts, clipMap_
 	int			i, j;
 	int			c;
 	cPatch_t	*patch;
-	vec3_t		points[MAX_PATCH_VERTS];
-	int			width, height;
 	int			shaderNum;
 
 	in = (dsurface_t *)(cmod_base + surfs->fileofs);
@@ -549,18 +546,19 @@ static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts, clipMap_
 		cm.surfaces[ i ] = patch = (cPatch_t *)Hunk_Alloc( sizeof( *patch ), h_high );
 
 		// load the full drawverts onto the stack
-		width = LittleLong( in->patchWidth );
-		height = LittleLong( in->patchHeight );
-		c = width * height;
+		patch->width = LittleLong(in->patchWidth);
+		patch->height = LittleLong(in->patchHeight);
+		c = patch->width * patch->height;
+
 		if ( c > MAX_PATCH_VERTS ) {
 			Com_Error( ERR_DROP, "ParseMesh: MAX_PATCH_VERTS" );
 		}
 
 		dv_p = dv + LittleLong( in->firstVert );
 		for ( j = 0 ; j < c ; j++, dv_p++ ) {
-			points[j][0] = LittleFloat( dv_p->xyz[0] );
-			points[j][1] = LittleFloat( dv_p->xyz[1] );
-			points[j][2] = LittleFloat( dv_p->xyz[2] );
+			patch->points[j][0] = LittleFloat(dv_p->xyz[0]);
+			patch->points[j][1] = LittleFloat(dv_p->xyz[1]);
+			patch->points[j][2] = LittleFloat(dv_p->xyz[2]);
 		}
 
 		shaderNum = LittleLong( in->shaderNum );
@@ -568,7 +566,7 @@ static void CMod_LoadPatches( const lump_t *surfs, const lump_t *verts, clipMap_
 		patch->surfaceFlags = cm.shaders[shaderNum].surfaceFlags;
 
 		// create the internal facet structure
-		patch->pc = CM_GeneratePatchCollide( width, height, points );
+		patch->pc = CM_GeneratePatchCollide(patch->width, patch->height, patch->points);
 	}
 }
 

@@ -30,10 +30,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "qcommon/q_version.h"
 #include "../server/NPCNav/navigator.h"
 #include "../shared/sys/sys_local.h"
+
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
+
+#include "bullet_phys/bullet_public.h"
 
 FILE *debuglogfile;
 fileHandle_t logfile;
@@ -1131,6 +1134,8 @@ void Com_Init( char *commandLine ) {
 
 	try
 	{
+		GPTP_Init();
+
 		// initialize the weak pseudo-random number generator for use later.
 		Com_InitRand();
 
@@ -1248,6 +1253,8 @@ void Com_Init( char *commandLine ) {
 		SE_Init();
 
 		Sys_Init();
+
+		Com_Phys_Init();
 
 		Sys_SetProcessorAffinity();
 
@@ -1678,6 +1685,8 @@ void Com_Shutdown (void)
 	}
 
 	MSG_shutdownHuffman();
+
+	GPTP_Shutdown();
 /*
 	// Only used for testing changes to huffman frequency table when tuning.
 	{
@@ -2035,3 +2044,88 @@ uint32_t ConvertUTF8ToUTF32( char *utf8CurrentChar, char **utf8NextChar )
 
 	return utf32;
 }
+
+/*
+==============================================================
+
+GENERAL PURPOSE THREAD POOL
+
+==============================================================
+*/
+
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+#include <future>
+
+typedef struct GPTP_task_info_s {
+	void* (*func)(void*);
+	void* arg;
+	std::promise<void*> res;
+} GPTP_task_info_t;
+
+static std::atomic_bool GPTP_run_sem{ true };
+static std::mutex GPTP_mutex;
+static std::condition_variable GPTP_cv;
+
+static std::atomic<GPTP_task_info_t*> GPTP_task;
+
+static void GPTP_ThreadRun() {
+
+	GPTP_task_info_t* this_task = nullptr;
+
+	while (GPTP_run_sem) {
+		this_task = GPTP_task.load();
+		if (!this_task || !GPTP_task.compare_exchange_strong(this_task, nullptr)) {
+			std::unique_lock<std::mutex> lock{ GPTP_mutex };
+			GPTP_cv.wait_for(lock, std::chrono::milliseconds(5));
+		}
+		else {
+			this_task->res.set_value(this_task->func(this_task->arg));
+		}
+	}
+}
+
+static unsigned int GPTP_thread_num;
+static std::thread** GPTP_threads = nullptr;
+
+void GPTP_Init() {
+	GPTP_thread_num = std::thread::hardware_concurrency();
+	GPTP_threads = new std::thread * [GPTP_thread_num] {};
+	for (unsigned int i = 0; i < GPTP_thread_num; i++) {
+		GPTP_threads[i] = new std::thread(GPTP_ThreadRun);
+	}
+}
+
+void GPTP_Shutdown() {
+	GPTP_run_sem.store(false);
+	for (unsigned int i = 0; i < GPTP_thread_num; i++) {
+		if (GPTP_threads[i]->joinable()) GPTP_threads[i]->join();
+		delete GPTP_threads[i];
+	}
+	delete[] GPTP_threads;
+}
+
+unsigned int GPTP_GetThreadCount() {
+	return GPTP_thread_num;
+}
+
+void* GPTP_TaskBegin(void* (*func)(void*), void* arg) {
+	GPTP_task_info_t* task = new GPTP_task_info_t{ func, arg, {} };
+	GPTP_task_info_t* scratch = nullptr;
+	while (!GPTP_task.compare_exchange_weak(scratch, task)) {
+		scratch = nullptr;
+		std::this_thread::yield();
+	}
+	GPTP_cv.notify_all();
+	return reinterpret_cast<void*>(task);
+}
+
+void* GPTP_TaskCollect(void* tg) {
+	GPTP_task_info_t* task = reinterpret_cast<GPTP_task_info_t*>(tg);
+	void* res = task->res.get_future().get();
+	delete task;
+	return res;
+}
+

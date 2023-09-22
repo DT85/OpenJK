@@ -30,6 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "icarus/GameInterface.h"
 #include "qcommon/timing.h"
 #include "NPCNav/navigator.h"
+#include "bullet_phys/bullet_public.h"
 
 botlib_export_t	*botlib_export;
 
@@ -3118,6 +3119,36 @@ void SV_BindGame( void ) {
 		gi.G2API_CleanEntAttachments			= SV_G2API_CleanEntAttachments;
 		gi.G2API_OverrideServer					= SV_G2API_OverrideServer;
 		gi.G2API_GetSurfaceName					= SV_G2API_GetSurfaceName;
+
+		// Bullet Physics
+		gi.Phys_World_Create					= Phys_World_Create;
+		gi.Phys_World_Destroy					= Phys_World_Destroy;
+		gi.Phys_World_Advance					= Phys_World_Advance;
+		gi.Phys_World_Set_Resolution			= Phys_World_Set_Resolution;
+		gi.Phys_World_Set_Gravity				= Phys_World_Set_Gravity;
+		gi.Phys_World_Add_Current_Map			= Phys_World_Add_Current_Map;
+		gi.Phys_World_Remove_Object				= Phys_World_Remove_Object;
+		gi.Phys_World_Trace						= Phys_World_Trace;
+		gi.Phys_Object_Create_Box				= Phys_Object_Create_Box;
+		gi.Phys_Object_Create_From_Obj			= Phys_Object_Create_From_Obj;
+		gi.Phys_Object_Create_From_BModel		= Phys_Object_Create_From_BModel;
+		gi.Phys_Object_Create_Capsule			= Phys_Object_Create_Capsule;
+		gi.Phys_Object_Create_Cylinder			= Phys_Object_Create_Cylinder;
+		gi.Phys_Object_Get_Origin				= Phys_Object_Get_Origin;
+		gi.Phys_Object_Set_Origin				= Phys_Object_Set_Origin;
+		gi.Phys_Object_Get_Rotation				= Phys_Object_Get_Rotation;
+		gi.Phys_Object_Set_Rotation				= Phys_Object_Set_Rotation;
+		gi.Phys_Object_Get_Properties			= Phys_Object_Get_Properties;
+		gi.Phys_Object_Set_Properties			= Phys_Object_Set_Properties;
+		gi.Phys_Object_Get_Transform			= Phys_Object_Get_Transform;
+		gi.Phys_Object_Set_Transform			= Phys_Object_Set_Transform;
+		gi.Phys_Object_Force					= Phys_Object_Force;
+		gi.Phys_Object_Impulse					= Phys_Object_Impulse;
+		gi.Phys_Obj_Set_Linear_Velocity			= Phys_Obj_Set_Linear_Velocity;
+		gi.Phys_Obj_Get_Linear_Velocity			= Phys_Obj_Get_Linear_Velocity;
+		gi.Phys_Obj_Set_Angular_Velocity		= Phys_Obj_Set_Angular_Velocity;
+		gi.Phys_Obj_Get_Angular_Velocity		= Phys_Obj_Get_Angular_Velocity;
+		gi.Phys_Obj_Weld						= Phys_Obj_Weld;
 
 		GetGameAPI = (GetGameAPI_t)gvm->GetModuleAPI;
 		ret = GetGameAPI( GAME_API_VERSION, &gi );

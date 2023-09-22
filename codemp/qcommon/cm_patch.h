@@ -102,3 +102,4 @@ typedef struct cGrid_s {
 #define	WRAP_POINT_EPSILON	0.1
 
 struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, vec3_t *points );
+void CM_QuickSubdividePatch(cPatch_t* patch, vec3_t* points, int points_size, int* width, int* height);

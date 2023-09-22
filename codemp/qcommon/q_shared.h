@@ -1908,3 +1908,53 @@ typedef int( *cmpFunc_t )(const void *a, const void *b);
 
 void *Q_LinearSearch( const void *key, const void *ptr, size_t count,
 	size_t size, cmpFunc_t cmp );
+
+/*
+========================================================================
+
+Bullet Physics
+
+========================================================================
+*/
+
+typedef struct phys_world_s phys_world_t;
+typedef struct phys_object_s phys_object_t;
+
+typedef struct phys_properties_s {
+	float mass;
+	float restitution;
+	float friction;
+	float dampening;
+	qboolean actor; // rotation and gravity is disabled on actors, usually used on hitboxes
+	qboolean kinematic;
+	qboolean disabled;
+	int contents;
+	void* token; // used by implementers to quickly identify who owns a phys_object_t
+
+	// these are set by phys, not the implementors
+	vec3_t mins;
+	vec3_t maxs;
+} phys_properties_t;
+
+typedef struct phys_transform_s {
+	vec3_t origin;
+	vec3_t angles;
+} phys_transform_t;
+
+typedef struct phys_collision_s {
+	phys_object_t* A;
+	phys_object_t* B;
+	float impulse;
+	vec3_t normal; // normal of impact, from the perspective of B (invert for A)
+	vec3_t posA, posB;
+} phys_collision_t;
+
+typedef struct phys_trace_s {
+	float hit_fraction;
+	vec3_t hit_normal;
+	vec3_t hit_position;
+	phys_object_t* hit_object;
+} phys_trace_t;
+
+typedef void (*phys_touch_callback) (phys_world_t* w, phys_collision_t* col);
+

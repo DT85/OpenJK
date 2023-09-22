@@ -26,10 +26,12 @@ set(MPGameIncludeDirectories
 	"${SharedDir}"
 	"${GSLIncludeDirectory}"
 	"${CMAKE_BINARY_DIR}/shared"
+	"${OpenJKLibDir}/bullet2/include"
 	)
 if(WIN32)
 	set(MPGameLibraries "winmm")
 endif(WIN32)
+
 set(MPGameDefines ${MPSharedDefines} "_GAME" )
 set(MPGameGameFiles
 	"${MPDir}/game/ai_main.c"
@@ -49,6 +51,7 @@ set(MPGameGameFiles
 	"${MPDir}/game/FighterNPC.c"
 	"${MPDir}/game/g_active.c"
 	"${MPDir}/game/g_bot.c"
+	"${MPDir}/game/g_bullet_phys.c"
 	"${MPDir}/game/g_client.c"
 	"${MPDir}/game/g_cmds.c"
 	"${MPDir}/game/g_combat.c"
@@ -144,6 +147,12 @@ set(MPGameGameFiles
 	)
 source_group("game" FILES ${MPGameGameFiles})
 set(MPGameFiles ${MPGameFiles} ${MPGameGameFiles})
+
+set(MPGameBulletPhysFiles
+	"${MPDir}/bullet_phys/bullet_public.h"
+	)
+source_group("bullet_phys" FILES ${MPGameBulletPhysFiles})
+set(MPGameFiles ${MPGameFiles} ${MPGameBulletPhysFiles})
 
 set(MPGameCommonFiles
 	"${MPDir}/qcommon/q_shared.c"
@@ -255,7 +264,15 @@ set_property(TARGET ${MPGame} APPEND PROPERTY COMPILE_OPTIONS ${OPENJK_VISIBILIT
 
 set_target_properties(${MPGame} PROPERTIES INCLUDE_DIRECTORIES "${MPGameIncludeDirectories}")
 set_target_properties(${MPGame} PROPERTIES PROJECT_LABEL "MP Game Library")
-# no libraries used
+
+# FIXME: Add debug/release libs for each configuration
+# Add Bullet Physics Libraries.
+set(MPGameLibraries 
+	"${OpenJKLibDir}/bullet2/libs/BulletCollision_Debug.lib"
+	"${OpenJKLibDir}/bullet2/libs/BulletDynamics_Debug.lib"
+	"${OpenJKLibDir}/bullet2/libs/LinearMath_Debug.lib"
+	)
+
 if(MPGameLibraries)
 	target_link_libraries(${MPGame} ${MPGameLibraries})
 endif(MPGameLibraries)

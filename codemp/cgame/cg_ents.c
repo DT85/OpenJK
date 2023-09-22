@@ -3348,6 +3348,7 @@ Ghoul2 Insert End
 	case ET_TELEPORT_TRIGGER:
 	case ET_TERRAIN:
 		break;
+	case ET_PROP:
 	case ET_GENERAL:
 		CG_General( cent );
 		break;

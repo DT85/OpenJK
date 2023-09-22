@@ -1059,3 +1059,20 @@ const void *PD_Load ( const char *name, size_t *size );
 uint32_t ConvertUTF8ToUTF32( char *utf8CurrentChar, char **utf8NextChar );
 
 #include "sys/sys_public.h"
+
+/*
+==============================================================
+
+GENERAL PURPOSE THREAD POOL
+
+==============================================================
+*/
+
+void GPTP_Init();
+void GPTP_Shutdown();
+
+unsigned int GPTP_GetThreadCount();
+
+void* GPTP_TaskBegin(void* (*func)(void*), void* arg);
+void* GPTP_TaskCollect(void*);
+

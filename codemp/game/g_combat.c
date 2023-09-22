@@ -5657,40 +5657,42 @@ qboolean G_RadiusDamage ( vec3_t origin, gentity_t *attacker, float damage, floa
 
 	numListedEntities = trap->EntitiesInBox( mins, maxs, entityList, MAX_GENTITIES );
 
-	for ( e = 0 ; e < numListedEntities ; e++ ) {
-		ent = &g_entities[entityList[ e ]];
+	for (e = 0; e < numListedEntities; e++) {
+		ent = &g_entities[entityList[e]];
 
 		if (ent == ignore)
 			continue;
-		if (!ent->takedamage)
+		if (!ent->takedamage && !ent->phys)
 			continue;
 
 		// find the distance from the edge of the bounding box
-		for ( i = 0 ; i < 3 ; i++ ) {
-			if ( origin[i] < ent->r.absmin[i] ) {
+		for (i = 0; i < 3; i++) {
+			if (origin[i] < ent->r.absmin[i]) {
 				v[i] = ent->r.absmin[i] - origin[i];
-			} else if ( origin[i] > ent->r.absmax[i] ) {
+			}
+			else if (origin[i] > ent->r.absmax[i]) {
 				v[i] = origin[i] - ent->r.absmax[i];
-			} else {
+			}
+			else {
 				v[i] = 0;
 			}
 		}
 
-		dist = VectorLength( v );
-		if ( dist >= radius ) {
+		dist = VectorLength(v);
+		if (dist >= radius) {
 			continue;
 		}
 
-	//	if ( ent->health <= 0 )
-	//		continue;
+		//	if ( ent->health <= 0 )
+		//		continue;
 
-		points = damage * ( 1.0 - dist / radius );
+		points = damage * (1.0 - dist / radius);
 
-		if( CanDamage (ent, origin) ) {
-			if( LogAccuracyHit( ent, attacker ) ) {
+		if (CanDamage(ent, origin)) {
+			if (LogAccuracyHit(ent, attacker)) {
 				hitClient = qtrue;
 			}
-			VectorSubtract (ent->r.currentOrigin, origin, dir);
+			VectorSubtract(ent->r.currentOrigin, origin, dir);
 			// push the center of mass higher than the origin so players
 			// get knocked into the air more
 			dir[2] += 24;
@@ -5698,17 +5700,17 @@ qboolean G_RadiusDamage ( vec3_t origin, gentity_t *attacker, float damage, floa
 				attacker->s.eType == ET_NPC && attacker->s.NPC_class == CLASS_VEHICLE &&
 				attacker->m_pVehicle && attacker->m_pVehicle->m_pPilot)
 			{ //say my pilot did it.
-				G_Damage (ent, NULL, (gentity_t *)attacker->m_pVehicle->m_pPilot, dir, origin, (int)points, DAMAGE_RADIUS, mod);
+				G_Damage(ent, NULL, (gentity_t*)attacker->m_pVehicle->m_pPilot, dir, origin, (int)points, DAMAGE_RADIUS, mod);
 			}
 			else
 			{
-				G_Damage (ent, NULL, attacker, dir, origin, (int)points, DAMAGE_RADIUS, mod);
+				G_Damage(ent, NULL, attacker, dir, origin, (int)points, DAMAGE_RADIUS, mod);
 			}
 
 			if (ent && ent->client && roastPeople && missile &&
 				!VectorCompare(ent->r.currentOrigin, missile->r.currentOrigin))
 			{ //the thing calling this function can create burn marks on people, so create an event to do so
-				gentity_t *evEnt = G_TempEntity(ent->r.currentOrigin, EV_GHOUL2_MARK);
+				gentity_t* evEnt = G_TempEntity(ent->r.currentOrigin, EV_GHOUL2_MARK);
 
 				evEnt->s.otherEntityNum = ent->s.number; //the entity the mark should be placed on
 				evEnt->s.weapon = WP_ROCKET_LAUNCHER; //always say it's rocket so we make the right mark
@@ -5731,6 +5733,15 @@ qboolean G_RadiusDamage ( vec3_t origin, gentity_t *attacker, float damage, floa
 				//Special col check
 				evEnt->s.eventParm = 1;
 			}
+		}
+
+		if (ent->phys) {
+			VectorSubtract(ent->r.currentOrigin, origin, dir);
+			float factor = VectorNormalize(dir);
+			VectorScale(dir, (1.0 - (factor / radius)) * damage * 5, dir);
+			trap->Phys_Obj_Get_Linear_Velocity(ent->phys, v);
+			VectorAdd(dir, v, v);
+			trap->Phys_Obj_Set_Linear_Velocity(ent->phys, v);
 		}
 	}
 

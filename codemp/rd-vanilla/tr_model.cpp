@@ -35,6 +35,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define	LF(x) x=LittleFloat(x)
 
 static qboolean R_LoadMD3 (model_t *mod, int lod, void *buffer, const char *name, qboolean &bAlreadyCached );
+static qboolean R_LoadObj (model_t* mod, char const* name);
+
 /*
 Ghoul2 Insert Start
 */
@@ -1067,6 +1069,13 @@ Ghoul2 Insert End
 	// make sure the render thread is stopped
 	R_IssuePendingRenderCommands();
 
+	if (strlen(name) > 4 && !strcmp(".obj", name + strlen(name) - 4)) {
+		loaded = R_LoadObj(mod, name);
+		if (!loaded) return 0;
+		RE_InsertModelIntoHash(name, mod);
+		return mod->index;
+	}
+
 	int iLODStart = 0;
 	if (strstr (name, ".md3")) {
 		iLODStart = MD3_MAX_LODS-1;	// this loads the md3s in reverse so they can be biased
@@ -1281,6 +1290,13 @@ Ghoul2 Insert End
 
 	// make sure the render thread is stopped
 	R_IssuePendingRenderCommands();
+
+	if (strlen(name) > 4 && !strcmp(".obj", name + strlen(name) - 4)) {
+		loaded = R_LoadObj(mod, name);
+		if (!loaded) return 0;
+		RE_InsertModelIntoHash(name, mod);
+		return mod->index;
+	}
 
 	int iLODStart = 0;
 	if (strstr (name, ".md3")) {
@@ -1620,6 +1636,27 @@ static qboolean R_LoadMD3 (model_t *mod, int lod, void *buffer, const char *mod_
 	return qtrue;
 }
 
+static qboolean R_LoadObj(model_t* mod, char const* name) {
+	mod->type = MOD_OBJ;
+	mod->obj = ri.CM_LoadObj(name);
+
+	if (!mod->obj) 
+		return qfalse;
+
+	for (int i = 0; i < mod->obj->numSurfaces; i++) {
+		mod->obj->surfaces[i].ident = SF_OBJ;
+		shader_t* sh = R_FindShader(mod->obj->surfaces[i].shader, lightmapsNone, stylesDefault, qtrue);
+
+		if (sh->defaultShader) {
+			mod->obj->surfaces[i].shaderIndex = 0;
+		}
+		else {
+			mod->obj->surfaces[i].shaderIndex = sh->index;
+		}
+	}
+
+	return qtrue;
+}
 
 //=============================================================================
 /*

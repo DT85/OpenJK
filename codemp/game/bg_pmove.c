@@ -967,11 +967,13 @@ Handles both ground friction and water friction
 ==================
 */
 static void PM_Friction( void ) {
+	return; // Q3 doesn't do this anymore
+#if 0
 	vec3_t	vec;
-	float	*vel;
+	float* vel;
 	float	speed, newspeed, control;
 	float	drop;
-	bgEntity_t *pEnt = NULL;
+	bgEntity_t* pEnt = NULL;
 
 	vel = pm->ps->velocity;
 
@@ -1089,6 +1091,7 @@ static void PM_Friction( void ) {
 	newspeed /= speed;
 
 	VectorScale( vel, newspeed, vel );
+#endif
 }
 
 
@@ -4128,11 +4131,13 @@ static void PM_GroundTrace( void ) {
 	pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, point, pm->ps->clientNum, pm->tracemask);
 	pml.groundTrace = trace;
 
+	/* bullet takes care of this now
 	// do something corrective if the trace starts in a solid...
 	if ( trace.allsolid ) {
 		if ( !PM_CorrectAllSolid(&trace) )
 			return;
 	}
+	*/
 
 	if (pm->ps->pm_type == PM_FLOAT || pm->ps->pm_type == PM_JETPACK)
 	{
@@ -4143,7 +4148,7 @@ static void PM_GroundTrace( void ) {
 	}
 
 	// if the trace didn't hit anything, we are in free fall
-	if ( trace.fraction == 1.0 ) {
+	if ( trace.fraction == 1.0 && !((pm->ps->eFlags & EF_ON_PHYS) != 0)) {
 		PM_GroundTraceMissed();
 		pml.groundPlane = qfalse;
 		pml.walking = qfalse;
@@ -4171,7 +4176,7 @@ static void PM_GroundTrace( void ) {
 	}
 
 	// slopes that are too steep will not be considered onground
-	if ( trace.plane.normal[2] < minNormal ) {
+	if ( trace.plane.normal[2] < minNormal && !((pm->ps->eFlags & EF_ON_PHYS) != 0)) {
 		if ( pm->debugLevel ) {
 			Com_Printf("%i:steep\n", c_pmove);
 		}
@@ -4238,10 +4243,15 @@ static void PM_GroundTrace( void ) {
 		}
 	}
 
-	pm->ps->groundEntityNum = trace.entityNum;
 	pm->ps->lastOnGround = pm->cmd.serverTime;
 
-	PM_AddTouchEnt( trace.entityNum );
+	if (pm->baseEnt->s.eFlags & EF_ON_PHYS) {
+		PM_AddTouchEnt(pm->ps->groundEntityNum);
+	}
+	else {
+		pm->ps->groundEntityNum = trace.entityNum;
+		PM_AddTouchEnt(trace.entityNum);
+	}
 }
 
 
@@ -10177,6 +10187,16 @@ void PmoveSingle (pmove_t *pmove) {
 	int savedGravity = 0;
 
 	pm = pmove;
+
+#ifdef _GAME // TODO -- prediction in CGAME
+	G_Phys_SetClientCrouched((gentity_t*)pm->baseEnt, pm->cmd.upmove < 0);
+	if (pm->cmd.forwardmove || pm->cmd.rightmove) {
+		G_Phys_Set_Friction((gentity_t*)pm->baseEnt, g_phys_clfric_move.value);
+	}
+	else {
+		G_Phys_Set_Friction((gentity_t*)pm->baseEnt, g_phys_clfric_stop.value);
+	}
+#endif
 
 	if (pm->cmd.buttons & BUTTON_ATTACK && pm->cmd.buttons & BUTTON_USE_HOLDABLE)
 	{

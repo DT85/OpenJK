@@ -542,6 +542,16 @@ extern qboolean BG_InKnockDown( int anim ); //bg_pmove.c
 
 int ForcePowerUsableOn(gentity_t *attacker, gentity_t *other, forcePowers_t forcePower)
 {
+	if (other->s.eType == ET_PROP && other->phys) {
+		switch (forcePower) {
+		default: return 0;
+		case FP_GRIP:
+		case FP_PULL:
+		case FP_PUSH:
+			return 1;
+		}
+	}
+
 	if (other && other->client && BG_HasYsalamiri(level.gametype, &other->client->ps))
 	{
 		return 0;
@@ -1409,6 +1419,14 @@ void ForceGrip( gentity_t *self )
 	tto[2] = tfrom[2] + fwd[2]*MAX_GRIP_DISTANCE;
 
 	trap->Trace(&tr, tfrom, NULL, NULL, tto, self->s.number, MASK_PLAYERSOLID, qfalse, 0, 0);
+
+	if (tr.fraction != 1.0 && tr.entityNum != ENTITYNUM_NONE && ForcePowerUsableOn(self, &g_entities[tr.entityNum], FP_GRIP) && g_entities[tr.entityNum].s.eType == ET_PROP) {
+		self->client->ps.fd.forceGripEntityNum = tr.entityNum;
+		self->client->ps.fd.forceGripDamageDebounceTime = 0;
+		self->client->ps.forceHandExtend = HANDEXTEND_FORCE_HOLD;
+		self->client->ps.forceHandExtendTime = level.time + 5000;
+		return;
+	}
 
 	if ( tr.fraction != 1.0 &&
 		tr.entityNum != ENTITYNUM_NONE &&
@@ -3201,62 +3219,64 @@ void ForceThrow( gentity_t *self, qboolean pull )
 		}
 		if ( !(ent->inuse) )
 			continue;
-		if ( ent->s.eType != ET_MISSILE )
-		{
-			if ( ent->s.eType != ET_ITEM )
-			{
-				//FIXME: need pushable objects
-				if ( Q_stricmp( "func_button", ent->classname ) == 0 )
-				{//we might push it
-					if ( pull || !(ent->spawnflags&SPF_BUTTON_FPUSHABLE) )
-					{//not force-pushable, never pullable
-						continue;
-					}
-				}
-				else
+
+		if (ent->s.eType != ET_PROP) {
+			if (ent->s.eType != ET_MISSILE) {
+				if (ent->s.eType != ET_ITEM)
 				{
-					if ( ent->s.eFlags & EF_NODRAW )
-					{
-						continue;
-					}
-					if ( !ent->client )
-					{
-						if ( Q_stricmp( "lightsaber", ent->classname ) != 0 )
-						{//not a lightsaber
-							if ( Q_stricmp( "func_door", ent->classname ) != 0 || !(ent->spawnflags & 2/*MOVER_FORCE_ACTIVATE*/) )
-							{//not a force-usable door
-								if ( Q_stricmp( "func_static", ent->classname ) != 0 || (!(ent->spawnflags&1/*F_PUSH*/)&&!(ent->spawnflags&2/*F_PULL*/)) )
-								{//not a force-usable func_static
-									if ( Q_stricmp( "limb", ent->classname ) )
-									{//not a limb
-										continue;
-									}
-								}
-							}
-							else if ( ent->moverState != MOVER_POS1 && ent->moverState != MOVER_POS2 )
-							{//not at rest
-								continue;
-							}
+					//FIXME: need pushable objects
+					if (Q_stricmp("func_button", ent->classname) == 0)
+					{//we might push it
+						if (pull || !(ent->spawnflags & SPF_BUTTON_FPUSHABLE))
+						{//not force-pushable, never pullable
+							continue;
 						}
 					}
-					else if ( ent->client->NPC_class == CLASS_GALAKMECH
-						|| ent->client->NPC_class == CLASS_ATST
-						|| ent->client->NPC_class == CLASS_RANCOR )
-					{//can't push ATST or Galak or Rancor
-						continue;
+					else
+					{
+						if (ent->s.eFlags & EF_NODRAW)
+						{
+							continue;
+						}
+						if (!ent->client)
+						{
+							if (Q_stricmp("lightsaber", ent->classname) != 0)
+							{//not a lightsaber
+								if (Q_stricmp("func_door", ent->classname) != 0 || !(ent->spawnflags & 2/*MOVER_FORCE_ACTIVATE*/))
+								{//not a force-usable door
+									if (Q_stricmp("func_static", ent->classname) != 0 || (!(ent->spawnflags & 1/*F_PUSH*/) && !(ent->spawnflags & 2/*F_PULL*/)))
+									{//not a force-usable func_static
+										if (Q_stricmp("limb", ent->classname))
+										{//not a limb
+											continue;
+										}
+									}
+								}
+								else if (ent->moverState != MOVER_POS1 && ent->moverState != MOVER_POS2)
+								{//not at rest
+									continue;
+								}
+							}
+						}
+						else if (ent->client->NPC_class == CLASS_GALAKMECH
+							|| ent->client->NPC_class == CLASS_ATST
+							|| ent->client->NPC_class == CLASS_RANCOR)
+						{//can't push ATST or Galak or Rancor
+							continue;
+						}
 					}
 				}
 			}
-		}
-		else
-		{
-			if ( ent->s.pos.trType == TR_STATIONARY && (ent->s.eFlags&EF_MISSILE_STICK) )
-			{//can't force-push/pull stuck missiles (detpacks, tripmines)
-				continue;
-			}
-			if ( ent->s.pos.trType == TR_STATIONARY && ent->s.weapon != WP_THERMAL )
-			{//only thermal detonators can be pushed once stopped
-				continue;
+			else
+			{
+				if (ent->s.pos.trType == TR_STATIONARY && (ent->s.eFlags & EF_MISSILE_STICK))
+				{//can't force-push/pull stuck missiles (detpacks, tripmines)
+					continue;
+				}
+				if (ent->s.pos.trType == TR_STATIONARY && ent->s.weapon != WP_THERMAL)
+				{//only thermal detonators can be pushed once stopped
+					continue;
+				}
 			}
 		}
 
@@ -3340,17 +3360,59 @@ void ForceThrow( gentity_t *self, qboolean pull )
 
 			pushPower = 256*modPowerLevel;
 
-			if (push_list[x]->client)
-			{
+			if (push_list[x]->client) {
 				VectorCopy(push_list[x]->client->ps.origin, thispush_org);
 			}
-			else
-			{
+			else if (push_list[x]->s.eType == ET_PROP) {
+				VectorCopy(push_list[x]->r.currentOrigin, thispush_org);
+			}
+			else {
 				VectorCopy(push_list[x]->s.origin, thispush_org);
 			}
 
-			if ( push_list[x]->client )
-			{//FIXME: make enemy jedi able to hunker down and resist this?
+			if (push_list[x]->s.eType == ET_PROP && push_list[x]->phys) {
+
+				float dirLen = 0;
+
+				pushPowerMod = pushPower;
+				if (pull) {
+					VectorSubtract(self->client->ps.origin, thispush_org, pushDir);
+
+					if (VectorLength(pushDir) <= 256)
+					{
+						int randfact = 0;
+
+						if (modPowerLevel == FORCE_LEVEL_1)
+						{
+							randfact = 3;
+						}
+						else if (modPowerLevel == FORCE_LEVEL_2)
+						{
+							randfact = 7;
+						}
+						else if (modPowerLevel == FORCE_LEVEL_3)
+						{
+							randfact = 10;
+						}
+					}
+				}
+				else
+				{
+					VectorSubtract(thispush_org, self->client->ps.origin, pushDir);
+				}
+
+
+				dirLen = VectorLength(pushDir);
+				VectorNormalize(pushDir);
+
+				phys_properties_t* props = trap->Phys_Object_Get_Properties(push_list[x]->phys);
+
+				VectorScale(pushDir, pushPower * props->mass, pushDir);
+
+				trap->Phys_Object_Impulse(push_list[x]->phys, pushDir, NULL);
+
+			}
+			else if (push_list[x]->client) {//FIXME: make enemy jedi able to hunker down and resist this?
 				int otherPushPower = push_list[x]->client->ps.fd.forcePowerLevel[powerUse];
 				qboolean canPullWeapon = qtrue;
 				float dirLen = 0;
@@ -3815,6 +3877,38 @@ void DoGripAction(gentity_t *self, forcePowers_t forcePower)
 	self->client->invulnerableTimer = 0;
 
 	gripEnt = &g_entities[self->client->ps.fd.forceGripEntityNum];
+
+	if (gripEnt && gripEnt->phys && gripEnt->s.eType == ET_PROP) {
+		VectorSubtract(gripEnt->r.currentOrigin, self->client->ps.origin, a);
+		trap->Trace(&tr, self->client->ps.origin, NULL, NULL, gripEnt->r.currentOrigin, self->s.number, MASK_PLAYERSOLID, qfalse, 0, 0);
+		if (VectorLength(a) > MAX_GRIP_DISTANCE) {
+			WP_ForcePowerStop(self, forcePower);
+			return;
+		}
+		gripLevel = self->client->ps.fd.forcePowerLevel[FP_GRIP];
+		if (!InFront(gripEnt->r.currentOrigin, self->client->ps.origin, self->client->ps.viewangles, 0.9f) && gripLevel < FORCE_LEVEL_3) {
+			WP_ForcePowerStop(self, forcePower);
+			return;
+		}
+		if (tr.fraction != 1.0f && tr.entityNum != gripEnt->s.number) {
+			WP_ForcePowerStop(self, forcePower);
+			return;
+		}
+
+		VectorCopy(gripEnt->r.currentOrigin, start_o);
+		AngleVectors(self->client->ps.viewangles, fwd, NULL, NULL);
+		fwd_o[0] = self->client->ps.origin[0] + fwd[0] * 128;
+		fwd_o[1] = self->client->ps.origin[1] + fwd[1] * 128;
+		fwd_o[2] = self->client->ps.origin[2] + fwd[2] * 128;
+		fwd_o[2] += 16;
+		VectorSubtract(fwd_o, start_o, nvel);
+		VectorScale(nvel, 6, nvel);
+
+		// 		trap->Phys_Object_Set_Origin(gripEnt->phys, fwd_o);
+		trap->Phys_Obj_Set_Linear_Velocity(gripEnt->phys, nvel);
+
+		return;
+	}
 
 	if (!gripEnt || !gripEnt->client || !gripEnt->inuse || gripEnt->health < 1 || !ForcePowerUsableOn(self, gripEnt, FP_GRIP))
 	{

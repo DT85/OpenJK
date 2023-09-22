@@ -207,6 +207,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_InitMemory();
 
+	G_Phys_Init();
+
 	// set some level globals
 	memset( &level, 0, sizeof( level ) );
 	level.time = levelTime;
@@ -441,6 +443,8 @@ void G_ShutdownGame( int restart ) {
 	gentity_t *ent;
 
 //	trap->Print ("==== ShutdownGame ====\n");
+
+	G_Phys_Shutdown();
 
 	G_CleanAllFakeClients(); //get rid of dynamically allocated fake client structs.
 
@@ -3139,6 +3143,7 @@ void G_RunFrame( int levelTime ) {
 
 		if ( ent->s.eType == ET_MOVER ) {
 			G_RunMover( ent );
+			G_Phys_UpdateEnt(ent);
 			continue;
 		}
 
@@ -3322,6 +3327,7 @@ void G_RunFrame( int levelTime ) {
 			trap->ICARUS_MaintainTaskManager(ent->s.number);
 
 			G_RunClient( ent );
+			G_Phys_UpdateEnt( ent );
 			continue;
 		}
 		else if (ent->s.eType == ET_NPC)
@@ -3340,12 +3346,16 @@ void G_RunFrame( int levelTime ) {
 		}
 
 		G_RunThink( ent );
+		G_Phys_UpdateEnt( ent );
 
 		if (g_allowNPC.integer)
 		{
 			ClearNPCGlobals();
 		}
 	}
+
+	G_Phys_Frame();
+
 #ifdef _G_FRAME_PERFANAL
 	iTimer_ItemRun = trap->PrecisionTimer_End(timer_ItemRun);
 #endif

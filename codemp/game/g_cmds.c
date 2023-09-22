@@ -3363,6 +3363,10 @@ void Cmd_AddBot_f( gentity_t *ent ) {
 	trap->SendServerCommand( ent-g_entities, va( "print \"%s.\n\"", G_GetStringEdString( "MP_SVGAME", "ONLY_ADD_BOTS_AS_SERVER" ) ) );
 }
 
+static void Cmd_Testbox_f(gentity_t* ent) {
+	G_TEST_PhysTestEnt(ent->r.currentOrigin);
+}
+
 /*
 =================
 ClientCommand
@@ -3419,6 +3423,7 @@ command_t commands[] = {
 	{ "teamvote",			Cmd_TeamVote_f,				CMD_NOINTERMISSION },
 	{ "tell",				Cmd_Tell_f,					0 },
 	{ "thedestroyer",		Cmd_TheDestroyer_f,			CMD_CHEAT|CMD_ALIVE|CMD_NOINTERMISSION },
+	{ "testbox",			Cmd_Testbox_f,				CMD_CHEAT | CMD_ALIVE | CMD_NOINTERMISSION }, // Bullet Physics testbox (OBJ)
 	{ "t_use",				Cmd_TargetUse_f,			CMD_CHEAT|CMD_ALIVE },
 	{ "voice_cmd",			Cmd_VoiceCommand_f,			CMD_NOINTERMISSION },
 	{ "vote",				Cmd_Vote_f,					CMD_NOINTERMISSION },

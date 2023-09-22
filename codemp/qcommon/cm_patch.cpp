@@ -1626,6 +1626,50 @@ qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchColli
 	return qfalse;
 }
 
+/*
+===================
+CM_QuickSubdividePatch
+===================
+*/
+void CM_QuickSubdividePatch(cPatch_t* patch, vec3_t* points, int points_size, int* width, int* height) {
+	cGrid_t			grid;
+	int				i, j;
+
+	grid.width = patch->width;
+	grid.height = patch->height;
+	grid.wrapWidth = qfalse;
+	grid.wrapHeight = qfalse;
+	for (i = 0; i < patch->width; i++) {
+		for (j = 0; j < patch->height; j++) {
+			VectorCopy(patch->points[j * patch->width + i], grid.points[i][j]);
+		}
+	}
+
+	CM_SetGridWrapWidth(&grid);
+	CM_SubdivideGridColumns(&grid);
+	CM_RemoveDegenerateColumns(&grid);
+	CM_TransposeGrid(&grid);
+	CM_SetGridWrapWidth(&grid);
+	CM_SubdivideGridColumns(&grid);
+	CM_RemoveDegenerateColumns(&grid);
+
+
+	if ((grid.width * grid.height) > points_size) {
+		Com_Printf("CM_QuickSubdividePatch: points_size too small for patch mesh! (Required: %i, Given: %i)\nDiscarding patch mesh...\n", grid.width * grid.height, points_size);
+		*width = 0;
+		*height = 0;
+		return;
+	}
+
+	for (i = 0; i < grid.width; i++) {
+		for (j = 0; j < grid.height; j++) {
+			VectorCopy(grid.points[i][j], points[j * grid.width + i]);
+		}
+	}
+
+	*width = grid.width;
+	*height = grid.height;
+}
 
 /*
 =======================================================================

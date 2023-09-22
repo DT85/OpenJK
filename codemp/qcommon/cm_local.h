@@ -86,11 +86,14 @@ public:
 	void	Destroy(void) { }
 };
 
+#define	MAX_PATCH_VERTS		1024
 typedef struct cPatch_s {
 	int			checkcount;				// to avoid repeated testings
 	int			surfaceFlags;
 	int			contents;
 	struct patchCollide_s	*pc;
+	vec3_t		points[MAX_PATCH_VERTS];
+	int			width, height;
 } cPatch_t;
 
 

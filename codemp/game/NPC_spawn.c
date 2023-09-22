@@ -1180,6 +1180,8 @@ void NPC_Begin (gentity_t *ent)
 		//rwwFIXMEFIXME: Use this? Probably doesn't really matter for MP.
 	}
 
+	G_Phys_AddClientCapsule(ent);
+
 	ClientThink( ent->s.number, &ucmd );
 
 	trap->LinkEntity( (sharedEntity_t *)ent );
@@ -1741,6 +1743,8 @@ finish:
 	{
 		G_SetOrigin( ent, saveOrg );
 	}
+
+	G_Phys_AddClientCapsule(newent);
 
 	return newent;
 }

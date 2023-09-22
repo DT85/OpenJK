@@ -936,6 +936,8 @@ Marks the entity as free
 void G_FreeEntity( gentity_t *ed ) {
 	//gentity_t *te;
 
+	G_Phys_Remove(ed);
+
 	if (ed->isSaberEntity)
 	{
 #ifdef _DEBUG

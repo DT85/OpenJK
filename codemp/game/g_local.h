@@ -404,6 +404,16 @@ struct gentity_s {
 
 	// OpenJK add
 	int			useDebounceTime;	// for cultist_destroyer
+
+	// Bullet Physics
+	phys_object_t* phys;
+	phys_object_t* phys2; // used for ducking clients
+	qboolean	phys_is_crouched;
+	vec3_t		mover_delta;
+	/*
+	qboolean	phys_post_do_vellerp;
+	vec3_t		phys_post_target_velocity;
+	*/
 };
 
 #define DAMAGEREDIRECT_HEAD		1
@@ -1525,5 +1535,21 @@ void Svcmd_ToggleAllowVote_f( void );
 #undef XCVAR_PROTO
 void G_RegisterCvars( void );
 void G_UpdateCvars( void );
+
+// g_bullet_phys.c
+extern phys_world_t* gworld;
+
+void G_Phys_Init();
+void G_Phys_Shutdown();
+void G_Phys_Frame();
+void G_Phys_Upd_Res();
+void G_Phys_Upd_Grav();
+void G_Phys_Set_Friction(gentity_t* ent, float f);
+void G_Phys_UpdateEnt(gentity_t* ent);
+void G_Phys_AddBMover(gentity_t* mover);
+void G_Phys_AddClientCapsule(gentity_t* ent);
+void G_Phys_SetClientCrouched(gentity_t* ent, qboolean);
+void G_Phys_Remove(gentity_t* ent);
+void G_TEST_PhysTestEnt(vec3_t pos);
 
 extern gameImport_t *trap;

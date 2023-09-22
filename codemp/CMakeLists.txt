@@ -175,7 +175,13 @@ if(BuildMPEngine OR BuildMPDed)
 	endif(WIN32)
 
 	# Include directories
-	set(MPEngineAndDedIncludeDirectories ${MPDir} ${SharedDir} ${GSLIncludeDirectory} ${CMAKE_BINARY_DIR}/shared)
+	set(MPEngineAndDedIncludeDirectories 
+		"${MPDir}"
+		"${SharedDir}"
+		"${GSLIncludeDirectory}"
+		"${CMAKE_BINARY_DIR}/shared"
+		"${OpenJKLibDir}/bullet2/include"
+		)
 
 	# Transparently use our bundled minizip.
 	list(APPEND MPEngineAndDedIncludeDirectories ${MINIZIP_INCLUDE_DIRS})
@@ -184,6 +190,14 @@ if(BuildMPEngine OR BuildMPDed)
 	# Transparently use either bundled or system zlib.
 	list(APPEND MPEngineAndDedIncludeDirectories ${ZLIB_INCLUDE_DIR})
 	list(APPEND MPEngineAndDedLibraries          ${ZLIB_LIBRARIES})
+
+	# FIXME: Add debug & release libs
+	# Add Bullet Physics Libraries.
+	list(APPEND MPEngineAndDedLibraries
+		"${OpenJKLibDir}/bullet2/libs/BulletCollision_Debug.lib"
+		"${OpenJKLibDir}/bullet2/libs/BulletDynamics_Debug.lib"
+		"${OpenJKLibDir}/bullet2/libs/LinearMath_Debug.lib"
+		)
 
 	set(MPEngineAndDedCgameFiles
 		"${MPDir}/cgame/cg_public.h"
@@ -210,11 +224,20 @@ if(BuildMPEngine OR BuildMPDed)
 	source_group("game" FILES ${MPEngineAndDedGameFiles})
 	set(MPEngineAndDedFiles ${MPEngineAndDedFiles} ${MPEngineAndDedGameFiles})
 
+	set(MPEngineAndDedBulletPhysFiles
+		"${MPDir}/bullet_phys/bullet_public.h"
+		"${MPDir}/bullet_phys/bullet_phys.cpp"
+		)
+	source_group("bullet_phys" FILES ${MPEngineAndDedBulletPhysFiles})
+	set(MPEngineAndDedFiles ${MPEngineAndDedFiles} ${MPEngineAndDedBulletPhysFiles})
+
 	set(MPEngineAndDedCommonFiles
 		"${MPDir}/qcommon/q_shared.h"
 		"${SharedDir}/qcommon/q_platform.h"
+		"${MPDir}/qcommon/cm_bulletphys.cpp"
 		"${MPDir}/qcommon/cm_load.cpp"
 		"${MPDir}/qcommon/cm_local.h"
+		"${MPDir}/qcommon/cm_obj.cpp"
 		"${MPDir}/qcommon/cm_patch.cpp"
 		"${MPDir}/qcommon/cm_patch.h"
 		"${MPDir}/qcommon/cm_polylib.cpp"
