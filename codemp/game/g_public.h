@@ -1106,7 +1106,7 @@ typedef struct gameImport_s {
 	phys_object_t* (*Phys_Object_Create_Box)			( phys_world_t* w, vec3_t mins, vec3_t maxs, phys_transform_t* initial_transform, phys_properties_t* properties );
 	phys_object_t* (*Phys_Object_Create_From_Obj)		( phys_world_t* world, char const* path, phys_transform_t* initial_transform, phys_properties_t* properties, float scale );
 	phys_object_t* (*Phys_Object_Create_From_BModel)	( phys_world_t* world, int modeli, phys_transform_t* initial_transform, phys_properties_t* properties );
-	phys_object_t* (*Phys_Object_Create_Capsule)		( phys_world_t* w, float cylinder_height, float radius, float v_center_offs, phys_transform_t* initial_transform, phys_properties_t* properties );
+	phys_object_t* (*Phys_Object_Create_Capsule)		( phys_world_t* w, float capsule_height, float radius, float v_center_offs, phys_transform_t* initial_transform, phys_properties_t* properties );
 	phys_object_t* (*Phys_Object_Create_Cylinder)		( phys_world_t* w, float cylinder_height, float radius, float v_center_offs, phys_transform_t* initial_transform, phys_properties_t* properties );
 	void 		(*Phys_Object_Get_Origin)				( phys_object_t*, vec3_t origin );
 	void 		(*Phys_Object_Set_Origin)				( phys_object_t*, vec3_t origin );

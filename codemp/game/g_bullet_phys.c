@@ -24,7 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 phys_world_t* gworld = NULL;
 static int last_time = 0;
-
 static vec3_t nullvec = { 0, 0, 0 };
 
 #define VELLERP_THRESH 30
@@ -38,7 +37,6 @@ static void vellerp(vec3_t v1, vec3_t v2, float lerp, vec3_t out) {
 static void g_touch_cb_do(phys_world_t* w, phys_collision_t* col, gentity_t* entThis, gentity_t* entOther) {
 
 	if (col->normal[2] < -0.707 && entThis->client->pers.cmd.upmove <= 0) { // 45 degrees is maximum walkable surface angle -- TODO: cvar
-
 		/*
 		// on floor, move velocity closer to floor's
 		if (entOther == &g_entities[ENTITYNUM_WORLD]) {
@@ -46,6 +44,7 @@ static void g_touch_cb_do(phys_world_t* w, phys_collision_t* col, gentity_t* ent
 		} else {
 			trap->Phys_Obj_Get_Linear_Velocity(entOther->phys, entThis->phys_post_target_velocity);
 		}
+
 		entThis->phys_post_do_vellerp = qtrue;
 		*/
 
@@ -76,6 +75,7 @@ static void g_touch_cb_do(phys_world_t* w, phys_collision_t* col, gentity_t* ent
 		VectorCopy(start, end);
 		end[2] -= 200 + fabs(entThis->r.mins[2]);
 		trap->Phys_World_Trace(gworld, start, end, &tr);
+		
 		if (tr.hit_object) {
 			AngleVectors(entThis->playerState->viewangles, NULL, right, NULL);
 			trap->Phys_Obj_Get_Linear_Velocity(entThis->phys, curvel);
@@ -84,7 +84,10 @@ static void g_touch_cb_do(phys_world_t* w, phys_collision_t* col, gentity_t* ent
 			VectorNormalize2(curvel, cvn);
 			VectorNormalize2(apply, an);
 			float v = DotProduct(cvn, an);
-			if (v < 0) v = 0;
+			
+			if (v < 0) 
+			v = 0;
+
 			vellerp(apply, curvel, v, apply);
 			trap->Phys_Obj_Set_Linear_Velocity(entThis->phys, apply);
 		}
@@ -117,7 +120,8 @@ static void g_touch_cb(phys_world_t* w, phys_collision_t* col) {
 	gentity_t* entA = propsA->token;
 	gentity_t* entB = propsB->token;
 
-	if (!entA || !entB) return;
+	if (!entA || !entB) 
+		return;
 
 	gentity_t* entClient = NULL;
 	gentity_t* entOther = NULL;
@@ -127,20 +131,26 @@ static void g_touch_cb(phys_world_t* w, phys_collision_t* col) {
 		entClient = entA;
 		entOther = entB;
 	}
+
 	if (entB->s.eType == ET_PLAYER || entB->s.eType == ET_NPC) {
-		if (entClient) cli2 = qtrue;
+		if (entClient) 
+			cli2 = qtrue;
+
 		entClient = entB;
 		entOther = entA;
 	}
 
-	if (!entClient) return; // collisions not involving a client are irrelevant
+	if (!entClient) 
+		return; // collisions not involving a client are irrelevant
 
 	g_touch_cb_do(w, col, entClient, entOther);
+	
 	if (cli2) {
 		g_touch_cb_do(w, col, entOther, entClient);
 	}
 }
 
+// Initialise Physics
 void G_Phys_Init() {
 	trap->Print("================================\n");
 	trap->Print("Initializing Serverside Physics\n");
@@ -153,29 +163,38 @@ void G_Phys_Init() {
 	trap->Print("================================\n");
 }
 
+// Shutdown Physics
 void G_Phys_Shutdown() {
 	if (gworld) {
 		trap->Phys_World_Destroy(gworld);
 		gworld = NULL;
 	}
+
 	last_time = 0;
 }
 
+// Run Physics
 void G_Phys_Frame() {
 	gentity_t* gent = g_entities;
+
 	for (int i = 0; i < MAX_GENTITIES; i++, gent++) {
-		if (!gent->playerState || !gent->phys) continue;
+		if (!gent->playerState || !gent->phys) 
+			continue;
+
 		gent->playerState->eFlags &= ~EF_ON_PHYS;
 	}
 
 	int delta = level.time - last_time;
 	trap->Phys_World_Advance(gworld, delta);
 	last_time = level.time;
-
 	gent = g_entities;
+
 	for (int i = 0; i < MAX_GENTITIES; i++, gent++) {
-		if (!(gent->client && gent->phys)) continue;
+		if (!(gent->client && gent->phys)) 
+			continue;
+
 		vec3_t btorig;
+
 		if (gent->phys_is_crouched) {
 			trap->Phys_Object_Get_Origin(gent->phys2, btorig);
 			VectorCopy(btorig, gent->playerState->origin);
@@ -191,7 +210,10 @@ void G_Phys_Frame() {
 		/*
 		if (gent->phys_post_do_vellerp) {
 			qboolean clip = qtrue;
-			if (gent->playerState->moveDir[0] || gent->playerState->moveDir[1]) clip = qtrue;
+			
+			if (gent->playerState->moveDir[0] || gent->playerState->moveDir[1]) 
+				clip = qtrue;
+
 			vellerp(gent->playerState->velocity, gent->phys_post_target_velocity, 0.95, clip, gent->playerState->velocity);
 			gent->phys_post_do_vellerp = qfalse;
 		}
@@ -200,22 +222,32 @@ void G_Phys_Frame() {
 	}
 }
 
+// Update Physics Resolution
 void G_Phys_Upd_Res() {
-	if (!gworld) return;
+	if (!gworld) 
+		return;
+
 	trap->Phys_World_Set_Resolution(gworld, g_phys_resolution.integer);
 }
 
+// Update Gravity
 void G_Phys_Upd_Grav() {
-	if (!gworld) return;
+	if (!gworld) 
+		return;
+
 	trap->Phys_World_Set_Gravity(gworld, g_gravity.value);
 }
 
+// Set Player & NPC Friction
 void G_Phys_Set_Friction(gentity_t* ent, float f) {
-	if (!ent->phys) return;
+	if (!ent->phys) 
+		return;
+
 	phys_properties_t* props;
 	props = trap->Phys_Object_Get_Properties(ent->phys);
 	props->friction = f;
 	trap->Phys_Object_Set_Properties(ent->phys);
+
 	if (ent->phys2) {
 		props = trap->Phys_Object_Get_Properties(ent->phys2);
 		props->friction = f;
@@ -223,20 +255,23 @@ void G_Phys_Set_Friction(gentity_t* ent, float f) {
 	}
 }
 
-
 static phys_transform_t trans;
 static phys_properties_t props;
 
+// Update Physics Entities
 void G_Phys_UpdateEnt(gentity_t* ent) {
 
 	phys_properties_t* props;
 	phys_properties_t* props2;
 
-	if (!ent->phys) return;
+	if (!ent->phys) 
+		return;
+
 	switch (ent->s.eType) {
 	case ET_PLAYER:
 		props = trap->Phys_Object_Get_Properties(ent->phys);
 		props2 = trap->Phys_Object_Get_Properties(ent->phys2);
+		
 		if (ent->client->noclip || ent->client->sess.sessionTeam == TEAM_SPECTATOR) {
 			props->contents = 0;
 			props2->contents = 0;
@@ -245,6 +280,7 @@ void G_Phys_UpdateEnt(gentity_t* ent) {
 			props->contents = ent->r.contents;
 			props2->contents = ent->r.contents;
 		}
+
 		trap->Phys_Object_Set_Properties(ent->phys);
 		trap->Phys_Object_Set_Properties(ent->phys2);
 	case ET_NPC:
@@ -269,10 +305,12 @@ void G_Phys_UpdateEnt(gentity_t* ent) {
 		trap->Phys_Object_Set_Origin(ent->phys, trans.origin);
 		trap->Phys_Object_Set_Rotation(ent->phys, trans.angles);
 		phys_properties_t* props = trap->Phys_Object_Get_Properties(ent->phys);
+		
 		if (props->contents != ent->r.contents) {
 			props->contents = ent->r.contents;
 			trap->Phys_Object_Set_Properties(ent->phys);
 		}
+
 		break;
 	case ET_PROP:
 	case ET_GENERAL:
@@ -290,8 +328,11 @@ void G_Phys_UpdateEnt(gentity_t* ent) {
 	}
 }
 
+// Moving Brush Entity (ET_MOVER)
 void G_Phys_AddBMover(gentity_t* mover) {
-	if (!mover->r.bmodel) return;
+	if (!mover->r.bmodel) 
+		return;
+
 	int bmodi = strtol(mover->model + 1, NULL, 10);
 
 	VectorClear(trans.origin);
@@ -310,9 +351,13 @@ void G_Phys_AddBMover(gentity_t* mover) {
 	mover->phys = trap->Phys_Object_Create_From_BModel(gworld, bmodi, &trans, &props);
 }
 
+// Player & NPC Capsule
 void G_Phys_AddClientCapsule(gentity_t* ent) {
-	if (ent->phys) trap->Phys_World_Remove_Object(gworld, ent->phys);
-	if (ent->phys2) trap->Phys_World_Remove_Object(gworld, ent->phys2);
+	if (ent->phys) 
+		trap->Phys_World_Remove_Object(gworld, ent->phys);
+
+	if (ent->phys2) 
+		trap->Phys_World_Remove_Object(gworld, ent->phys2);
 
 	//trap->Print("%s", ent->classname);
 
@@ -330,20 +375,22 @@ void G_Phys_AddClientCapsule(gentity_t* ent) {
 	VectorClear(trans.angles);
 
 	float radius = (fabs(ent->r.maxs[0] - ent->r.mins[0]) + fabs(ent->r.maxs[1] - ent->r.mins[1])) / 4;
-	float cheight = fabs(ent->playerState->standheight - ent->r.mins[2]) - 2 * radius;
-	float cheight2 = fabs(ent->playerState->crouchheight - ent->r.mins[2]) - 2 * radius;
-	float voffs = (ent->r.mins[2] + ent->playerState->standheight) / 2;
-	float voffs2 = (ent->r.mins[2] + ent->playerState->crouchheight) / 2;
+	float height = fabs(ent->playerState->standheight - ent->r.mins[2]) - 2 * radius; // standing height
+	float height2 = fabs(ent->playerState->crouchheight - ent->r.mins[2]) - 2 * radius; // crouching height
+	float vert_offset = (ent->r.mins[2] + ent->playerState->standheight) / 2; // standing height vertical offset
+	float vert_offset2 = (ent->r.mins[2] + ent->playerState->crouchheight) / 2; // crouching height vertical offset
 
-	ent->phys = trap->Phys_Object_Create_Capsule(gworld, cheight, radius, voffs, &trans, &props);
+	ent->phys = trap->Phys_Object_Create_Capsule(gworld, height, radius, vert_offset, &trans, &props);
 	props.disabled = qtrue;
-	ent->phys2 = trap->Phys_Object_Create_Capsule(gworld, cheight2, radius, voffs2, &trans, &props);
+	ent->phys2 = trap->Phys_Object_Create_Capsule(gworld, height2, radius, vert_offset2, &trans, &props);
 
 	ent->phys_is_crouched = qfalse;
 }
 
+// Player & NPC
 void G_Phys_SetClientCrouched(gentity_t* ent, qboolean crouched) {
-	if (crouched == ent->phys_is_crouched) return;
+	if (crouched == ent->phys_is_crouched) 
+		return;
 
 	phys_properties_t* props = trap->Phys_Object_Get_Properties(ent->phys);
 	phys_properties_t* props2 = trap->Phys_Object_Get_Properties(ent->phys2);
@@ -357,13 +404,18 @@ void G_Phys_SetClientCrouched(gentity_t* ent, qboolean crouched) {
 	ent->phys_is_crouched = crouched;
 }
 
+// Remove Physics Object From World
 void G_Phys_Remove(gentity_t* ent) {
-	if (ent->phys) trap->Phys_World_Remove_Object(gworld, ent->phys);
-	if (ent->phys2) trap->Phys_World_Remove_Object(gworld, ent->phys2);
+	if (ent->phys) 
+		trap->Phys_World_Remove_Object(gworld, ent->phys);
+	if (ent->phys2) 
+		trap->Phys_World_Remove_Object(gworld, ent->phys2);
+
 	ent->phys = NULL;
 	ent->phys2 = NULL;
 };
 
+// Spawnable Test Physics Entity - OBJ format
 static char const* testmodels[] = {
 	"models/testbox.obj",
 	"models/testbox2.obj"

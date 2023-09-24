@@ -407,7 +407,7 @@ struct gentity_s {
 
 	// Bullet Physics
 	phys_object_t* phys;
-	phys_object_t* phys2; // used for ducking clients
+	phys_object_t* phys2; // used for crouching clients
 	qboolean	phys_is_crouched;
 	vec3_t		mover_delta;
 	/*
