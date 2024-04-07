@@ -213,7 +213,7 @@ void Shark_Grab(qboolean tryGrab)
 {
 	int			radiusEntNums[128];
 	int			numEnts;
-	const float	radius = 88;
+	const float	radius = 90;
 	const float	radiusSquared = (radius * radius);
 	int			i;
 	vec3_t		boltOrg;
@@ -327,7 +327,7 @@ void Shark_Smash(void)
 {
 	int			radiusEntNums[128];
 	int			numEnts;
-	const float	radius = 128;
+	const float	radius = 200;
 	const float	halfRadSquared = ((radius / 2) * (radius / 2));
 	const float	radiusSquared = (radius * radius);
 	float		distSq;
