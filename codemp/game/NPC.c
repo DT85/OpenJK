@@ -1311,6 +1311,28 @@ void NPC_BehaviorSet_Rancor( int bState )
 
 /*
 -------------------------
+NPC_BehaviorSet_Shark
+-------------------------
+*/
+void NPC_BehaviorSet_Shark( int bState )
+{
+	switch ( bState )
+	{
+	case BS_STAND_GUARD:
+	case BS_PATROL:
+	case BS_STAND_AND_SHOOT:
+	case BS_HUNT_AND_KILL:
+	case BS_DEFAULT:
+		NPC_BSShark_Default();
+		break;
+	default:
+		NPC_BehaviorSet_Default( bState );
+		break;
+	}
+}
+
+/*
+-------------------------
 NPC_RunBehavior
 -------------------------
 */
@@ -1318,6 +1340,7 @@ extern void NPC_BSEmplaced( void );
 extern qboolean NPC_CheckSurrender( void );
 extern void Boba_FlyStop( gentity_t *self );
 extern void NPC_BSWampa_Default( void );
+extern void NPC_BSShark_Default(void);
 extern qboolean Jedi_CultistDestroyer( gentity_t *self );
 void NPC_RunBehavior( int team, int bState )
 {
@@ -1347,6 +1370,10 @@ void NPC_RunBehavior( int team, int bState )
 	else if ( NPCS.NPC->client->NPC_class == CLASS_WAMPA )
 	{//wampa
 		NPC_BSWampa_Default();
+	}
+	else if (NPCS.NPC->client->NPC_class == CLASS_SHARK)
+	{//shark
+		NPC_BehaviorSet_Shark( bState );
 	}
 	else if ( NPCS.NPC->client->NPC_class == CLASS_RANCOR )
 	{//rancor

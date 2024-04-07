@@ -1198,6 +1198,7 @@ qboolean NPC_ValidEnemy( gentity_t *ent )
 	if ( entTeam == NPCS.NPC->client->enemyTeam //simplest case: they're on my enemy team
 		|| (NPCS.NPC->client->enemyTeam == NPCTEAM_FREE && ent->client->NPC_class != NPCS.NPC->client->NPC_class )//I get mad at anyone and this guy isn't the same class as me
 		|| (ent->client->NPC_class == CLASS_WAMPA && ent->enemy )//a rampaging wampa
+		|| (ent->client->NPC_class == CLASS_SHARK && ent->enemy )//a rampaging shark
 		|| (ent->client->NPC_class == CLASS_RANCOR && ent->enemy )//a rampaging rancor
 		|| (entTeam == NPCTEAM_FREE && ent->client->enemyTeam == NPCTEAM_FREE && ent->enemy && ent->enemy->client && (ent->enemy->client->playerTeam == NPCS.NPC->client->playerTeam||(ent->enemy->client->playerTeam != NPCTEAM_ENEMY&&NPCS.NPC->client->playerTeam==NPCTEAM_PLAYER))) //enemy is a rampaging non-aligned creature who is attacking someone on our team or a non-enemy (this last condition is used only if we're a good guy - in effect, we protect the innocent)
 		)
@@ -1453,6 +1454,7 @@ qboolean NPC_FindEnemy( qboolean checkAlerts )
 	//See if the player is closer than our current enemy
 	if ( NPCS.NPC->client->NPC_class != CLASS_RANCOR
 		&& NPCS.NPC->client->NPC_class != CLASS_WAMPA
+		&& NPCS.NPC->client->NPC_class != CLASS_SHARK
 		//&& NPC->client->NPC_class != CLASS_SAND_CREATURE
 		&& NPC_CheckPlayerDistance() )
 	{//rancors, wampas & sand creatures don't care if player is closer, they always go with closest
@@ -1494,6 +1496,7 @@ qboolean NPC_CheckEnemyExt( qboolean checkAlerts )
 	//Attempt to find an enemy
 	return NPC_FindEnemy();
 */
+	//Attempt to find an enemy
 	return NPC_FindEnemy( checkAlerts );
 }
 
@@ -1511,7 +1514,7 @@ qboolean NPC_FacePosition( vec3_t position, qboolean doPitch )
 	qboolean	facing = qtrue;
 
 	//Get the positions
-	if ( NPCS.NPC->client && (NPCS.NPC->client->NPC_class == CLASS_RANCOR || NPCS.NPC->client->NPC_class == CLASS_WAMPA) )// || NPC->client->NPC_class == CLASS_SAND_CREATURE) )
+	if ( NPCS.NPC->client && (NPCS.NPC->client->NPC_class == CLASS_RANCOR || NPCS.NPC->client->NPC_class == CLASS_WAMPA || NPCS.NPC->client->NPC_class == CLASS_SHARK ) )// || NPC->client->NPC_class == CLASS_SAND_CREATURE) )
 	{
 		CalcEntitySpot( NPCS.NPC, SPOT_ORIGIN, muzzle );
 		muzzle[2] += NPCS.NPC->r.maxs[2] * 0.75f;

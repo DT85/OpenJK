@@ -3735,6 +3735,7 @@ void WP_SaberRadiusDamage( gentity_t *ent, vec3_t point, float radius, int damag
 				{//do knockback
 					if ( radiusEnt->client
 						&& radiusEnt->client->NPC_class != CLASS_RANCOR
+						&& radiusEnt->client->NPC_class != CLASS_SHARK
 						&& radiusEnt->client->NPC_class != CLASS_ATST
 						&& !(radiusEnt->flags&FL_NO_KNOCKBACK) )//don't throw them back
 					{

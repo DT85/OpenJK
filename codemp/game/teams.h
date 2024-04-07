@@ -93,6 +93,7 @@ typedef enum
 	CLASS_VEHICLE,
 	CLASS_RANCOR,
 	CLASS_WAMPA,
+	CLASS_SHARK,
 
 	CLASS_NUM_CLASSES
 } class_t;

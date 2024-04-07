@@ -5219,7 +5219,8 @@ static void PM_Footsteps( void ) {
 			pm->ps->bobCycle = 0;	// start at beginning of cycle again
 			if ( pm->ps->clientNum >= MAX_CLIENTS &&
 				pm_entSelf &&
-				pm_entSelf->s.NPC_class == CLASS_RANCOR )
+				(pm_entSelf->s.NPC_class == CLASS_RANCOR || 
+				pm_entSelf->s.NPC_class == CLASS_SHARK) )
 			{
 				if ( (pm->ps->eFlags2&EF2_USE_ALT_ANIM) )
 				{//holding someone
@@ -5407,7 +5408,8 @@ static void PM_Footsteps( void ) {
 			}
 			else if ( pm->ps->clientNum >= MAX_CLIENTS &&
 				pm_entSelf &&
-				pm_entSelf->s.NPC_class == CLASS_RANCOR )
+				(pm_entSelf->s.NPC_class == CLASS_RANCOR ||
+				pm_entSelf->s.NPC_class == CLASS_SHARK) )
 			{//no run anims
 				if ( (pm->ps->pm_flags&PMF_BACKWARDS_RUN) )
 				{
@@ -10880,6 +10882,7 @@ void PmoveSingle (pmove_t *pmove) {
 	if (!pm->ps->m_iVehicleNum &&
 		pm_entSelf->s.NPC_class!=CLASS_VEHICLE&&
 		pm_entSelf->s.NPC_class!=CLASS_RANCOR&&
+		pm_entSelf->s.NPC_class!=CLASS_SHARK&&
 		pm->ps->groundEntityNum < ENTITYNUM_WORLD &&
 		pm->ps->groundEntityNum >= MAX_CLIENTS)
 	{ //I am a player client, not riding on a vehicle, and potentially standing on an NPC

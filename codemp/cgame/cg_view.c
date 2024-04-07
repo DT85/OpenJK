@@ -371,7 +371,8 @@ static void CG_CalcIdealThirdPersonViewLocation(void)
 	if ( cg.snap
 		&& (cg.snap->ps.eFlags2&EF2_HELD_BY_MONSTER)
 		&& cg.snap->ps.hasLookTarget
-		&& cg_entities[cg.snap->ps.lookTarget].currentState.NPC_class == CLASS_RANCOR )//only possibility for now, may add Wampa and sand creature later
+		&& (cg_entities[cg.snap->ps.lookTarget].currentState.NPC_class == CLASS_RANCOR
+		|| cg_entities[cg.snap->ps.lookTarget].currentState.NPC_class == CLASS_SHARK) )//only possibility for now, may add Wampa and sand creature later
 	{//stay back
 		//thirdPersonRange = 180.0f;
 		thirdPersonRange = 120.0f;
@@ -653,7 +654,8 @@ static void CG_OffsetThirdPersonView( void )
 	if ( cg.snap
 		&& (cg.snap->ps.eFlags2&EF2_HELD_BY_MONSTER)
 		&& cg.snap->ps.hasLookTarget
-		&& cg_entities[cg.snap->ps.lookTarget].currentState.NPC_class == CLASS_RANCOR )//only possibility for now, may add Wampa and sand creature later
+		&& (cg_entities[cg.snap->ps.lookTarget].currentState.NPC_class == CLASS_RANCOR
+		|| cg_entities[cg.snap->ps.lookTarget].currentState.NPC_class == CLASS_SHARK) )//only possibility for now, may add Wampa and sand creature later
 	{//being held
 		//vec3_t monsterPos, dir2Me;
 		centity_t	*monster = &cg_entities[cg.snap->ps.lookTarget];

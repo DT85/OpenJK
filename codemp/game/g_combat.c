@@ -2083,6 +2083,7 @@ extern void Boba_FlyStop( gentity_t *self );
 extern qboolean Jedi_WaitingAmbush( gentity_t *self );
 void CheckExitRules( void );
 extern void Rancor_DropVictim( gentity_t *self );
+extern void Shark_DropVictim( gentity_t* self );
 
 extern qboolean g_dontFrickinCheck;
 extern qboolean g_endPDuel;
@@ -2345,6 +2346,8 @@ extern void RunEmplacedWeapon( gentity_t *ent, usercmd_t **ucmd );
 			Boba_FlyStop( self );
 		if ( self->s.NPC_class == CLASS_RANCOR )
 			Rancor_DropVictim( self );
+		if ( self->s.NPC_class == CLASS_SHARK )
+			Shark_DropVictim( self );
 	}
 	if ( attacker && attacker->NPC && attacker->NPC->group && attacker->NPC->group->enemy == self )
 	{
@@ -4610,8 +4613,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 	}
 
 	if ( targ->client
-		&& targ->client->NPC_class == CLASS_RANCOR
-		&& (!attacker||!attacker->client||attacker->client->NPC_class!=CLASS_RANCOR) )
+		&& (targ->client->NPC_class == CLASS_RANCOR||targ->client->NPC_class == CLASS_SHARK)
+		&& (!attacker||!attacker->client||attacker->client->NPC_class!=CLASS_RANCOR||attacker->client->NPC_class!=CLASS_SHARK) )
 	{
 		// I guess always do 10 points of damage...feel free to tweak as needed
 		if ( damage < 10 )

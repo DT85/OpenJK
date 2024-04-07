@@ -2251,7 +2251,8 @@ static void CG_PlayerFootsteps( centity_t *cent, footstepType_t footStepType )
 		&& cent->currentState.NPC_class != CLASS_REMOTE
 		&& cent->currentState.NPC_class != CLASS_SEEKER
 		&& cent->currentState.NPC_class != CLASS_SENTRY
-		&& cent->currentState.NPC_class != CLASS_SWAMP )
+		&& cent->currentState.NPC_class != CLASS_SWAMP
+		&& cent->currentState.NPC_class != CLASS_SHARK )
 	{
 		mdxaBone_t	boltMatrix;
 		vec3_t tempAngles, sideOrigin;

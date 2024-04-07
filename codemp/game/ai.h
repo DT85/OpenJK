@@ -100,6 +100,7 @@ void NPC_BSMark2_Default( void );
 void NPC_BSMineMonster_Default( void );
 void NPC_BSHowler_Default( void );
 void NPC_BSRancor_Default( void );
+void NPC_BSShark_Default( void );
 
 //Utilities
 //Group AI

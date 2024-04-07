@@ -68,6 +68,7 @@ extern void NPC_Wampa_Precache( void );
 gentity_t *NPC_SpawnType( gentity_t *ent, char *npc_type, char *targetname, qboolean isVehicle );
 
 extern void Rancor_SetBolts( gentity_t *self );
+extern void Shark_SetBolts( gentity_t* self );
 extern void Wampa_SetBolts( gentity_t *self );
 
 #define	NSF_DROP_TO_FLOOR	16
@@ -99,6 +100,7 @@ extern void CrystalCratePain			(gentity_t *self, gentity_t *attacker, int damage
 extern void TurretPain					(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Wampa_Pain				(gentity_t *self, gentity_t *attacker, int damage);
 extern void NPC_Rancor_Pain				(gentity_t *self, gentity_t *attacker, int damage);
+extern void NPC_Shark_Pain				(gentity_t* self, gentity_t* attacker, int damage);
 
 int WP_SetSaberModel( gclient_t *client, class_t npcClass )
 {
@@ -187,6 +189,9 @@ PAIN_FUNC *NPC_PainFunc( gentity_t *ent )
 		case CLASS_RANCOR:
 			func = NPC_Rancor_Pain;
 			break;
+		case CLASS_SHARK:
+			func = NPC_Shark_Pain;
+			break;
 		case CLASS_WAMPA:
 			func = NPC_Wampa_Pain;
 			break;
@@ -269,6 +274,14 @@ void NPC_SetMiscDefaultData( gentity_t *ent )
 		ent->flags |= FL_NO_KNOCKBACK;
 		ent->pain = NPC_Rancor_Pain;
 		ent->health *= 4;
+	}
+	if ( ent->client->NPC_class == CLASS_SHARK )
+	{
+		Shark_SetBolts( ent );
+		ent->s.g2radius = 100;//???
+		ent->mass = 300;//???
+		ent->flags |= FL_NO_KNOCKBACK;
+		ent->pain = NPC_Shark_Pain;
 	}
 	if ( !Q_stricmp( "Yoda", ent->NPC_type ) )
 	{//FIXME: extern this into NPC.cfg?

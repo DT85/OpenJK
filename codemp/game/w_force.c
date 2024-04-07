@@ -2435,6 +2435,7 @@ qboolean ForceTelepathyCheckDirectNPCTarget( gentity_t *self, trace_t *tr, qbool
 		case CLASS_PROTOCOL:
 		case CLASS_BOBAFETT:
 		case CLASS_RANCOR:
+		case CLASS_SHARK:
 			break;
 		default:
 			targetLive = qtrue;
@@ -3241,8 +3242,9 @@ void ForceThrow( gentity_t *self, qboolean pull )
 					}
 					else if ( ent->client->NPC_class == CLASS_GALAKMECH
 						|| ent->client->NPC_class == CLASS_ATST
-						|| ent->client->NPC_class == CLASS_RANCOR )
-					{//can't push ATST or Galak or Rancor
+						|| ent->client->NPC_class == CLASS_RANCOR
+						|| ent->client->NPC_class == CLASS_SHARK )
+					{//can't push ATST or Galak or Rancor or Shark
 						continue;
 					}
 				}

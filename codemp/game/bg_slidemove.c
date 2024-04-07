@@ -935,7 +935,8 @@ void PM_StepSlideMove( qboolean gravity ) {
 			up[2] += 66.0f;
 			isGiant = qtrue;
 		}
-		else if ( pEnt && pEnt->s.NPC_class == CLASS_RANCOR )
+		else if (pEnt && pEnt->s.NPC_class == CLASS_RANCOR ||
+				pEnt && pEnt->s.NPC_class == CLASS_SHARK)
 		{//also can step up high
 			up[2] += 64.0f;
 			isGiant = qtrue;
@@ -1000,7 +1001,8 @@ void PM_StepSlideMove( qboolean gravity ) {
 			&& isGiant
 			&& trace.entityNum < MAX_CLIENTS
 			&& pEnt
-			&& pEnt->s.NPC_class == CLASS_RANCOR )
+			&& (pEnt->s.NPC_class == CLASS_RANCOR
+			|| pEnt->s.NPC_class == CLASS_SHARK) )
 		{//Rancor don't step on clients
 			if ( pm->stepSlideFix )
 			{

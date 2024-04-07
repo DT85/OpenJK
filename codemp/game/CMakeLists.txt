@@ -97,6 +97,7 @@ set(MPGameGameFiles
 	"${MPDir}/game/NPC_AI_Remote.c"
 	"${MPDir}/game/NPC_AI_Seeker.c"
 	"${MPDir}/game/NPC_AI_Sentry.c"
+	"${MPDir}/game/NPC_AI_Shark.c"
 	"${MPDir}/game/NPC_AI_Sniper.c"
 	"${MPDir}/game/NPC_AI_Stormtrooper.c"
 	"${MPDir}/game/NPC_AI_Utils.c"

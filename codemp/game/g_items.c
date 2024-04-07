@@ -2465,6 +2465,7 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 		other->client->NPC_class == CLASS_SEEKER ||
 		other->client->NPC_class == CLASS_REMOTE ||
 		other->client->NPC_class == CLASS_RANCOR ||
+		other->client->NPC_class == CLASS_SHARK ||
 		other->client->NPC_class == CLASS_WAMPA ||
 		//other->client->NPC_class == CLASS_JAWA || //FIXME: in some cases it's okay?
 		other->client->NPC_class == CLASS_UGNAUGHT || //FIXME: in some cases it's okay?

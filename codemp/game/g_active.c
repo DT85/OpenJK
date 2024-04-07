@@ -1568,7 +1568,8 @@ void G_HeldByMonster( gentity_t *ent, usercmd_t *ucmd )
 		{
 			//take the monster's waypoint as your own
 			ent->waypoint = monster->waypoint;
-			if ( monster->s.NPC_class == CLASS_RANCOR )
+			if ( monster->s.NPC_class == CLASS_RANCOR ||
+				monster->s.NPC_class == CLASS_SHARK )
 			{//only possibility right now, may add Wampa and Sand Creature later
 				BG_AttachToRancor( monster->ghoul2, //ghoul2 info
 					monster->r.currentAngles[YAW],
