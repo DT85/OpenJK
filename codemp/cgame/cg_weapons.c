@@ -1009,15 +1009,24 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 
 	weapon = &cg_weapons[ps->weapon];
 
+	int speed = 100.0f / weapon->g2_vmAnims.animations[mappedAnim].frameLerp;
+
 	switch (mappedAnim)
 	{
-		// This stops the animation from playing. Need to do something here to make the animation play always..
-		/*case VM_FIRE:
-			if (cent->muzzleFlashTime <= 0)
+		case VM_FIRE:
+			// We want this to loop, and loop FAST for the repeater
+			if (cent->currentState.weapon == WP_REPEATER && !(cent->currentState.eFlags & EF_ALT_FIRING))
+			{
+				flags = BONE_ANIM_OVERRIDE_LOOP;
+				speed = 100.0f / weapon->g2_vmAnims.animations[mappedAnim].frameLerp * 2;
+			}
+
+			if (ps->torsoAnim == lastAnimPlayed)
 				return;
-			break;*/
+			break;
 		case VM_READY:
 			flags = BONE_ANIM_OVERRIDE_LOOP;
+
 			if (ps->torsoAnim == lastAnimPlayed)
 				return;
 			break;
@@ -1032,8 +1041,11 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 	trap->G2API_SetBoneAnim(weapon->g2_vmInfo, weapon->g2_vmModelIndex, "model_root",
 							weapon->g2_vmAnims.animations[mappedAnim].firstFrame,
 							weapon->g2_vmAnims.animations[mappedAnim].firstFrame + weapon->g2_vmAnims.animations[mappedAnim].numFrames,
-							flags, 100.0f / weapon->g2_vmAnims.animations[mappedAnim].frameLerp,
-							cg.time, weapon->g2_vmAnims.animations[mappedAnim].firstFrame, 150);
+							flags, 
+							speed,
+							cg.time, 
+							weapon->g2_vmAnims.animations[mappedAnim].firstFrame, 
+							150);
 }
 //G2 viewmodels - END
 
