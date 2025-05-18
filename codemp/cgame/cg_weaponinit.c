@@ -155,16 +155,17 @@ void CG_RegisterWeapon( int weaponNum) {
 
 		Q_strncpyz(path, item->view_model, sizeof(path));
 
-		// Grab the skin file path from the model path, and add a default .skin
+		// Set the weapon skin by grabbing the skin file path from the model path
 		char skinName[MAX_QPATH];
 		int l;
 
 		Q_strncpyz(skinName, path, MAX_QPATH);
 		l = strlen(skinName);
+
 		while (l > 0 && skinName[l] != '/')
-		{ //parse back to first /
+			//parse back to first /
 			l--;
-		}
+
 		if (skinName[l] == '/')
 		{ //got it
 			l++;
@@ -172,18 +173,69 @@ void CG_RegisterWeapon( int weaponNum) {
 			Q_strcat(skinName, MAX_QPATH, "model_default.skin");
 		}
 
-		// Init the model
-		weaponInfo->g2_vmSkin = trap->R_RegisterSkin(skinName);
-		weaponInfo->g2_vmModelIndex = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, path, 0, weaponInfo->g2_vmSkin, 0, 0, 0);
+		// Init the weapon model
+		int rHandIndex;
+		int lHandIndex;
+
+		weaponInfo->g2_vmModelIndex = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, path, 0, 0, 0, 0, 0);
 
 		if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_vmInfo))
 		{
-			// Set skin
-			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, weaponInfo->g2_vmSkin, weaponInfo->g2_vmSkin);
+			// Set the weapon skin
+			weaponInfo->g2_vmWeaponSkin = trap->R_RegisterSkin(skinName);
+			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, weaponInfo->g2_vmWeaponSkin, weaponInfo->g2_vmWeaponSkin);
 
-			// Add the muzzle & left hand bolts
+			// Add the bolt point for the hands
+			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, "model_root");
+			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, "*mesh_root");
+
+			// Add the muzzle bolt
 			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, "*flash");
-			weaponInfo->g2_vmLHandBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, "*l_hand");
+
+			// Right hand bolt-on
+			{
+				// Init the right hand model
+				rHandIndex = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, "models/weapons2/rhand/model.glm", weaponInfo->g2_vmModelIndex + 1, 0, 0, 0, 0);
+
+				// Set the right hand skin
+				int rHandSkin = 0;
+				rHandSkin = trap->R_RegisterSkin("models/weapons2/rhand/model_default.skin");
+				trap->G2API_SetSkin(weaponInfo->g2_vmInfo, rHandIndex, rHandSkin, rHandSkin);
+
+				//Indicate which bolt point on the weapon model that the right hand will attach to
+				trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, rHandIndex, 1);
+
+				// Bolt the right hand to the weapon.
+				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 1))
+					trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, rHandIndex, weaponInfo->g2_vmInfo, 1);
+
+				// It's copied, so remove now.
+				//trap->G2API_RemoveGhoul2Model(&(g2_rHandInstance), rHandModelIndex);
+			}
+
+			// Left hand bolt-on
+			{
+				// Init the left hand model
+				lHandIndex = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, "models/weapons2/lhand/model.glm", weaponInfo->g2_vmModelIndex + 2, 0, 0, 0, 0);
+
+				// Add the left hand bolt for force power effects
+				weaponInfo->g2_vmLHandBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, lHandIndex, "*l_hand");
+
+				// Set the left hand skin
+				int lHandSkin = 0;
+				lHandSkin = trap->R_RegisterSkin("models/weapons2/lhand/model_default.skin");
+				trap->G2API_SetSkin(weaponInfo->g2_vmInfo, lHandIndex, lHandSkin, lHandSkin);
+
+				//Indicate which bolt point on the weapon model that the left hand will attach to
+				trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, lHandIndex, 2);
+
+				// Bolt the left hand to the weapon.
+				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 2))
+					trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, lHandIndex, weaponInfo->g2_vmInfo, 2);
+
+				// It's copied, so remove now.
+				//trap->G2API_RemoveGhoul2Model(&(g2_lHandInstance), lHandModelIndex);
+			}
 
 			// Parse the animation file
 			CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, &weaponInfo->g2_vmAnims);

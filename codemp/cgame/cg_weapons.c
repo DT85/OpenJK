@@ -476,7 +476,7 @@ Ghoul2 Insert Start
 			{
 				gun.ghoul2 = parent->ghoul2;
 				gun.radius = 64;
-				gun.customSkin = weapon->g2_vmSkin;
+				//gun.customSkin = weapon->g2_vmWeaponSkin;
 			}
 			//G2 Viewmodels - END
 		}
@@ -615,8 +615,8 @@ Ghoul2 Insert Start
 		}
 		else
 		{			
-			mdxaBone_t    boltMatrix;
-			vec3_t	setAngles;
+			mdxaBone_t boltMatrix;
+			vec3_t setAngles;
 
 			memset(&flash, 0, sizeof(flash));
 
@@ -643,7 +643,7 @@ Ghoul2 Insert Start
 
 				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndex, weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
+				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndex + 2, weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
 					cg.time, NULL, gun.modelScale);
 
 				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, effectOrigin);
@@ -1003,28 +1003,32 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 {
 	CG_RegisterWeapon(ps->weapon);
 
-	weaponInfo_t* weapon;
+	weaponInfo_t *weaponInfo;
 	int mappedAnim = CG_MapTorsoToG2VMAnimation(ps);
 	int flags = BONE_ANIM_OVERRIDE;
 
-	weapon = &cg_weapons[ps->weapon];
+	weaponInfo = &cg_weapons[ps->weapon];
 
-	int speed = 100.0f / weapon->g2_vmAnims.animations[mappedAnim].frameLerp;
+	const float timeScaleMod = (timescale.value) ? (1.0 / timescale.value) : 1.0;
+	float speed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp * timeScaleMod;
 
 	switch (mappedAnim)
 	{
 		case VM_FIRE:
-			// We want this to loop, and loop FAST for the repeater
+			if (cent->muzzleFlashTime <= 0)
+				return;
+
+			// We want this to loop FAST for the repeater but NOT its alt fire!
 			if (cent->currentState.weapon == WP_REPEATER && !(cent->currentState.eFlags & EF_ALT_FIRING))
 			{
 				flags = BONE_ANIM_OVERRIDE_LOOP;
-				speed = 100.0f / weapon->g2_vmAnims.animations[mappedAnim].frameLerp * 2;
+				speed = 100.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp * timeScaleMod *2;
 			}
 
 			if (ps->torsoAnim == lastAnimPlayed)
 				return;
 			break;
-		case VM_READY:
+		case VM_IDLE:
 			flags = BONE_ANIM_OVERRIDE_LOOP;
 
 			if (ps->torsoAnim == lastAnimPlayed)
@@ -1037,15 +1041,17 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 	}
 
 	lastAnimPlayed = ps->torsoAnim;
-
-	trap->G2API_SetBoneAnim(weapon->g2_vmInfo, weapon->g2_vmModelIndex, "model_root",
-							weapon->g2_vmAnims.animations[mappedAnim].firstFrame,
-							weapon->g2_vmAnims.animations[mappedAnim].firstFrame + weapon->g2_vmAnims.animations[mappedAnim].numFrames,
-							flags, 
+	
+	trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
+							weaponInfo->g2_vmModelIndex,
+							"model_root",
+							weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
+							weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame + weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames,
+							flags,
 							speed,
-							cg.time, 
-							weapon->g2_vmAnims.animations[mappedAnim].firstFrame, 
-							150);
+							cg.time,
+							weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
+							-1);
 }
 //G2 viewmodels - END
 
@@ -1178,9 +1184,9 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		}
 		else
 		{
-			CG_StartVMAnimation(cent, ps);
-
 			hand.ghoul2 = weapon->g2_vmInfo;
+			
+			CG_StartVMAnimation(cent, ps);
 		}
 		//G2 viewmodels - END
 	}
