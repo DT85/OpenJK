@@ -421,7 +421,9 @@ The main player will have this called for BOTH cases, so effects like light and
 sound should only be done on the world model case.
 =============
 */
-void CG_ForcePushBlur(vec3_t org, centity_t *cent);
+//G2 Viewmodels - START
+void CG_ForcePushBlur(vec3_t org, centity_t* cent);
+//G2 Viewmodels - END
 void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, int team, vec3_t newAngles, qboolean thirdPerson ) {
 	refEntity_t	gun;
 	refEntity_t	barrel;
@@ -614,7 +616,7 @@ Ghoul2 Insert Start
 			CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
 		}
 		else
-		{			
+		{
 			mdxaBone_t boltMatrix;
 			vec3_t setAngles;
 
@@ -622,7 +624,7 @@ Ghoul2 Insert Start
 
 			VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-			trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndex, weapon->g2_vmMuzzleBolt, &boltMatrix, setAngles, gun.origin,
+			trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[0], weapon->g2_vmMuzzleBolt, &boltMatrix, setAngles, gun.origin,
 				cg.time, NULL, gun.modelScale);
 
 			BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
@@ -635,21 +637,21 @@ Ghoul2 Insert Start
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Y, flash.axis[1]);
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, flash.axis[2]);
 
-			// Play effects if requested 
-			if (/*ps->powerups[PW_FORCE_PUSH] > cg.time ||*/
-				ps->fd.forcePowersActive & (1 << FP_GRIP)) 
-			{
-				vec3_t effectOrigin;
+			// set up viewmodel left hand bolt origin
+			//refEntity_t	forceEffect;
+			//memset(&forceEffect, 0, sizeof(forceEffect));
+			vec3_t effectOrigin;
 
-				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
+			VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndex + 2, weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
-					cg.time, NULL, gun.modelScale);
+			trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[2], weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
+				cg.time, NULL, gun.modelScale);
 
-				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, effectOrigin);
-					
+			BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, effectOrigin);
+			
+			// Play refraction effect if requested 
+			if (ps->torsoAnim == BOTH_FORCEPUSH || ps->torsoAnim == BOTH_FORCEPULL)
 				CG_ForcePushBlur(effectOrigin, cent);
-			}
 
 			// The effect position gets broken with differences in FOV. This should (hopefully) fix that. 
 			float actualFOV = cg_fovViewmodel.integer ? cg_fovViewmodel.value : cg_fov.value;
@@ -696,13 +698,13 @@ Ghoul2 Insert Start
 			{
 				mdxaBone_t boltMatrix;
 
-				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_vmInfo), weapon->g2_vmModelIndex))
+				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_vmInfo), weapon->g2_vmModelIndexes[0]))
 				{ //it's quite possible that we may have have no weapon model and be in a valid state, so return here if this is the case
 					return;
 				}
 
 				// go away and get me the bolt position for this frame please
-				if (!(trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndex, weapon->g2_vmMuzzleBolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
+				if (!(trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[0], weapon->g2_vmMuzzleBolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
 				{	// Couldn't find bolt point.
 					return;
 				}
@@ -835,13 +837,13 @@ Ghoul2 Insert Start
 
 				memset(&flash, 0, sizeof(flash));
 
-				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_vmInfo), weapon->g2_vmModelIndex))
+				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_vmInfo), weapon->g2_vmModelIndexes[0]))
 				{ //it's quite possible that we may have have no weapon model and be in a valid state, so return here if this is the case
 					return;
 				}
 
 				// go away and get me the bolt position for this frame please
-				if (!(trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndex, weapon->g2_vmMuzzleBolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
+				if (!(trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[0], weapon->g2_vmMuzzleBolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
 				{	// Couldn't find bolt point.
 					return;
 				}
@@ -1042,16 +1044,19 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 
 	lastAnimPlayed = ps->torsoAnim;
 	
-	trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
-							weaponInfo->g2_vmModelIndex,
-							"model_root",
-							weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
-							weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame + weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames,
-							flags,
-							speed,
-							cg.time,
-							weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
-							-1);
+	for (int i = 0; i < 3; i++)
+	{
+		trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
+			weaponInfo->g2_vmModelIndexes[i],
+			"model_root",
+			weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
+			weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame + weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames,
+			flags,
+			speed,
+			cg.time,
+			weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
+			-1);
+	}
 }
 //G2 viewmodels - END
 

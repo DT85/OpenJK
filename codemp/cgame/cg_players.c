@@ -4905,14 +4905,30 @@ static void CG_PlayerSplash( centity_t *cent ) {
 			scale = (float)(tDif)*0.003f;
 		}
 
-		if (scale > 1.0f)
+		//G2 Viewmodels - START
+		if (cg.renderingThirdPerson)
 		{
-			scale = 1.0f;
+			if (scale > 1.0f)
+			{
+				scale = 1.0f;
+			}
+			else if (scale < 0.2f)
+			{
+				scale = 0.2f;
+			}
 		}
-		else if (scale < 0.2f)
+		else
 		{
-			scale = 0.2f;
+			if (scale > 0.35f)
+			{
+				scale = 0.35f;
+			}
+			else if (scale < 0.1f)
+			{
+				scale = 0.1f;
+			}
 		}
+		//G2 Viewmodels - END
 
 		//start alpha at 244, fade to 10
 		alpha = (float)tDif*0.488f;
@@ -9635,7 +9651,9 @@ void CG_Player( centity_t *cent ) {
 			}
 			*/
 		}
-		else if (!(cent->currentState.forcePowersActive & (1 << FP_GRIP)))
+		//G2 Viewmodels - need to ensure we're in 3rd person here, otherwise the effect is also 
+		//				  shown in 1st person without a proper origin.
+		else if (cg.renderingThirdPerson && !(cent->currentState.forcePowersActive & (1 << FP_GRIP)))
 		{
 			//use refractive effect
 			CG_ForcePushBlur( efOrg, cent );

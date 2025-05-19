@@ -174,71 +174,48 @@ void CG_RegisterWeapon( int weaponNum) {
 		}
 
 		// Init the weapon model
-		int rHandIndex;
-		int lHandIndex;
-
-		weaponInfo->g2_vmModelIndex = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, path, 0, 0, 0, 0, 0);
+		weaponInfo->g2_vmModelIndexes[0] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, path, 0, 0, 0, 0, 0);
 
 		if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_vmInfo))
 		{
 			// Set the weapon skin
 			weaponInfo->g2_vmWeaponSkin = trap->R_RegisterSkin(skinName);
-			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, weaponInfo->g2_vmWeaponSkin, weaponInfo->g2_vmWeaponSkin);
+			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, 0, weaponInfo->g2_vmWeaponSkin, weaponInfo->g2_vmWeaponSkin);
 
 			// Add the bolt point for the hands
-			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, "model_root");
-			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, "*mesh_root");
+			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, 0, "model_root");
+			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, 0, "weapon");
 
 			// Add the muzzle bolt
-			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, "*flash");
+			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, 0, "*flash");
+
+			// Parse the animation file
+			CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, 0, &weaponInfo->g2_vmAnims);
 
 			// Right hand bolt-on
 			{
 				// Init the right hand model
-				rHandIndex = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, "models/weapons2/rhand/model.glm", weaponInfo->g2_vmModelIndex + 1, 0, 0, 0, 0);
+				weaponInfo->g2_vmModelIndexes[1] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, "models/weapons2/rhand/model.glm", 0, 0, 0, 0, 0);
 
 				// Set the right hand skin
 				int rHandSkin = 0;
 				rHandSkin = trap->R_RegisterSkin("models/weapons2/rhand/model_default.skin");
-				trap->G2API_SetSkin(weaponInfo->g2_vmInfo, rHandIndex, rHandSkin, rHandSkin);
-
-				//Indicate which bolt point on the weapon model that the right hand will attach to
-				trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, rHandIndex, 1);
-
-				// Bolt the right hand to the weapon.
-				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 1))
-					trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, rHandIndex, weaponInfo->g2_vmInfo, 1);
-
-				// It's copied, so remove now.
-				//trap->G2API_RemoveGhoul2Model(&(g2_rHandInstance), rHandModelIndex);
+				trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], rHandSkin, rHandSkin);
 			}
 
 			// Left hand bolt-on
 			{
 				// Init the left hand model
-				lHandIndex = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, "models/weapons2/lhand/model.glm", weaponInfo->g2_vmModelIndex + 2, 0, 0, 0, 0);
+				weaponInfo->g2_vmModelIndexes[2] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, "models/weapons2/lhand/model.glm", 0, 0, 0, 0, 0);
 
 				// Add the left hand bolt for force power effects
-				weaponInfo->g2_vmLHandBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, lHandIndex, "*l_hand");
+				weaponInfo->g2_vmLHandBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], "*l_hand");
 
 				// Set the left hand skin
 				int lHandSkin = 0;
 				lHandSkin = trap->R_RegisterSkin("models/weapons2/lhand/model_default.skin");
-				trap->G2API_SetSkin(weaponInfo->g2_vmInfo, lHandIndex, lHandSkin, lHandSkin);
-
-				//Indicate which bolt point on the weapon model that the left hand will attach to
-				trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, lHandIndex, 2);
-
-				// Bolt the left hand to the weapon.
-				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 2))
-					trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, lHandIndex, weaponInfo->g2_vmInfo, 2);
-
-				// It's copied, so remove now.
-				//trap->G2API_RemoveGhoul2Model(&(g2_lHandInstance), lHandModelIndex);
+				trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], lHandSkin, lHandSkin);
 			}
-
-			// Parse the animation file
-			CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndex, &weaponInfo->g2_vmAnims);
 		}
 		else
 		{
