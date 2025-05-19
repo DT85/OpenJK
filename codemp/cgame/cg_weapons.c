@@ -1026,12 +1026,6 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 			if (ps->torsoAnim == lastAnimPlayed)
 				return;
 			break;
-		case VM_IDLE:
-			flags = BONE_ANIM_OVERRIDE_LOOP;
-
-			if (ps->torsoAnim == lastAnimPlayed)
-				return;
-			break;
 		default:
 			if (ps->torsoAnim == lastAnimPlayed)
 				return;
