@@ -629,8 +629,6 @@ Ghoul2 Insert Start
 
 			BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
 
-			// this seems to screw the position a bit
-			//VectorMA(flash.origin, 20, cg.refdef.viewaxis[0], flash.origin);
 			VectorCopy(cg.snap->ps.viewangles, flash.angles);
 
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flash.axis[0]);
@@ -638,8 +636,6 @@ Ghoul2 Insert Start
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, flash.axis[2]);
 
 			// set up viewmodel left hand bolt origin
-			//refEntity_t	forceEffect;
-			//memset(&forceEffect, 0, sizeof(forceEffect));
 			vec3_t effectOrigin;
 
 			VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
