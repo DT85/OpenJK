@@ -1124,9 +1124,20 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	// set up gun position
 	CG_CalculateWeaponPosition( hand.origin, angles );
 
-	VectorMA( hand.origin, cg_gunX.value, cg.refdef.viewaxis[0], hand.origin );
-	VectorMA( hand.origin, cg_gunY.value, cg.refdef.viewaxis[1], hand.origin );
-	VectorMA( hand.origin, (cg_gunZ.value+fovOffset), cg.refdef.viewaxis[2], hand.origin );
+	VectorMA(hand.origin, cg_gunX.value, cg.refdef.viewaxis[0], hand.origin);
+
+	//G2 viewmodels - START
+	if (!weapon->bIsG2Viewmodel)
+	{
+		VectorMA(hand.origin, cg_gunY.value, cg.refdef.viewaxis[1], hand.origin);
+		VectorMA(hand.origin, (cg_gunZ.value + fovOffset), cg.refdef.viewaxis[2], hand.origin);
+	}
+	else
+	{
+		VectorMA(hand.origin, cg_gunY.value - 4, cg.refdef.viewaxis[1], hand.origin);
+		VectorMA(hand.origin, (cg_gunZ.value - 13 + fovOffset), cg.refdef.viewaxis[2], hand.origin);
+	}
+	//G2 viewmodels - END
 
 	AnglesToAxis( angles, hand.axis );
 
