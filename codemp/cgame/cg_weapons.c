@@ -997,6 +997,7 @@ int CG_MapTorsoToG2VMAnimation(playerState_t *ps)
 	}
 }
 
+extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
 void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 {
 	CG_RegisterWeapon(ps->weapon);
@@ -1007,8 +1008,7 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 
 	weaponInfo = &cg_weapons[ps->weapon];
 
-	const float timeScaleMod = (timescale.value) ? (1.0 / timescale.value) : 1.0;
-	float speed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp * timeScaleMod;
+	float speed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp;
 
 	switch (mappedAnim)
 	{
@@ -1020,7 +1020,7 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 			if (cent->currentState.weapon == WP_REPEATER && !(cent->currentState.eFlags & EF_ALT_FIRING))
 			{
 				flags = BONE_ANIM_OVERRIDE_LOOP;
-				speed = 100.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp * timeScaleMod *2;
+				speed = 100.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp * 2;
 			}
 
 			if (ps->torsoAnim == lastAnimPlayed)
@@ -1034,18 +1034,21 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 
 	lastAnimPlayed = ps->torsoAnim;
 	
+	if (cg_debugAnim.integer && (cg_debugAnim.integer < 0 || cg_debugAnim.integer == cent->currentState.clientNum))//(cg_debugAnim.integer == 9)
+		trap->Print("%d: ViewModel Anim: %i, '%s'\n", cg.time, mappedAnim, GetStringForID(vmAnimTable, mappedAnim));
+
 	for (int i = 0; i < 3; i++)
 	{
 		trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
-			weaponInfo->g2_vmModelIndexes[i],
-			"model_root",
-			weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
-			weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame + weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames,
-			flags,
-			speed,
-			cg.time,
-			weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
-			-1);
+								weaponInfo->g2_vmModelIndexes[i],
+								"model_root",
+								weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
+								weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame + weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames,
+								flags,
+								speed,
+								cg.time,
+								weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
+								-1);
 	}
 }
 //G2 viewmodels - END
@@ -1145,8 +1148,13 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	// map torso animations to weapon animations
 	if ( cg_debugGun.integer ) {
 		// development tool
-		hand.frame = hand.oldframe = cg_debugGun.integer;
-		hand.backlerp = 0;
+		//G2 viewmodels - START
+		if (!weapon->bIsG2Viewmodel)
+		{
+			hand.frame = hand.oldframe = cg_debugGun.integer;
+			hand.backlerp = 0;
+		}
+		//G2 viewmodels - END
 	} else {
 		float currentFrame;
 
