@@ -918,7 +918,7 @@ Ghoul2 Insert Start
 CG_MapTorsoToG2VMAnimation
 ==============
 */
-int CG_MapTorsoToG2VMAnimation(playerState_t *ps)
+int CG_MapTorsoToG2VMAnimation(centity_t* cent, playerState_t *ps)
 {
 	switch (ps->torsoAnim)
 	{
@@ -947,7 +947,10 @@ int CG_MapTorsoToG2VMAnimation(playerState_t *ps)
 		case BOTH_ATTACK4:
 		case BOTH_ATTACK10:
 		case BOTH_ATTACK11:
-			return VM_FIRE;
+			/*if (cent->currentState.eFlags & EF_ALT_FIRING)
+				return VM_ALT_FIRE;
+			else*/
+				return VM_FIRE;
 		case BOTH_THERMAL_READY:
 			return VM_THERMAL_PULLBACK;
 		case BOTH_THERMAL_THROW:
@@ -995,15 +998,15 @@ int CG_MapTorsoToG2VMAnimation(playerState_t *ps)
 	}
 }
 
-int lastAnimPlayed = 0;
+static int lastAnimPlayed = 0;
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
 void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 {
 	CG_RegisterWeapon(ps->weapon);
 
 	weaponInfo_t *weaponInfo;
-	int mappedAnim = CG_MapTorsoToG2VMAnimation(ps);
-	int flags = BONE_ANIM_OVERRIDE;
+	int mappedAnim = CG_MapTorsoToG2VMAnimation(cent, ps);
+	int flags = BONE_ANIM_OVERRIDE_FREEZE;
 
 	weaponInfo = &cg_weapons[ps->weapon];
 
@@ -1011,27 +1014,33 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 
 	switch (mappedAnim)
 	{
-		case VM_RAISE:
-			if (ps->torsoAnim == lastAnimPlayed)
-				return;
-			break;
-		case VM_LOWER:
-			if (ps->torsoAnim == lastAnimPlayed)
-				return;
-			break;
 		case VM_FIRE:
 			if (cent->muzzleFlashTime <= 0)
 				return;
 
-			// We want this to loop FAST for the repeater but NOT its alt fire!
-			if (cent->currentState.weapon == WP_REPEATER && !(cent->currentState.eFlags & EF_ALT_FIRING))
+			// loop FAST for the repeater only
+			/*if (cent->currentState.weapon == WP_REPEATER && !(cent->currentState.eFlags & EF_ALT_FIRING))
 			{
 				flags = BONE_ANIM_OVERRIDE_LOOP;
 				speed = 100.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp * 2;
+			}*/
+
+			//if (ps->torsoAnim != lastAnimPlayed)
+			//	return;
+			break;
+		case VM_ALT_FIRE:
+			if (cent->muzzleFlashTime <= 0)
+				return;
+
+			// loop slow for the repeater only
+			/*if (cent->currentState.weapon == WP_REPEATER && (cent->currentState.eFlags & EF_ALT_FIRING))
+			{
+				flags = BONE_ANIM_OVERRIDE_LOOP;
+				speed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp / 2;
 			}
 
 			if (ps->torsoAnim == lastAnimPlayed)
-				return;
+				return;*/
 			break;
 		default:
 			if (ps->torsoAnim == lastAnimPlayed)
@@ -1055,7 +1064,7 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 								speed,
 								cg.time,
 								-1,
-								150);
+								-1);
 	}
 }
 //G2 viewmodels - END
