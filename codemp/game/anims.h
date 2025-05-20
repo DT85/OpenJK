@@ -1826,6 +1826,7 @@ typedef enum {
 	VM_RAISE,						// Draw weapon
 	VM_LOWER,						// Put weapon away
 	VM_FIRE,						// Fire weapon
+	VM_ALT_FIRE,					// Alt fire weapon
 
 	VM_THERMAL_PULLBACK,			// Thermal detonator pull back
 	VM_THERMAL_THROW,				// Thermal detonator throw
