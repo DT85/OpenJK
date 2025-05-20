@@ -918,7 +918,7 @@ Ghoul2 Insert Start
 CG_MapTorsoToG2VMAnimation
 ==============
 */
-int CG_MapTorsoToG2VMAnimation(centity_t* cent, playerState_t *ps)
+int CG_MapTorsoToG2VMAnimation(/*centity_t* cent, */playerState_t *ps)
 {
 	switch (ps->torsoAnim)
 	{
@@ -1002,10 +1002,8 @@ static int lastAnimPlayed = 0;
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
 void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 {
-	CG_RegisterWeapon(ps->weapon);
-
 	weaponInfo_t *weaponInfo;
-	int mappedAnim = CG_MapTorsoToG2VMAnimation(cent, ps);
+	int mappedAnim = CG_MapTorsoToG2VMAnimation(/*cent,*/ps);
 	int flags = BONE_ANIM_OVERRIDE_FREEZE;
 
 	weaponInfo = &cg_weapons[ps->weapon];
@@ -1014,33 +1012,21 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 
 	switch (mappedAnim)
 	{
+		//FIXME: fire animation plays everytime you press the attack button, but if you hold
+		//		 the button then it stops playing unlike the player models.
 		case VM_FIRE:
 			if (cent->muzzleFlashTime <= 0)
 				return;
 
 			// loop FAST for the repeater only
-			/*if (cent->currentState.weapon == WP_REPEATER && !(cent->currentState.eFlags & EF_ALT_FIRING))
-			{
-				flags = BONE_ANIM_OVERRIDE_LOOP;
-				speed = 100.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp * 2;
-			}*/
-
-			//if (ps->torsoAnim != lastAnimPlayed)
-			//	return;
-			break;
-		case VM_ALT_FIRE:
-			if (cent->muzzleFlashTime <= 0)
-				return;
-
-			// loop slow for the repeater only
-			/*if (cent->currentState.weapon == WP_REPEATER && (cent->currentState.eFlags & EF_ALT_FIRING))
-			{
-				flags = BONE_ANIM_OVERRIDE_LOOP;
-				speed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp / 2;
-			}
+			//if (cent->currentState.weapon == WP_REPEATER && !(cent->currentState.eFlags & EF_ALT_FIRING))
+			//{
+			//	flags = BONE_ANIM_OVERRIDE_LOOP;
+			//	speed = 100.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp * 2;
+			//}		
 
 			if (ps->torsoAnim == lastAnimPlayed)
-				return;*/
+				return;
 			break;
 		default:
 			if (ps->torsoAnim == lastAnimPlayed)
