@@ -919,7 +919,6 @@ Ghoul2 Insert Start
 CG_MapTorsoToG2VMAnimation
 ==============
 */
-static int lastAnimPlayed = 0;
 int CG_MapTorsoToG2VMAnimation(playerState_t *ps)
 {
 	switch (ps->torsoAnim)
@@ -997,6 +996,8 @@ int CG_MapTorsoToG2VMAnimation(playerState_t *ps)
 	}
 }
 
+int lastAnimPlayed = 0;
+//float vmCurrentFrame = 0;
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
 void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 {
@@ -1010,8 +1011,60 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 
 	float speed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp;
 
+/*#ifdef WEAPON_FORCE_BUSY_HOLSTER
+	if (cg.snap->ps.forceHandExtend != HANDEXTEND_NONE || cgWeapFrameTime > cg.time) {
+		// the reason for the after delay is so that it doesn't snap the weapon frame to the "idle" (0) frame for a very quick moment
+		if (cgWeapFrame < 6) {
+			cgWeapFrame = 6;
+			cgWeapFrameTime = cg.time + 10;
+		}
+
+		else if (cgWeapFrameTime < cg.time && cgWeapFrame < 10) {
+			cgWeapFrame++;
+			cgWeapFrameTime = cg.time + 10;
+		}
+
+		else if (cg.snap->ps.forceHandExtend != HANDEXTEND_NONE && cgWeapFrame == 10)
+			cgWeapFrameTime = cg.time + 100;
+
+		vmCurrentFrame = cgWeapFrame;
+	}
+	else {
+		cgWeapFrame = 0;
+		cgWeapFrameTime = 0;
+	}
+#endif*/
+
+	/*float setFrame = weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
+
+	trap->G2API_GetBoneFrame(weaponInfo->g2_vmInfo, "model_root", cg.time, &vmCurrentFrame, NULL, weaponInfo->g2_vmModelIndexes[0]);
+
+	animation_t *playerAnims = bgHumanoidAnimations;*/
+
 	switch (mappedAnim)
 	{
+		case VM_LOWER:
+			//if (vmCurrentFrame >= playerAnims[ps->torsoAnim].firstFrame && vmCurrentFrame < playerAnims[ps->torsoAnim].firstFrame + 5)
+			/*if (vmCurrentFrame >= weaponInfo->g2_vmAnims.animations[VM_LOWER].firstFrame && vmCurrentFrame < weaponInfo->g2_vmAnims.animations[VM_LOWER].firstFrame + 5)
+				//FIXME: this function doesn't return a value. even if it did, what would use this value?
+				//return vmCurrentFrame - playerAnims[ps->torsoAnim].firstFrame + 6;
+				//setFrame = vmCurrentFrame - playerAnims[ps->torsoAnim].firstFrame + 6;
+				setFrame = vmCurrentFrame - weaponInfo->g2_vmAnims.animations[VM_LOWER].firstFrame + 6;*/
+			
+			if (ps->torsoAnim == lastAnimPlayed)
+				return;
+			break;
+		case VM_RAISE:
+			//if (vmCurrentFrame >= playerAnims[ps->torsoAnim].firstFrame && vmCurrentFrame < playerAnims[ps->torsoAnim].firstFrame + 4)
+			/*if (vmCurrentFrame >= weaponInfo->g2_vmAnims.animations[VM_RAISE].firstFrame && vmCurrentFrame < weaponInfo->g2_vmAnims.animations[VM_RAISE].firstFrame + 4)
+				//FIXME: this function doesn't return a value. even if it did, what would use this value?
+				//return vmCurrentFrame - playerAnims[ps->torsoAnim].firstFrame + 6 + 4;
+				//setFrame = vmCurrentFrame - playerAnims[ps->torsoAnim].firstFrame + 6 + 4;
+				setFrame = vmCurrentFrame - weaponInfo->g2_vmAnims.animations[VM_RAISE].firstFrame + 6 + 4;*/
+
+			if (ps->torsoAnim == lastAnimPlayed)
+				return;
+			break;
 		case VM_FIRE:
 			if (cent->muzzleFlashTime <= 0)
 				return;
@@ -1033,8 +1086,8 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 	}
 
 	lastAnimPlayed = ps->torsoAnim;
-	
-	if (cg_debugAnim.integer && (cg_debugAnim.integer < 0 || cg_debugAnim.integer == cent->currentState.clientNum))//(cg_debugAnim.integer == 9)
+
+	if (cg_debugAnim.integer && (cg_debugAnim.integer < 0 || cg_debugAnim.integer == cent->currentState.clientNum))
 		trap->Print("%d: ViewModel Anim: %i, '%s'\n", cg.time, mappedAnim, GetStringForID(vmAnimTable, mappedAnim));
 
 	for (int i = 0; i < 3; i++)
@@ -1047,7 +1100,7 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
 								flags,
 								speed,
 								cg.time,
-								weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
+								/*setFrame,*/weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
 								-1);
 	}
 }
@@ -1198,8 +1251,26 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		}
 		else
 		{
+			trap->G2API_GetBoneFrame(cent->ghoul2, "lower_lumbar", cg.time, &currentFrame, cgs.gameModels, 0);
+			hand.frame = CG_MapTorsoToWeaponFrame(ci, ceil(currentFrame), ps->torsoAnim);
+			hand.oldframe = CG_MapTorsoToWeaponFrame(ci, floor(currentFrame), ps->torsoAnim);
+			hand.backlerp = 1.0f - (currentFrame - floor(currentFrame));
+
+			// Handle the fringe situation where oldframe is invalid			
+			if (hand.frame == -1)
+			{
+				hand.frame = 0;
+				hand.oldframe = 0;
+				hand.backlerp = 0;
+			}
+			else if (hand.oldframe == -1)
+			{
+				hand.oldframe = hand.frame;
+				hand.backlerp = 0;
+			}
+
 			hand.ghoul2 = weapon->g2_vmInfo;
-			
+
 			CG_StartVMAnimation(cent, ps);
 		}
 		//G2 viewmodels - END
