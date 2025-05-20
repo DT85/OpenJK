@@ -724,106 +724,121 @@ models/players/visor/animation.cfg, etc
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
 void CG_ParseVMAnimationFile(void *g2_info, int g2_modelIndex, vmAnimation_t* vmAnims)
 {
+	char *s;
 	int len;
-	char text[20000];
+	static char text[20000];
 	fileHandle_t f;
 	char GLAName[MAX_QPATH];
-	const char *s;
 	char *token;
 	int animNum;
 	float fps;
+
+	text[0] = '\0';
 
 	GLAName[0] = 0;
 
 	trap->G2API_GetGLAName(g2_info, g2_modelIndex, GLAName);
 
-	if (!GLAName) {
+	if (!GLAName)
 		return;
-	}
 
-	char	animName[MAX_QPATH];
-	char	*slash = NULL;
+	char animName[MAX_QPATH];
+	char *slash = NULL;
 
 	Q_strncpyz(animName, GLAName, sizeof(animName));
 	slash = strrchr(animName, '/');
 
-	if (slash) {
+	if (slash)
 		*slash = 0;
-	}
 
 	Q_strcat(animName, sizeof(animName), "/animation.cfg");
 
 	// load the file	
 	len = trap->FS_Open(animName, &f, FS_READ);
+
 	if (len <= 0 || len >= sizeof(text) - 1)
-	{
 		return;
-	}
 
 	trap->FS_Read(text, len, f);
+
+	text[len] = 0;
+
 	trap->FS_Close(f);
 
 	Q_strncpyz(vmAnims->filename, animName, sizeof(vmAnims->filename));
 	
-	// FIXME: shouldn't just sizeof(ptAnims->animations) do?
-	//memset(vmAnims->animations, 0, sizeof(animation_t)* MAX_VIEWMODEL_ANIMATIONS);
-
 	s = (const char*)text;
 
+	//initialize anim array so that from 0 to MAX_VIEWMODEL_ANIMATIONS, set default values of 0 1 0 100
+	for (int i = 0; i < MAX_VIEWMODEL_ANIMATIONS; i++)
+	{
+		vmAnims->animations[i].firstFrame = 0;
+		vmAnims->animations[i].numFrames = 0;
+		vmAnims->animations[i].loopFrames = -1;
+		vmAnims->animations[i].frameLerp = 100;
+	}
+
 	COM_BeginParseSession("G2_Viewmodel_Anims");
+
 	while (1) {
 		token = COM_Parse(&s);
-		if (!token || !token[0]) {
+
+		if (!token || !token[0])
 			break;
-		}
 
 		animNum = GetIDForString(vmAnimTable, token);
 
-		/*if (animNum == -1) {
-			if (Q_stricmp(token, "ROOT")) {
-				Com_Printf(S_COLOR_RED"WARNING: Unknown token %s in %s\n", token, ptAnims->filename);
-			}
+		if (animNum == -1)
+		{
+
+#ifdef _DEBUG
+			if (strcmp(token, "ROOT"))
+				Com_Printf(S_COLOR_RED"WARNING: Unknown token %s in %s\n", token, animName);
+
+			while (token[0])
+				token = COM_ParseExt(&s, qfalse); //returns empty string when next token is EOL
+#endif
 			continue;
-		}*/
+		}
 
 		token = COM_Parse(&s);
 
-		if (!token || !token[0]) {
+		if (!token || !token[0])
 			break;
-		}
+
 		vmAnims->animations[animNum].firstFrame = atoi(token);
 
 		token = COM_Parse(&s);
 
-		if (!token || !token[0]) {
+		if (!token || !token[0])
 			break;
-		}
+
 		vmAnims->animations[animNum].numFrames = atoi(token);
 
 		token = COM_Parse(&s);
 
-		if (!token || !token[0]) {
+		if (!token || !token[0])
 			break;
-		}
+
 		vmAnims->animations[animNum].loopFrames = atoi(token);
 
 		token = COM_Parse(&s);
 
-		if (!token || !token[0]) {
+		if (!token || !token[0])
 			break;
-		}
 
 		fps = atof(token);
 
 		if (fps == 0)
-			fps = 1;
+			fps = 1;//Don't allow divide by zero error
 
 		if (fps < 0)
+			//backwards
 			vmAnims->animations[animNum].frameLerp = floor(1000.0f / fps);
 		else
 			vmAnims->animations[animNum].frameLerp = ceil(1000.0f / fps);
 
-		vmAnims->animations[animNum].initialLerp = ceil(1000.0f / fabs(fps));
+		//vmAnims->animations[animNum].initialLerp = ceil(1000.0f / fabs(fps));
 	}
 }
 //G2 Viewmodels - END
