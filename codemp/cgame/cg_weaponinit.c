@@ -180,19 +180,15 @@ void CG_RegisterWeapon( int weaponNum) {
 		{
 			// Set the weapon skin
 			weaponInfo->g2_vmWeaponSkin = trap->R_RegisterSkin(skinName);
-			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, 0, weaponInfo->g2_vmWeaponSkin, weaponInfo->g2_vmWeaponSkin);
-
-			// Add the bolt point for the hands
-			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, 0, "model_root");
-			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, 0, "weapon");
+			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], weaponInfo->g2_vmWeaponSkin, weaponInfo->g2_vmWeaponSkin);
 
 			// Add the muzzle bolt
-			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, 0, "*flash");
+			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*flash");
 
 			// Parse the animation file
-			CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, 0, &weaponInfo->g2_vmAnims);
+			CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], &weaponInfo->g2_vmAnims);
 
-			// Right hand bolt-on
+			// Right hand
 			{
 				// Init the right hand model
 				weaponInfo->g2_vmModelIndexes[1] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, "models/weapons2/rhand/model.glm", 0, 0, 0, 0, 0);
@@ -203,7 +199,7 @@ void CG_RegisterWeapon( int weaponNum) {
 				trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], rHandSkin, rHandSkin);
 			}
 
-			// Left hand bolt-on
+			// Left hand
 			{
 				// Init the left hand model
 				weaponInfo->g2_vmModelIndexes[2] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, "models/weapons2/lhand/model.glm", 0, 0, 0, 0, 0);
