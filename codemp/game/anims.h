@@ -1821,36 +1821,18 @@ Viewmodel Animations
 ======================================
 */
 typedef enum {
-	VM_READY,						// Weapon 1-frame idle. Usually first frame of VM_FIRE.
-	VM_IDLE,						// Weapon idling animation
+	VM_READY,						// Weapon 1-frame ready to fire. Usually first frame of VM_FIRE
+	VM_IDLE,						// Weapon idling sequence
 	VM_RAISE,						// Draw weapon
 	VM_LOWER,						// Put weapon away
 	VM_FIRE,						// Fire weapon
 	VM_ALT_FIRE,					// Alt fire weapon
-
 	VM_THERMAL_PULLBACK,			// Thermal detonator pull back
-	VM_THERMAL_THROW,				// Thermal detonator throw
-
 	VM_MELEE1,						// Melee 1. WP_MELEE only!
 	VM_MELEE2,						// Melee 2. WP_MELEE only!
-
 	VM_FPUSH,						// Force Push
 	VM_FPULL,						// Force Pull
-	VM_FGRIP,						// Force Grip
-	VM_FGRIP_HOLD,					// Force Grip hold
-	VM_FGRIP_RELEASE,				// Force Grip release
-	VM_TOSS_LEFT,					// Throwing to left after force gripping
-	VM_TOSS_RIGHT,					// Throwing to right after force gripping
-	VM_FHEAL_QUICK,					// Force Heal quick
-	VM_FHEAL_START,					// Force Heal start
-	VM_FHEAL_STOP,					// Force Heal stop
-	VM_FLIGHTNING,					// Force Lightning
-	VM_FLIGHTNING_START,			// Force Lightning start
-	VM_FLIGHTNING_HOLD,				// Force Lightning hold
-	VM_FLIGHTNING_RELEASE,			// Force Lightning release
-	VM_FRESISTPUSH,					// Force resist push
-	VM_FMINDTRICK,					// Force Mind Trick
-
+	
 	//# #eol
 	MAX_VIEWMODEL_ANIMATIONS,
 } vmAnimNumber_t;

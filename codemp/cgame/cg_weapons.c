@@ -918,7 +918,7 @@ Ghoul2 Insert Start
 CG_MapTorsoToG2VMAnimation
 ==============
 */
-int CG_MapTorsoToG2VMAnimation(/*centity_t* cent, */playerState_t *ps)
+static int CG_MapTorsoToG2VMAnimation(centity_t* cent, playerState_t *ps)
 {
 	switch (ps->torsoAnim)
 	{
@@ -927,15 +927,14 @@ int CG_MapTorsoToG2VMAnimation(/*centity_t* cent, */playerState_t *ps)
 		case TORSO_WEAPONREADY3:
 		case TORSO_WEAPONREADY4:
 		case TORSO_WEAPONREADY10:
-		case TORSO_WEAPONIDLE2:
 		case TORSO_WEAPONIDLE3:
-		case TORSO_WEAPONIDLE4:
 		case TORSO_WEAPONIDLE10:
 			return VM_READY;
 		case BOTH_STAND1IDLE1:
+		case BOTH_STAND2IDLE1:
+		case BOTH_STAND2IDLE2:
 		case BOTH_STAND3IDLE1:
 		case BOTH_STAND5IDLE1:
-		case BOTH_STAND9IDLE1:
 			return VM_IDLE;
 		case TORSO_DROPWEAP1:
 			return VM_LOWER;
@@ -946,52 +945,21 @@ int CG_MapTorsoToG2VMAnimation(/*centity_t* cent, */playerState_t *ps)
 		case BOTH_ATTACK3:
 		case BOTH_ATTACK4:
 		case BOTH_ATTACK10:
-		case BOTH_ATTACK11:
-			/*if (cent->currentState.eFlags & EF_ALT_FIRING)
+		case BOTH_THERMAL_THROW:
+			if (cent->currentState.eFlags & EF_ALT_FIRING)
 				return VM_ALT_FIRE;
-			else*/
+			else
 				return VM_FIRE;
 		case BOTH_THERMAL_READY:
 			return VM_THERMAL_PULLBACK;
-		case BOTH_THERMAL_THROW:
-			return VM_THERMAL_THROW;
 		case BOTH_MELEE1:
 			return VM_MELEE1;
 		case BOTH_MELEE2:
 			return VM_MELEE2;
 		case BOTH_FORCEPUSH:
-			return 	VM_FPUSH;
+			return VM_FPUSH;
 		case BOTH_FORCEPULL:
-			return 	VM_FPULL;
-		case BOTH_FORCEGRIP1:
-			return 	VM_FGRIP;
-		case BOTH_FORCEGRIP_HOLD:
-			return 	VM_FGRIP_HOLD;
-		case BOTH_FORCEGRIP_RELEASE:
-			return 	VM_FGRIP_RELEASE;
-		case BOTH_TOSS1:
-			return VM_TOSS_LEFT;
-		case BOTH_TOSS2:
-			return VM_TOSS_RIGHT;
-		case BOTH_FORCEHEAL_QUICK:
-			return 	VM_FHEAL_QUICK;
-		case BOTH_FORCEHEAL_START:
-			return 	VM_FHEAL_START;
-		case BOTH_FORCEHEAL_STOP:
-			return 	VM_FHEAL_STOP;
-		case BOTH_FORCELIGHTNING:
-			return 	VM_FLIGHTNING;
-		case BOTH_FORCELIGHTNING_START:
-			return 	VM_FLIGHTNING_START;
-		case BOTH_FORCELIGHTNING_HOLD:
-			return 	VM_FLIGHTNING_HOLD;
-		case BOTH_FORCELIGHTNING_RELEASE:
-			return 	VM_FLIGHTNING_RELEASE;
-		case BOTH_RESISTPUSH:
-			return 	VM_FRESISTPUSH;
-		case BOTH_MINDTRICK1:
-		case BOTH_MINDTRICK2:
-			return 	VM_FMINDTRICK;
+			return VM_FPULL;
 
 		default:
 			return VM_READY;
@@ -999,58 +967,71 @@ int CG_MapTorsoToG2VMAnimation(/*centity_t* cent, */playerState_t *ps)
 }
 
 static int lastAnimPlayed = 0;
+qboolean lastFlip = qfalse;
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
-void CG_StartVMAnimation(centity_t* cent, playerState_t *ps)
+static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps)
 {
-	weaponInfo_t *weaponInfo;
-	int mappedAnim = CG_MapTorsoToG2VMAnimation(/*cent,*/ps);
-	int flags = BONE_ANIM_OVERRIDE_FREEZE;
+	weaponInfo_t* weaponInfo;		
+	int flags;
+	float animSpeed;
+	int mappedAnim;
 
 	weaponInfo = &cg_weapons[ps->weapon];
-
-	float speed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp;
+	mappedAnim = CG_MapTorsoToG2VMAnimation(cent, ps);
+	flags = BONE_ANIM_OVERRIDE_FREEZE;
+	animSpeed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp;
 
 	switch (mappedAnim)
 	{
-		//FIXME: fire animation plays everytime you press the attack button, but if you hold
-		//		 the button then it stops playing unlike the player models.
-		case VM_FIRE:
-			if (cent->muzzleFlashTime <= 0)
-				return;
-
-			// loop FAST for the repeater only
-			//if (cent->currentState.weapon == WP_REPEATER && !(cent->currentState.eFlags & EF_ALT_FIRING))
-			//{
-			//	flags = BONE_ANIM_OVERRIDE_LOOP;
-			//	speed = 100.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp * 2;
-			//}		
-
-			if (ps->torsoAnim == lastAnimPlayed)
-				return;
-			break;
 		default:
-			if (ps->torsoAnim == lastAnimPlayed)
+			if (ps->torsoAnim == lastAnimPlayed && cent->currentState.torsoFlip == lastFlip)
 				return;
 			break;
 	}
-
 	lastAnimPlayed = ps->torsoAnim;
+	lastFlip = cent->currentState.torsoFlip;
 
+	//debugging
+	/*
+	float currentFrame = 0;
+	int curFrame = 0;
+	trap->G2API_GetBoneFrame(cent->ghoul2, "model_root", cg.time, &currentFrame, cgs.gameModels, 0);
+	curFrame = ceil(currentFrame);
+	trap->Print("time: %d, ps->torsoAnim: %i, '%s', currentFrame: %d, ps->torsoFlip: %d, cent->currentState.torsoFlip: %d, 
+				cent->pe.torso.lastFlip: %d, ps->weaponTime: %d, cent->pe.torso.animationTime: %d\n", cg.time, ps->torsoAnim, 
+				GetStringForID(animTable, ps->torsoAnim), curFrame, ps->torsoFlip, cent->currentState.torsoFlip, 
+				cent->pe.torso.lastFlip, ps->weaponTime, cent->pe.torso.animationTime);
+	*/
 	if (cg_debugAnim.integer && (cg_debugAnim.integer < 0 || cg_debugAnim.integer == cent->currentState.clientNum))
 		trap->Print("%d: ViewModel Anim: %i, '%s'\n", cg.time, mappedAnim, GetStringForID(vmAnimTable, mappedAnim));
 
 	for (int i = 0; i < 3; i++)
 	{
+		int	firstFrame;
+		int	lastFrame;
+
+		if (animSpeed < 0)
+		{//play anim backwards
+
+			lastFrame = weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame - 1;
+			firstFrame = (weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames - 1) + weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
+		}
+		else
+		{
+			firstFrame = weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
+			lastFrame = (weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames) + weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
+		}
+
 		trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
 								weaponInfo->g2_vmModelIndexes[i],
 								"model_root",
-								weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame,
-								weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame + weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames,
+								firstFrame,
+								lastFrame,
 								flags,
-								speed,
+								animSpeed,
 								cg.time,
 								-1,
-								-1);
+								150);
 	}
 }
 //G2 viewmodels - END
@@ -1144,6 +1125,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	}
 	else
 	{
+		//offset the origin here, so our ghoul2 models don't need their origin offset during compilation.
 		VectorMA(hand.origin, cg_gunY.value - 4, cg.refdef.viewaxis[1], hand.origin);
 		VectorMA(hand.origin, (cg_gunZ.value - 13 + fovOffset), cg.refdef.viewaxis[2], hand.origin);
 	}
@@ -1161,14 +1143,10 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	// map torso animations to weapon animations
 	if ( cg_debugGun.integer ) {
 		// development tool
-		//G2 viewmodels - START
-		if (!weapon->bIsG2Viewmodel)
-		{
-			hand.frame = hand.oldframe = cg_debugGun.integer;
-			hand.backlerp = 0;
-		}
-		//G2 viewmodels - END
-	} else {
+		hand.frame = hand.oldframe = cg_debugGun.integer;
+		hand.backlerp = 0;
+	}
+	else {
 		float currentFrame;
 
 		// get clientinfo for animation map
@@ -1211,8 +1189,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		}
 		else
 		{
-			//hand.ghoul2 = weapon->g2_vmInfo;
-
 			CG_StartVMAnimation(cent, ps);
 		}
 		//G2 viewmodels - END
