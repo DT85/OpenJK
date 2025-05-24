@@ -634,12 +634,12 @@ Ghoul2 Insert Start
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Y, flash.axis[1]);
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, flash.axis[2]);
 
-			// set up viewmodel left hand bolt origin
+			// Set up the left hand bolt origin
 			vec3_t effectOrigin;
 
 			VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-			trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[2], weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
+			trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[1], weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
 				cg.time, NULL, gun.modelScale);
 
 			BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, effectOrigin);
