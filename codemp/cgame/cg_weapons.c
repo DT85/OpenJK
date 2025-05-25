@@ -969,14 +969,12 @@ static int CG_MapTorsoToG2VMAnimation(centity_t* cent, playerState_t *ps)
 static int lastAnimPlayed = 0;
 qboolean lastFlip = qfalse;
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
-static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps)
+static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t *weaponInfo)
 {
-	weaponInfo_t* weaponInfo;		
 	int flags;
 	float animSpeed;
 	int mappedAnim;
 
-	weaponInfo = &cg_weapons[ps->weapon];
 	mappedAnim = CG_MapTorsoToG2VMAnimation(cent, ps);
 	flags = BONE_ANIM_OVERRIDE_FREEZE;
 	animSpeed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp;
@@ -1032,6 +1030,65 @@ static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps)
 								cg.time,
 								-1,
 								150);
+	}
+}
+
+qboolean BG_FileExists(const char* file);
+void CG_InitG2VMLeftArm(weaponInfo_t *weaponInfo, const char *modelName)
+{
+	char *leftArm = va("models/players/%s/arms/larm.glm", modelName);
+	char *leftArmSkin = va("models/players/%s/arms/larm_default.skin", modelName);
+	char *rightArm = va("models/players/%s/arms/rarm.glm", modelName);
+	char *rightArmSkin = va("models/players/%s/arms/rarm_default.skin", modelName);
+
+	if (!BG_FileExists(leftArm))
+	{
+		leftArm = "models/weapons2/viewmodel/arms/larm.glm";
+		leftArmSkin = "models/weapons2/viewmodel/arms/larm_default.skin";
+		rightArm = "models/weapons2/viewmodel/arms/rarm.glm";
+		rightArmSkin = "models/weapons2/viewmodel/arms/rarm_default.skin";
+	}
+
+	// Left arm
+	{
+		// If the left arm is already loaded, clear it
+		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), weaponInfo->g2_vmLArmBoltPoint))
+			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), weaponInfo->g2_vmLArmBoltPoint);
+
+		weaponInfo->g2_vmModelIndexes[1] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, leftArm, 0, 0, 0, 0, 0);
+
+		int lArmSkin = 0;
+		lArmSkin = trap->R_RegisterSkin(leftArmSkin);
+		trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], lArmSkin, lArmSkin);
+
+		//Indicate which bolt on the viewmodel weapon we will be attached to
+		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], weaponInfo->g2_vmLArmBoltPoint);
+
+		// Add the left hand bolt for force power effects, etc
+		trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], "*l_hand");
+
+		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], weaponInfo->g2_vmInfo, weaponInfo->g2_vmLArmBoltPoint);
+	}
+
+	// Right arm
+	{
+		// If the right arm is already loaded, clear it
+		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), weaponInfo->g2_vmRArmBoltPoint))
+			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), weaponInfo->g2_vmRArmBoltPoint);
+
+		weaponInfo->g2_vmModelIndexes[2] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, rightArm, 0, 0, 0, 0, 0);
+
+		int rArmSkin = 0;
+		rArmSkin = trap->R_RegisterSkin(rightArmSkin);
+		trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], rArmSkin, rArmSkin);
+
+		//Indicate which bolt on the viewmodel weapon we will be attached to
+		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], weaponInfo->g2_vmRArmBoltPoint);
+
+		// Add the left hand bolt for force power effects, etc
+		trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], "*r_hand");
+
+		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], weaponInfo->g2_vmInfo, weaponInfo->g2_vmRArmBoltPoint);
 	}
 }
 //G2 viewmodels - END
@@ -1189,7 +1246,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		}
 		else
 		{
-			CG_StartVMAnimation(cent, ps);
+			CG_StartVMAnimation(cent, ps, weapon);
 		}
 		//G2 viewmodels - END
 	}

@@ -185,36 +185,14 @@ void CG_RegisterWeapon( int weaponNum) {
 			// Add the muzzle bolt
 			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*flash");
 
+			// Add the left arm bolt point
+			weaponInfo->g2_vmLArmBoltPoint = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*larm_bolt_point");
+
+			// Add the right arm bolt point
+			weaponInfo->g2_vmRArmBoltPoint = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*rarm_bolt_point");
+
 			// Parse the animation file
 			CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], &weaponInfo->g2_vmAnims);
-
-			// Default Left Arm
-			{
-				// Init the model as the 2nd model index
-				weaponInfo->g2_vmModelIndexes[1] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, "models/weapons2/viewmodel/arms/larm.glm"/*"models/weapons2/lhand/model.glm"*/, 0, 0, 0, 0, 0);
-
-				// Set the skin
-				int lHandSkin = 0;
-				lHandSkin = trap->R_RegisterSkin("models/weapons2/viewmodel/arms/larm_default.skin"/*"models/weapons2/lhand/model_default.skin"*/);
-				trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], lHandSkin, lHandSkin);
-
-				// Add the left hand bolt for force power effects, etc
-				weaponInfo->g2_vmLHandBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], "*l_hand");
-			}
-
-			// Default Right Arm
-			{
-				// Init the model as the 3rd model index
-				weaponInfo->g2_vmModelIndexes[2] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, "models/weapons2/viewmodel/arms/rarm.glm"/*"models/weapons2/rhand/model.glm"*/, 0, 0, 0, 0, 0);
-
-				// Set the skin
-				int rHandSkin = 0;
-				rHandSkin = trap->R_RegisterSkin("models/weapons2/viewmodel/arms/rarm_default.skin"/*"models/weapons2/rhand/model_default.skin"*/);
-				trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], rHandSkin, rHandSkin);
-
-				// Add the right hand bolt for force power effects, etc
-				weaponInfo->g2_vmRHandBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], "*r_hand");
-			}
 		}
 		else
 		{

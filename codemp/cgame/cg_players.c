@@ -439,7 +439,9 @@ CG_RegisterClientModelname
 */
 qboolean BG_IsValidCharacterModel(const char *modelName, const char *skinName);
 qboolean BG_ValidateSkinForTeam( const char *modelName, char *skinName, int team, float *colors );
-
+//G2 Viewmodels - START
+void CG_InitG2VMLeftArm(weaponInfo_t *weaponInfo, const char *modelName);
+//G2 Viewmodels - END
 static qboolean CG_RegisterClientModelname( clientInfo_t *ci, const char *modelName, const char *skinName, const char *teamName, int clientNum ) {
 	int handle;
 	char		afilename[MAX_QPATH];
@@ -718,6 +720,18 @@ retryModel:
 			ci->modelIcon = trap->R_RegisterShaderNoMip ( va ( "models/players/%s/%s", modelName, iconName ) );
 		}
 	}
+
+	//G2 Viewmodels - START
+	for (int i = 0; i < WP_NUM_WEAPONS; i++)
+	{
+		weaponInfo_t *weaponInfo = &cg_weapons[i];
+
+		// Only do this IF a weapon has a Ghoul2 viewmodel
+		if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_vmInfo))
+			CG_InitG2VMLeftArm(weaponInfo, modelName);
+	}
+	//G2 Viewmodels - END
+
 	return qtrue;
 }
 
