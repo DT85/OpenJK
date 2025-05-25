@@ -1034,18 +1034,35 @@ static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t
 }
 
 qboolean BG_FileExists(const char* file);
-void CG_InitG2VMLeftArm(weaponInfo_t *weaponInfo, const char *modelName)
+extern stringID_table_t WPTable[WP_NUM_WEAPONS + 1];
+void CG_InitG2VMLeftArm(weaponInfo_t *weaponInfo, const char *modelName, const char *skinName, int weaponId)
 {
-	char *leftArm = va("models/players/%s/arms/larm.glm", modelName);
-	char *leftArmSkin = va("models/players/%s/arms/larm_default.skin", modelName);
-	char *rightArm = va("models/players/%s/arms/rarm.glm", modelName);
-	char *rightArmSkin = va("models/players/%s/arms/rarm_default.skin", modelName);
+	qboolean fallback = qfalse;
 
-	if (!BG_FileExists(leftArm))
+	char *leftArmSkin = va("models/players/%s/arms/larm_%s.skin", modelName, skinName);
+	char *rightArmSkin = va("models/players/%s/arms/rarm_%s.skin", modelName, skinName);
+
+	if (!BG_FileExists(leftArmSkin) || (!BG_FileExists(rightArmSkin)))
 	{
+		trap->Print("Missing '%s' skin for one or both '%s' viewmodel arms, while loading '%s'. Attempting to load 'default' .skin.\n", skinName, modelName, GetStringForID(WPTable, weaponId));
+
+		leftArmSkin = va("models/players/%s/arms/larm_default.skin", modelName, skinName);
+		rightArmSkin = va("models/players/%s/arms/rarm_default.skin", modelName, skinName);
+
+		if (!BG_FileExists(leftArmSkin) || !BG_FileExists(rightArmSkin))
+			fallback = qtrue;
+	}
+	
+	char *leftArm = va("models/players/%s/arms/larm.glm", modelName);
+	char *rightArm = va("models/players/%s/arms/rarm.glm", modelName);
+
+	if (!BG_FileExists(leftArm) || (!BG_FileExists(rightArm)) || (fallback))
+	{
+		trap->Print("Missing model or skin for one or both '%s' viewmodel arms, while loading '%s'. Falling back to default models.\n", modelName, GetStringForID(WPTable, weaponId));
+
 		leftArm = "models/weapons2/viewmodel/arms/larm.glm";
-		leftArmSkin = "models/weapons2/viewmodel/arms/larm_default.skin";
 		rightArm = "models/weapons2/viewmodel/arms/rarm.glm";
+		leftArmSkin = "models/weapons2/viewmodel/arms/larm_default.skin";
 		rightArmSkin = "models/weapons2/viewmodel/arms/rarm_default.skin";
 	}
 
