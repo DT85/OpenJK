@@ -814,8 +814,6 @@ void CG_ParseVMAnimationFile(void *g2_info, int g2_modelIndex, vmAnimation_t* vm
 			vmAnims->animations[animNum].frameLerp = floor(1000.0f / fps);
 		else
 			vmAnims->animations[animNum].frameLerp = ceil(1000.0f / fps);
-
-		//vmAnims->animations[animNum].initialLerp = ceil(1000.0f / fabs(fps));
 	}
 }
 //G2 Viewmodels - END
