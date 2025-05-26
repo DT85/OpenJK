@@ -832,19 +832,18 @@ Ghoul2 Insert Start
 		vec3_t flashorigin, flashdir;
 		refEntity_t	flash;		
 
+		memset(&flash, 0, sizeof(flash));
+
 		if (!thirdPerson)
 		{
 			//G2 viewmodels - START
 			if (!weapon->bIsG2Viewmodel)
 			{
-				memset(&flash, 0, sizeof(flash));
 				CG_PositionEntityOnTag(&flash, &gun, gun.hModel, "tag_flash");
 			}
 			else
 			{
 				mdxaBone_t boltMatrix;
-
-				memset(&flash, 0, sizeof(flash));
 
 				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_vmInfo), weapon->g2_vmModelIndexes[0]))
 				{ //it's quite possible that we may have have no weapon model and be in a valid state, so return here if this is the case
