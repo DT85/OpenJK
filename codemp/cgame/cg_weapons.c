@@ -1035,7 +1035,7 @@ static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t
 
 qboolean BG_FileExists(const char* file);
 extern stringID_table_t WPTable[WP_NUM_WEAPONS + 1];
-void CG_InitG2VMLeftArm(weaponInfo_t *weaponInfo, const char *modelName, const char *skinName, int weaponId)
+void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char *skinName, int weaponId)
 {
 	qboolean fallback = qfalse;
 
