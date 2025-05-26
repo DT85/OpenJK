@@ -179,17 +179,18 @@ void CG_RegisterWeapon( int weaponNum) {
 		if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_vmInfo))
 		{
 			// Set the weapon skin
-			weaponInfo->g2_vmWeaponSkin = trap->R_RegisterSkin(skinName);
-			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], weaponInfo->g2_vmWeaponSkin, weaponInfo->g2_vmWeaponSkin);
+			int weaponSkin = 0;
+			weaponSkin = trap->R_RegisterSkin(skinName);
+			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], weaponSkin, weaponSkin);
 
 			// Add the muzzle bolt
 			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*flash");
 
-			// Add the left arm bolt point
-			weaponInfo->g2_vmLArmBoltPoint = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*larm_bolt_point");
+			// Add the left arm bolt point (1)
+			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*larm_bolt_point");
 
-			// Add the right arm bolt point
-			weaponInfo->g2_vmRArmBoltPoint = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*rarm_bolt_point");
+			// Add the right arm bolt point (2)
+			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*rarm_bolt_point");
 
 			// Parse the animation file
 			CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], &weaponInfo->g2_vmAnims);

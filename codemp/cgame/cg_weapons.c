@@ -634,19 +634,33 @@ Ghoul2 Insert Start
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Y, flash.axis[1]);
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, flash.axis[2]);
 
-			// Set up the left hand bolt origin
-			vec3_t effectOrigin;
+			// Left hand tag
+			{
+				vec3_t lhandTagOrigin;
 
-			VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
+				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-			trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[1], weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
-				cg.time, NULL, gun.modelScale);
+				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[1], weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
+					cg.time, NULL, gun.modelScale);
 
-			BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, effectOrigin);
-			
-			// Play refraction effect if requested 
-			if (ps->torsoAnim == BOTH_FORCEPUSH || ps->torsoAnim == BOTH_FORCEPULL)
-				CG_ForcePushBlur(effectOrigin, cent);
+				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, lhandTagOrigin);
+
+				// Play refraction effect if requested 
+				if (ps->torsoAnim == BOTH_FORCEPUSH || ps->torsoAnim == BOTH_FORCEPULL)
+					CG_ForcePushBlur(lhandTagOrigin, cent);
+			}
+
+			// Right hand tag
+			{
+				vec3_t rhandTagOrigin;
+
+				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
+
+				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[2], weapon->g2_vmRHandBolt, &boltMatrix, setAngles, gun.origin,
+					cg.time, NULL, gun.modelScale);
+
+				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, rhandTagOrigin);
+			}
 
 			// The effect position gets broken with differences in FOV. This should (hopefully) fix that. 
 			float actualFOV = cg_fovViewmodel.integer ? cg_fovViewmodel.value : cg_fov.value;
@@ -1069,8 +1083,8 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 	// Left arm
 	{
 		// If the left arm is already loaded, clear it
-		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), weaponInfo->g2_vmLArmBoltPoint))
-			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), weaponInfo->g2_vmLArmBoltPoint);
+		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 1))
+			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 1);
 
 		weaponInfo->g2_vmModelIndexes[1] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, leftArm, 0, 0, 0, 0, 0);
 
@@ -1078,20 +1092,21 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 		lArmSkin = trap->R_RegisterSkin(leftArmSkin);
 		trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], lArmSkin, lArmSkin);
 
-		//Indicate which bolt on the viewmodel weapon we will be attached to
-		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], weaponInfo->g2_vmLArmBoltPoint);
+		// Indicate which bolt on the viewmodel weapon we will be attached to
+		// In this case: 1 = left arm, 2 = right arm
+		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], 1);
 
 		// Add the left hand bolt for force power effects, etc
 		trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], "*l_hand");
 
-		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], weaponInfo->g2_vmInfo, weaponInfo->g2_vmLArmBoltPoint);
+		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], weaponInfo->g2_vmInfo, 1);
 	}
 
 	// Right arm
 	{
 		// If the right arm is already loaded, clear it
-		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), weaponInfo->g2_vmRArmBoltPoint))
-			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), weaponInfo->g2_vmRArmBoltPoint);
+		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 2))
+			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 2);
 
 		weaponInfo->g2_vmModelIndexes[2] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, rightArm, 0, 0, 0, 0, 0);
 
@@ -1099,13 +1114,14 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 		rArmSkin = trap->R_RegisterSkin(rightArmSkin);
 		trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], rArmSkin, rArmSkin);
 
-		//Indicate which bolt on the viewmodel weapon we will be attached to
-		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], weaponInfo->g2_vmRArmBoltPoint);
+		// Indicate which bolt on the viewmodel weapon we will be attached to
+		// In this case: 1 = left arm, 2 = right arm
+		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], 2);
 
 		// Add the left hand bolt for force power effects, etc
 		trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], "*r_hand");
 
-		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], weaponInfo->g2_vmInfo, weaponInfo->g2_vmRArmBoltPoint);
+		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], weaponInfo->g2_vmInfo, 2);
 	}
 }
 //G2 viewmodels - END
