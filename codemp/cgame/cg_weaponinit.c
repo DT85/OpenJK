@@ -690,6 +690,7 @@ void CG_RegisterWeapon( int weaponNum) {
 	}
 }
 
+//G2 Viewmodels - START
 /*
 ======================
 CG_ParseVMAnimationFile
