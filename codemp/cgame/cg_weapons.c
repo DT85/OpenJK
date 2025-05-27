@@ -1050,77 +1050,105 @@ qboolean BG_FileExists(const char* file);
 extern stringID_table_t WPTable[WP_NUM_WEAPONS + 1];
 void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char *skinName, int weaponId)
 {
-	qboolean fallback = qfalse;
-
-	char *leftArmSkin = va("models/players/%s/arms/larm_%s.skin", modelName, skinName);
-	char *rightArmSkin = va("models/players/%s/arms/rarm_%s.skin", modelName, skinName);
-
-	if (!BG_FileExists(leftArmSkin) || (!BG_FileExists(rightArmSkin)))
-	{
-		trap->Print("Missing '%s' skin for one or both '%s' viewmodel arms, while loading '%s'. Attempting to load 'default' .skin.\n", skinName, modelName, GetStringForID(WPTable, weaponId));
-
-		leftArmSkin = va("models/players/%s/arms/larm_default.skin", modelName, skinName);
-		rightArmSkin = va("models/players/%s/arms/rarm_default.skin", modelName, skinName);
-
-		if (!BG_FileExists(leftArmSkin) || !BG_FileExists(rightArmSkin))
-			fallback = qtrue;
-	}
-	
-	char *leftArm = va("models/players/%s/arms/larm.glm", modelName);
-	char *rightArm = va("models/players/%s/arms/rarm.glm", modelName);
-
-	if (!BG_FileExists(leftArm) || (!BG_FileExists(rightArm)) || (fallback))
-	{
-		trap->Print("Missing model or skin for one or both '%s' viewmodel arms, while loading '%s'. Falling back to default models.\n", modelName, GetStringForID(WPTable, weaponId));
-
-		leftArm = "models/weapons2/viewmodel/arms/larm.glm";
-		rightArm = "models/weapons2/viewmodel/arms/rarm.glm";
-		leftArmSkin = "models/weapons2/viewmodel/arms/larm_default.skin";
-		rightArmSkin = "models/weapons2/viewmodel/arms/rarm_default.skin";
-	}
+	int lArmSkin = 0;
+	int rArmSkin = 0;
+	char *leftArm;
+	char *rightArm;
+	char *leftArmSkin;
+	char *rightArmSkin;
 
 	// Left arm
 	{
-		// If the left arm is already loaded, clear it
-		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 1))
-			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 1);
+		// If the left arm is already loaded, clear it because the player model has changed
+		if (trap_G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 1))
+			trap_G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 1);
 
-		weaponInfo->g2_vmModelIndexes[1] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, leftArm, 0, 0, 0, 0, 0);
+		if (!BG_FileExists(va("models/players/%s/arms/larm.glm", modelName)))
+		{
+			Com_Printf("Missing Ghoul2 viewmodel left arm model for '%s', while loading weapon '%s'. Falling back to default.\n", modelName, GetStringForID(WPTable, weaponId));
 
-		int lArmSkin = 0;
-		lArmSkin = trap->R_RegisterSkin(leftArmSkin);
-		trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], lArmSkin, lArmSkin);
+			leftArm = "models/players/kyle/arms/larm.glm";
+			leftArmSkin = "models/players/kyle/arms/larm_default.skin";
+		}
+		else
+		{
+			if (!BG_FileExists(va("models/players/%s/arms/larm_%s.skin", modelName, skinName)))
+			{
+				Com_Printf("Missing '%s' Ghoul2 viewmodel left arm skin for '%s', while loading weapon '%s'. Loading 'default' .skin instead.\n", skinName, modelName, GetStringForID(WPTable, weaponId));
+				leftArmSkin = va("models/players/%s/arms/larm_default.skin", modelName);
+			}
+			else
+				leftArmSkin = va("models/players/%s/arms/larm_%s.skin", modelName, skinName);
+
+			leftArm = va("models/players/%s/arms/larm.glm", modelName);
+		}
+
+		weaponInfo->g2_vmModelIndexes[1] = trap_G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, leftArm, 0, 0, 0, 0, 0);
+
+		if (weaponInfo->g2_vmModelIndexes[1] < 0)
+		{
+			Com_Printf("Invalid Ghoul2 viewmodel left arm model specified. Not loaded.\n");
+			return;
+		}
+
+		lArmSkin = trap_R_RegisterSkin(leftArmSkin);
+		trap_G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], lArmSkin, lArmSkin);
 
 		// Indicate which bolt on the viewmodel weapon we will be attached to
 		// In this case: 1 = left arm, 2 = right arm
-		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], 1);
+		trap_G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], 1);
 
 		// Add the left hand bolt for force power effects, etc
-		trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], "*l_hand");
+		trap_G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], "*l_hand");
 
-		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], weaponInfo->g2_vmInfo, 1);
+		trap_G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], weaponInfo->g2_vmInfo, 1);
 	}
 
 	// Right arm
 	{
-		// If the right arm is already loaded, clear it
-		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 2))
-			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 2);
+		// If the right arm is already loaded, clear it because the player model has changed
+		if (trap_G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 2))
+			trap_G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 2);
 
-		weaponInfo->g2_vmModelIndexes[2] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, rightArm, 0, 0, 0, 0, 0);
+		if (!BG_FileExists(va("models/players/%s/arms/rarm.glm", modelName)))
+		{
+			Com_Printf("Missing Ghoul2 viewmodel right arm for '%s', while loading weapon '%s'. Falling back to default.\n", modelName, GetStringForID(WPTable, weaponId));
 
-		int rArmSkin = 0;
-		rArmSkin = trap->R_RegisterSkin(rightArmSkin);
-		trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], rArmSkin, rArmSkin);
+			rightArm = "models/players/kyle/arms/larm.glm";
+			rightArmSkin = "models/players/kyle/arms/rarm_default.skin";
+		}
+		else
+		{
+			if (!BG_FileExists(va("models/players/%s/arms/rarm_%s.skin", modelName, skinName)))
+			{
+				Com_Printf("Missing '%s' Ghoul2 viewmodel right arm skin for '%s', while loading weapon '%s'. Loading 'default' .skin instead.\n", skinName, modelName, GetStringForID(WPTable, weaponId));
+				rightArmSkin = va("models/players/%s/arms/rarm_default.skin", modelName);
+			}
+			else
+				rightArmSkin = va("models/players/%s/arms/rarm_%s.skin", modelName, skinName);
+
+			rightArm = va("models/players/%s/arms/rarm.glm", modelName);
+		}
+
+		weaponInfo->g2_vmModelIndexes[2] = trap_G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, rightArm, 0, 0, 0, 0, 0);
+
+		if (weaponInfo->g2_vmModelIndexes[2] < 0)
+		{
+			Com_Printf("Invalid Ghoul2 viewmodel right arm model specified. Not loaded.\n");
+			return;
+		}
+
+		rArmSkin = trap_R_RegisterSkin(rightArmSkin);
+		trap_G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], rArmSkin, rArmSkin);
 
 		// Indicate which bolt on the viewmodel weapon we will be attached to
 		// In this case: 1 = left arm, 2 = right arm
-		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], 2);
+		trap_G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], 2);
 
 		// Add the left hand bolt for force power effects, etc
-		trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], "*r_hand");
+		trap_G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], "*r_hand");
 
-		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], weaponInfo->g2_vmInfo, 2);
+		trap_G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], weaponInfo->g2_vmInfo, 2);
 	}
 }
 //G2 viewmodels - END
