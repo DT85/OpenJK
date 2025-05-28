@@ -1066,8 +1066,8 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 	// Left arm
 	{
 		// If the left arm is already loaded, clear it because the player model has changed
-		if (trap_G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 1))
-			trap_G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 1);
+		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 1))
+			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 1);
 
 		if (!BG_FileExists(va("models/players/%s/arms/larm.glm", modelName)))
 		{
@@ -1089,7 +1089,7 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 			leftArm = va("models/players/%s/arms/larm.glm", modelName);
 		}
 
-		weaponInfo->g2_vmModelIndexes[1] = trap_G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, leftArm, 0, 0, 0, 0, 0);
+		weaponInfo->g2_vmModelIndexes[1] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, leftArm, 0, 0, 0, 0, 0);
 
 		if (weaponInfo->g2_vmModelIndexes[1] < 0)
 		{
@@ -1097,24 +1097,24 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 			return;
 		}
 
-		lArmSkin = trap_R_RegisterSkin(leftArmSkin);
-		trap_G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], lArmSkin, lArmSkin);
+		lArmSkin = trap->R_RegisterSkin(leftArmSkin);
+		trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], lArmSkin, lArmSkin);
 
 		// Indicate which bolt on the viewmodel weapon we will be attached to
 		// In this case: 1 = left arm, 2 = right arm
-		trap_G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], 1);
+		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], 1);
 
 		// Add the left hand bolt for force power effects, etc
-		trap_G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], "*l_hand");
+		trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], "*l_hand");
 
-		trap_G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], weaponInfo->g2_vmInfo, 1);
+		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], weaponInfo->g2_vmInfo, 1);
 	}
 
 	// Right arm
 	{
 		// If the right arm is already loaded, clear it because the player model has changed
-		if (trap_G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 2))
-			trap_G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 2);
+		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 2))
+			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 2);
 
 		if (!BG_FileExists(va("models/players/%s/arms/rarm.glm", modelName)))
 		{
@@ -1136,7 +1136,7 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 			rightArm = va("models/players/%s/arms/rarm.glm", modelName);
 		}
 
-		weaponInfo->g2_vmModelIndexes[2] = trap_G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, rightArm, 0, 0, 0, 0, 0);
+		weaponInfo->g2_vmModelIndexes[2] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, rightArm, 0, 0, 0, 0, 0);
 
 		if (weaponInfo->g2_vmModelIndexes[2] < 0)
 		{
@@ -1144,17 +1144,17 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 			return;
 		}
 
-		rArmSkin = trap_R_RegisterSkin(rightArmSkin);
-		trap_G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], rArmSkin, rArmSkin);
+		rArmSkin = trap->R_RegisterSkin(rightArmSkin);
+		trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], rArmSkin, rArmSkin);
 
 		// Indicate which bolt on the viewmodel weapon we will be attached to
 		// In this case: 1 = left arm, 2 = right arm
-		trap_G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], 2);
+		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], 2);
 
 		// Add the left hand bolt for force power effects, etc
-		trap_G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], "*r_hand");
+		trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], "*r_hand");
 
-		trap_G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], weaponInfo->g2_vmInfo, 2);
+		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], weaponInfo->g2_vmInfo, 2);
 	}
 }
 //G2 viewmodels - END
