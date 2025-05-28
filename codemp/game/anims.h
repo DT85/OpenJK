@@ -1822,14 +1822,13 @@ Viewmodel Animations
 */
 typedef enum {
 	VM_READY,						// Weapon 1-frame ready to fire. Usually first frame of VM_FIRE
-	VM_IDLE,						// Weapon idling sequence
+	VM_IDLE,						// Weapon holding relaxed, not aiming
+	VM_IDLE_SEQ,					// Weapon idle sequence. "I'm bored and not moving, going to figet"
 	VM_RAISE,						// Draw weapon
 	VM_LOWER,						// Put weapon away
 	VM_FIRE,						// Fire weapon
 	VM_ALT_FIRE,					// Alt fire weapon
 	VM_THERMAL_PULLBACK,			// Thermal detonator pull back
-	VM_MELEE1,						// Melee 1. WP_MELEE only!
-	VM_MELEE2,						// Melee 2. WP_MELEE only!
 	VM_FPUSH,						// Force Push
 	VM_FPULL,						// Force Pull
 	

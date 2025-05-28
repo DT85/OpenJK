@@ -935,24 +935,32 @@ static int CG_MapTorsoToG2VMAnimation(centity_t* cent, playerState_t *ps)
 {
 	switch (ps->torsoAnim)
 	{
+		//ready to fire
 		case TORSO_WEAPONREADY1:
 		case TORSO_WEAPONREADY2:
 		case TORSO_WEAPONREADY3:
 		case TORSO_WEAPONREADY4:
 		case TORSO_WEAPONREADY10:
-		case TORSO_WEAPONIDLE3:
-		case TORSO_WEAPONIDLE10:
 			return VM_READY;
+		// idle
+		case TORSO_WEAPONIDLE2:
+		case TORSO_WEAPONIDLE3:
+		case TORSO_WEAPONIDLE4:
+		case TORSO_WEAPONIDLE10:
+			return VM_IDLE;
+		// idle sequence
 		case BOTH_STAND1IDLE1:
 		case BOTH_STAND2IDLE1:
-		case BOTH_STAND2IDLE2:
 		case BOTH_STAND3IDLE1:
 		case BOTH_STAND5IDLE1:
-			return VM_IDLE;
+			return VM_IDLE_SEQ;
+		// put away weapon
 		case TORSO_DROPWEAP1:
 			return VM_LOWER;
+		// equip weapon
 		case TORSO_RAISEWEAP1:
 			return VM_RAISE;
+		// primary fire
 		case BOTH_ATTACK1:
 		case BOTH_ATTACK2:
 		case BOTH_ATTACK3:
@@ -963,19 +971,17 @@ static int CG_MapTorsoToG2VMAnimation(centity_t* cent, playerState_t *ps)
 				return VM_ALT_FIRE;
 			else
 				return VM_FIRE;
+		// grenade pull back to fire
 		case BOTH_THERMAL_READY:
 			return VM_THERMAL_PULLBACK;
-		case BOTH_MELEE1:
-			return VM_MELEE1;
-		case BOTH_MELEE2:
-			return VM_MELEE2;
+		// force
 		case BOTH_FORCEPUSH:
 			return VM_FPUSH;
 		case BOTH_FORCEPULL:
 			return VM_FPULL;
 
-		default:
-			return VM_READY;
+	default:
+		return VM_READY;
 	}
 }
 
