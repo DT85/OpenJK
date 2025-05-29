@@ -1234,6 +1234,8 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		if (!trap->G2_HaveWeGhoul2Models(hand.ghoul2))
 			// No weapon to draw!
 			return;
+
+		hand.radius = 64;
 	}
 	//G2 viewmodels - END
 
@@ -1320,11 +1322,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	}
 
 	hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON;// | RF_MINLIGHT;
-
-	//G2 viewmodels - START
-	if (weapon->bIsG2Viewmodel)
-		hand.radius = 64;
-	//G2 viewmodels - END
 
 	// add everything onto the hand
 	CG_AddPlayerWeapon(&hand, ps, &cg_entities[cg.predictedPlayerState.clientNum], ps->persistant[PERS_TEAM], angles, qfalse);
