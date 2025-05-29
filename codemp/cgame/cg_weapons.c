@@ -625,6 +625,12 @@ Ghoul2 Insert Start
 				barrel.renderfx = parent->renderfx;
 
 				barrel.ghoul2 = weapon->g2_vmInfo_Arms;
+				
+				if (!trap->G2_HaveWeGhoul2Models(barrel.ghoul2))
+					// No weapon to draw!
+					return;
+
+				barrel.radius = parent->radius;
 
 				angles[YAW] = 0;
 				angles[PITCH] = 0;
@@ -1009,15 +1015,75 @@ static int CG_MapTorsoToG2VMAnim(centity_t* cent, playerState_t *ps)
 	}
 }
 
+static int CG_MapTorsoToG2VMArmsAnim(centity_t* cent, playerState_t* ps)
+{
+	switch (ps->torsoAnim)
+	{
+		//ready to fire
+	case TORSO_WEAPONREADY1:
+	case TORSO_WEAPONREADY2:
+	case TORSO_WEAPONREADY3:
+	case TORSO_WEAPONREADY4:
+	case TORSO_WEAPONREADY10:
+		return VM_ARMS_READY;
+		// idle
+	case TORSO_WEAPONIDLE2:
+	case TORSO_WEAPONIDLE3:
+	case TORSO_WEAPONIDLE4:
+	case TORSO_WEAPONIDLE10:
+		return VM_ARMS_IDLE;
+		// idle sequence
+	case BOTH_STAND1IDLE1:
+	case BOTH_STAND2IDLE1:
+	case BOTH_STAND3IDLE1:
+	case BOTH_STAND5IDLE1:
+		return VM_ARMS_IDLE_SEQ;
+		// put away weapon
+	case TORSO_DROPWEAP1:
+		return VM_ARMS_LOWER;
+		// equip weapon
+	case TORSO_RAISEWEAP1:
+		return VM_ARMS_RAISE;
+		// primary fire
+	case BOTH_ATTACK1:
+	case BOTH_ATTACK2:
+	case BOTH_ATTACK3:
+	case BOTH_ATTACK4:
+	case BOTH_ATTACK10:
+	case BOTH_THERMAL_THROW:
+		if (cent->currentState.eFlags & EF_ALT_FIRING)
+			return VM_ARMS_ALT_FIRE;
+		else
+			return VM_ARMS_FIRE;
+		// grenade pull back to fire
+	case BOTH_THERMAL_READY:
+		return VM_ARMS_THERMAL_PULLBACK;
+		// force
+	case BOTH_FORCEPUSH:
+		return VM_ARMS_FPUSH;
+	case BOTH_FORCEPULL:
+		return VM_ARMS_FPULL;
+
+	default:
+		return VM_ARMS_READY;
+	}
+}
+
 static int lastAnimPlayed = 0;
+static int lastAnimPlayed2 = 0;
 qboolean lastFlip = qfalse;
+qboolean lastFlip2 = qfalse;
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
-void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t *weaponInfo)
+static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t *weaponInfo)
 {
 	int flags;
 	float animSpeed;
 	int mappedAnim;
+	int	firstFrame;
+	int	lastFrame;
 
+	// Weapon
+	//
 	mappedAnim = CG_MapTorsoToG2VMAnim(cent, ps);
 	flags = BONE_ANIM_OVERRIDE_FREEZE;
 	animSpeed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp;
@@ -1038,16 +1104,13 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t *weapo
 	int curFrame = 0;
 	trap->G2API_GetBoneFrame(cent->ghoul2, "model_root", cg.time, &currentFrame, cgs.gameModels, 0);
 	curFrame = ceil(currentFrame);
-	trap->Print("time: %d, ps->torsoAnim: %i, '%s', currentFrame: %d, ps->torsoFlip: %d, cent->currentState.torsoFlip: %d, 
-				cent->pe.torso.lastFlip: %d, ps->weaponTime: %d, cent->pe.torso.animationTime: %d\n", cg.time, ps->torsoAnim, 
-				GetStringForID(animTable, ps->torsoAnim), curFrame, ps->torsoFlip, cent->currentState.torsoFlip, 
+	trap->Print("time: %d, ps->torsoAnim: %i, '%s', currentFrame: %d, ps->torsoFlip: %d, cent->currentState.torsoFlip: %d,
+				cent->pe.torso.lastFlip: %d, ps->weaponTime: %d, cent->pe.torso.animationTime: %d\n", cg.time, ps->torsoAnim,
+				GetStringForID(animTable, ps->torsoAnim), curFrame, ps->torsoFlip, cent->currentState.torsoFlip,
 				cent->pe.torso.lastFlip, ps->weaponTime, cent->pe.torso.animationTime);
 	*/
 	if (cg_debugAnim.integer && (cg_debugAnim.integer < 0 || cg_debugAnim.integer == cent->currentState.clientNum))
 		trap->Print("%d: ViewModel Anim: %i, '%s'\n", cg.time, mappedAnim, GetStringForID(vmAnimTable, mappedAnim));
-
-	int	firstFrame;
-	int	lastFrame;
 
 	if (animSpeed < 0)
 	{//play anim backwards
@@ -1060,7 +1123,6 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t *weapo
 		lastFrame = (weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames) + weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
 	}
 
-	// Weapon
 	trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
 							0,
 							"model_root",
@@ -1073,15 +1135,61 @@ void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t *weapo
 							150);
 
 	// Arms
+	//
+	int flags2;
+	float animSpeed2;
+	int mappedAnim2;
+	int	firstFrame2;
+	int	lastFrame2;
+
+	mappedAnim2 = CG_MapTorsoToG2VMArmsAnim(cent, ps);
+	flags2 = BONE_ANIM_OVERRIDE_FREEZE;
+	animSpeed2 = 50.0f / weaponInfo->g2_vmArmsAnims.animations[mappedAnim2].frameLerp;
+
+	switch (mappedAnim2)
+	{
+		default:
+			if (ps->torsoAnim == lastAnimPlayed2 && cent->currentState.torsoFlip == lastFlip2)
+				return;
+			break;
+	}
+	lastAnimPlayed2 = ps->torsoAnim;
+	lastFlip2 = cent->currentState.torsoFlip;
+
+	//debugging
+	/*
+	float currentFrame = 0;
+	int curFrame = 0;
+	trap->G2API_GetBoneFrame(cent->ghoul2, "model_root", cg.time, &currentFrame, cgs.gameModels, 0);
+	curFrame = ceil(currentFrame);
+	trap->Print("time: %d, ps->torsoAnim: %i, '%s', currentFrame: %d, ps->torsoFlip: %d, cent->currentState.torsoFlip: %d,
+				cent->pe.torso.lastFlip: %d, ps->weaponTime: %d, cent->pe.torso.animationTime: %d\n", cg.time, ps->torsoAnim,
+				GetStringForID(animTable, ps->torsoAnim), curFrame, ps->torsoFlip, cent->currentState.torsoFlip,
+				cent->pe.torso.lastFlip, ps->weaponTime, cent->pe.torso.animationTime);
+	*/
+	if (cg_debugAnim.integer && (cg_debugAnim.integer < 0 || cg_debugAnim.integer == cent->currentState.clientNum))
+		trap->Print("%d: ViewModel Anim: %i, '%s'\n", cg.time, mappedAnim2, GetStringForID(vmAnimTable, mappedAnim2));
+
+	if (animSpeed2 < 0)
+	{//play anim backwards
+		lastFrame2 = weaponInfo->g2_vmArmsAnims.animations[mappedAnim2].firstFrame - 1;
+		firstFrame2 = (weaponInfo->g2_vmArmsAnims.animations[mappedAnim2].numFrames - 1) + weaponInfo->g2_vmArmsAnims.animations[mappedAnim2].firstFrame;
+	}
+	else
+	{
+		firstFrame2 = weaponInfo->g2_vmArmsAnims.animations[mappedAnim2].firstFrame;
+		lastFrame2 = (weaponInfo->g2_vmArmsAnims.animations[mappedAnim2].numFrames) + weaponInfo->g2_vmArmsAnims.animations[mappedAnim2].firstFrame;
+	}
+
 	for (int i = 0; i < 2; i++)
 	{
 		trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo_Arms,
 								weaponInfo->g2_vmModelIndexes[i],
 								"model_root",
-								firstFrame,
-								lastFrame,
-								flags,
-								animSpeed,
+								firstFrame2,
+								lastFrame2,
+								flags2,
+								animSpeed2,
 								cg.time,
 								-1,
 								150);
@@ -1101,8 +1209,8 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 	char *rightArmSkin;
 
 	// If the arms are already loaded, clear them because the player model has changed
-	if (trap->G2_HaveWeGhoul2Models(&weaponInfo->g2_vmInfo_Arms))
-		trap->G2API_CleanGhoul2Models(&weaponInfo->g2_vmInfo_Arms);
+	if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_vmInfo_Arms))
+		trap->G2API_CleanGhoul2Models(&(weaponInfo->g2_vmInfo_Arms));
 
 	// Left arm
 	{
@@ -1140,8 +1248,8 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 		// Add the left hand bolt for force power effects, etc
 		trap->G2API_AddBolt(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmModelIndexes[0], "*l_hand");
 
-		// Parse the arms animation file
-		CG_ParseVMAnimationCFG(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmModelIndexes[0], &weaponInfo->g2_vmAnims);
+		// Parse the arms animation file - only need to do this once
+		CG_ParseVMAnimationCFG(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmModelIndexes[0], &weaponInfo->g2_vmArmsAnims);
 	}
 
 	// Right arm
@@ -2822,7 +2930,7 @@ void CG_ShutDownG2Weapons(void)
 
 		//G2 Viewmodels - START
 		if (cg_weapons[i].bIsG2Viewmodel && cg_weapons[i].g2_vmInfo && trap->G2_HaveWeGhoul2Models(cg_weapons[i].g2_vmInfo))
-			trap->G2API_CleanGhoul2Models(cg_weapons[i].g2_vmInfo);
+			trap->G2API_CleanGhoul2Models(&(cg_weapons[i].g2_vmInfo));
 		//G2 Viewmodels - END
 	}
 }

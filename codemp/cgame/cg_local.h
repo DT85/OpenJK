@@ -716,6 +716,7 @@ typedef struct weaponInfo_s {
 	qhandle_t		g2_vmRHandBolt;
 	int				g2_vmModelIndexes[2];
 	vmAnimation_t	g2_vmAnims;
+	vmAnimation_t	g2_vmArmsAnims;
 	//G2 viewmodels - END
 } weaponInfo_t;
 

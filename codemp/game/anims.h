@@ -1832,6 +1832,17 @@ typedef enum {
 	VM_FPUSH,						// Force Push
 	VM_FPULL,						// Force Pull
 	
+	VM_ARMS_READY,					// Weapon 1-frame ready to fire. Usually first frame of VM_FIRE
+	VM_ARMS_IDLE,					// Weapon holding relaxed, not aiming
+	VM_ARMS_IDLE_SEQ,				// Weapon idle sequence. "I'm bored and not moving, going to figet"
+	VM_ARMS_RAISE,					// Draw weapon
+	VM_ARMS_LOWER,					// Put weapon away
+	VM_ARMS_FIRE,					// Fire weapon
+	VM_ARMS_ALT_FIRE,				// Alt fire weapon
+	VM_ARMS_THERMAL_PULLBACK,		// Thermal detonator pull back
+	VM_ARMS_FPUSH,					// Force Push
+	VM_ARMS_FPULL,					// Force Pull
+
 	//# #eol
 	MAX_VIEWMODEL_ANIMATIONS,
 } vmAnimNumber_t;
