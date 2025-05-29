@@ -186,12 +186,6 @@ void CG_RegisterWeapon( int weaponNum) {
 			// Add the muzzle bolt
 			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, 0, "*flash");
 
-			// Add the left arm bolt point (1)
-			//trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*larm_bolt_point");
-
-			// Add the right arm bolt point (2)
-			//trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*rarm_bolt_point");
-
 			// Parse the weapon animation file
 			CG_ParseVMAnimationCFG(weaponInfo->g2_vmInfo, 0, &weaponInfo->g2_vmAnims);
 		}
