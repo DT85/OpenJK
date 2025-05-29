@@ -174,7 +174,13 @@ void CG_RegisterWeapon( int weaponNum) {
 		}
 
 		// Init the weapon model
-		trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, path, 0, 0, 0, 0, 0);
+		int index = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, path, 0, 0, 0, 0, 0);
+
+		if (index < 0)
+		{
+			Com_Printf("Invalid Ghoul2 viewmodel weapon model specified.\n");
+			return;
+		}
 
 		if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_vmInfo))
 		{
