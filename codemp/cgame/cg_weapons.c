@@ -928,10 +928,10 @@ Ghoul2 Insert Start
 //G2 viewmodels - START
 /*
 ==============
-CG_MapTorsoToG2VMAnimation
+CG_MapTorsoToG2VMAnim
 ==============
 */
-static int CG_MapTorsoToG2VMAnimation(centity_t* cent, playerState_t *ps)
+static int CG_MapTorsoToG2VMAnim(centity_t* cent, playerState_t *ps)
 {
 	switch (ps->torsoAnim)
 	{
@@ -994,7 +994,7 @@ static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t
 	float animSpeed;
 	int mappedAnim;
 
-	mappedAnim = CG_MapTorsoToG2VMAnimation(cent, ps);
+	mappedAnim = CG_MapTorsoToG2VMAnim(cent, ps);
 	flags = BONE_ANIM_OVERRIDE_FREEZE;
 	animSpeed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp;
 
@@ -1022,23 +1022,22 @@ static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t
 	if (cg_debugAnim.integer && (cg_debugAnim.integer < 0 || cg_debugAnim.integer == cent->currentState.clientNum))
 		trap->Print("%d: ViewModel Anim: %i, '%s'\n", cg.time, mappedAnim, GetStringForID(vmAnimTable, mappedAnim));
 
+	int	firstFrame;
+	int	lastFrame;
+
+	if (animSpeed < 0)
+	{//play anim backwards
+		lastFrame = weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame - 1;
+		firstFrame = (weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames - 1) + weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
+	}
+	else
+	{
+		firstFrame = weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
+		lastFrame = (weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames) + weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
+	}
+
 	for (int i = 0; i < 3; i++)
 	{
-		int	firstFrame;
-		int	lastFrame;
-
-		if (animSpeed < 0)
-		{//play anim backwards
-
-			lastFrame = weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame - 1;
-			firstFrame = (weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames - 1) + weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
-		}
-		else
-		{
-			firstFrame = weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
-			lastFrame = (weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames) + weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
-		}
-
 		trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
 								weaponInfo->g2_vmModelIndexes[i],
 								"model_root",
@@ -1106,6 +1105,9 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 
 		// Add the left hand bolt for force power effects, etc
 		trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], "*l_hand");
+
+		// Parse the arms animation file
+		CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], &weaponInfo->g2_vmAnims);
 
 		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], weaponInfo->g2_vmInfo, 1);
 	}

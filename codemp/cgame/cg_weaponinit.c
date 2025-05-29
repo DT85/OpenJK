@@ -192,7 +192,7 @@ void CG_RegisterWeapon( int weaponNum) {
 			// Add the right arm bolt point (2)
 			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*rarm_bolt_point");
 
-			// Parse the animation file
+			// Parse the weapon animation file
 			CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], &weaponInfo->g2_vmAnims);
 		}
 		else
