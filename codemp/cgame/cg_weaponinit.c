@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "fx_local.h"
 
 //G2 viewmodels - START
-void CG_ParseVMAnimationCFG(void *g2_info, int g2_modelIndex, vmAnimation_t* vmAnims);
+void CG_ParseG2VMAnimCFG(void *g2_info, int g2_modelIndex, vmAnimation_t* vmAnims);
 //G2 viewmodels - END
 /*
 =================
@@ -186,12 +186,12 @@ void CG_RegisterWeapon( int weaponNum) {
 			// Add the muzzle bolt
 			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, 0, "*flash");
 
-			// Parse the weapon animation file
-			CG_ParseVMAnimationCFG(weaponInfo->g2_vmInfo, 0, &weaponInfo->g2_vmAnims);
+			// Parse the weapon animation CFG
+			CG_ParseG2VMAnimCFG(weaponInfo->g2_vmInfo, 0, &weaponInfo->g2_vmAnims);
 		}
 		else
 		{
-			Com_Printf("CG_RegisterWeapon: Unable to load G2 view model: %s\n", path);
+			Com_Printf("CG_RegisterWeapon: Unable to load G2 viewmodel weapon: %s\n", path);
 		}
 	}
 	//G2 viewmodels - END
@@ -687,7 +687,7 @@ void CG_RegisterWeapon( int weaponNum) {
 //G2 Viewmodels - START
 /*
 ======================
-CG_ParseVMAnimationCFG
+CG_ParseG2VMAnimCFG
 
 Read a configuration file containing animation counts and rates
 models/players/visor/animation.cfg, etc
@@ -695,7 +695,7 @@ models/players/visor/animation.cfg, etc
 ======================
 */
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
-void CG_ParseVMAnimationCFG(void *g2_info, int g2_modelIndex, vmAnimation_t* vmAnims)
+void CG_ParseG2VMAnimCFG(void *g2_info, int g2_modelIndex, vmAnimation_t* vmAnims)
 {
 	char *s;
 	int len;
