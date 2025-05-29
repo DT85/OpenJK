@@ -1257,7 +1257,7 @@ Don't place this
         { "models/weapons2/heavy_repeater/heavy_repeater_w.glm",
 		0, 0, 0},
 		//G2 Viewmodels - START
-/* view */		"models/weapons2/heavy_repeater/model.glm", //"models/weapons2/heavy_repeater/heavy_repeater.md3",
+/* view */		"models/weapons2/heavy_repeater/vm/model.glm", //"models/weapons2/heavy_repeater/heavy_repeater.md3",
 		//G2 Viewmodels - END
 /* icon */		"gfx/hud/w_icon_repeater",
 /* pickup *///	"Imperial Heavy Repeater",
