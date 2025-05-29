@@ -710,6 +710,7 @@ typedef struct weaponInfo_s {
 	//G2 viewmodels - START
 	qboolean		bIsG2Viewmodel;
 	void			*g2_vmInfo;
+	void			*g2_vmInfo_Arms;
 	qhandle_t		g2_vmMuzzleBolt;
 	qhandle_t		g2_vmLHandBolt;
 	qhandle_t		g2_vmRHandBolt;

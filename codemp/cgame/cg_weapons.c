@@ -616,6 +616,30 @@ Ghoul2 Insert Start
 		}
 		else
 		{
+			// Arms
+			{
+				// Just use the barrel refEnt, since it's unused for G2 viewmodels
+				memset(&barrel, 0, sizeof(barrel));
+				VectorCopy(parent->lightingOrigin, barrel.lightingOrigin);
+				barrel.shadowPlane = parent->shadowPlane;
+				barrel.renderfx = parent->renderfx;
+
+				barrel.ghoul2 = weapon->g2_vmInfo_Arms;
+
+				angles[YAW] = 0;
+				angles[PITCH] = 0;
+				angles[ROLL] = 0;
+
+				AnglesToAxis(angles, barrel.axis);
+
+				VectorCopy(parent->origin, barrel.origin);
+				VectorCopy(parent->axis[0], barrel.axis[0]);
+				VectorCopy(parent->axis[1], barrel.axis[1]);
+				VectorCopy(parent->axis[2], barrel.axis[2]);
+
+				CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups);
+			}
+
 			mdxaBone_t boltMatrix;
 			vec3_t setAngles;
 
@@ -623,7 +647,7 @@ Ghoul2 Insert Start
 
 			VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-			trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[0], weapon->g2_vmMuzzleBolt, &boltMatrix, setAngles, gun.origin,
+			trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, 0, weapon->g2_vmMuzzleBolt, &boltMatrix, setAngles, gun.origin,
 				cg.time, NULL, gun.modelScale);
 
 			BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
@@ -640,7 +664,7 @@ Ghoul2 Insert Start
 
 				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[1], weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
+				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo_Arms, weapon->g2_vmModelIndexes[0], weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
 					cg.time, NULL, gun.modelScale);
 
 				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, lhandTagOrigin);
@@ -656,7 +680,7 @@ Ghoul2 Insert Start
 
 				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[2], weapon->g2_vmRHandBolt, &boltMatrix, setAngles, gun.origin,
+				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo_Arms, weapon->g2_vmModelIndexes[1], weapon->g2_vmRHandBolt, &boltMatrix, setAngles, gun.origin,
 					cg.time, NULL, gun.modelScale);
 
 				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, rhandTagOrigin);
@@ -707,13 +731,13 @@ Ghoul2 Insert Start
 			{
 				mdxaBone_t boltMatrix;
 
-				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_vmInfo), weapon->g2_vmModelIndexes[0]))
+				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_vmInfo), 0))
 				{ //it's quite possible that we may have have no weapon model and be in a valid state, so return here if this is the case
 					return;
 				}
 
 				// go away and get me the bolt position for this frame please
-				if (!(trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[0], weapon->g2_vmMuzzleBolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
+				if (!(trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, 0, weapon->g2_vmMuzzleBolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
 				{	// Couldn't find bolt point.
 					return;
 				}
@@ -845,13 +869,13 @@ Ghoul2 Insert Start
 			{
 				mdxaBone_t boltMatrix;
 
-				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_vmInfo), weapon->g2_vmModelIndexes[0]))
+				if (!trap->G2API_HasGhoul2ModelOnIndex(&(weapon->g2_vmInfo), 0))
 				{ //it's quite possible that we may have have no weapon model and be in a valid state, so return here if this is the case
 					return;
 				}
 
 				// go away and get me the bolt position for this frame please
-				if (!(trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, weapon->g2_vmModelIndexes[0], weapon->g2_vmMuzzleBolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
+				if (!(trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, 0, weapon->g2_vmMuzzleBolt, &boltMatrix, newAngles, gun.origin, cg.time, NULL, gun.modelScale)))
 				{	// Couldn't find bolt point.
 					return;
 				}
@@ -988,7 +1012,7 @@ static int CG_MapTorsoToG2VMAnim(centity_t* cent, playerState_t *ps)
 static int lastAnimPlayed = 0;
 qboolean lastFlip = qfalse;
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
-static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t *weaponInfo)
+void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t *weaponInfo)
 {
 	int flags;
 	float animSpeed;
@@ -1036,9 +1060,22 @@ static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t
 		lastFrame = (weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames) + weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
 	}
 
-	for (int i = 0; i < 3; i++)
+	// Weapon
+	trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
+							0,
+							"model_root",
+							firstFrame,
+							lastFrame,
+							flags,
+							animSpeed,
+							cg.time,
+							-1,
+							150);
+
+	// Arms
+	for (int i = 0; i < 2; i++)
 	{
-		trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
+		trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo_Arms,
 								weaponInfo->g2_vmModelIndexes[i],
 								"model_root",
 								firstFrame,
@@ -1053,6 +1090,7 @@ static void CG_StartVMAnimation(centity_t* cent, playerState_t* ps, weaponInfo_t
 
 qboolean BG_FileExists(const char* file);
 extern stringID_table_t WPTable[WP_NUM_WEAPONS + 1];
+void CG_ParseVMAnimationCFG(void* g2_info, int g2_modelIndex, vmAnimation_t* vmAnims);
 void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char *skinName, int weaponId)
 {
 	int lArmSkin = 0;
@@ -1062,12 +1100,12 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 	char *leftArmSkin;
 	char *rightArmSkin;
 
+	// If the arms are already loaded, clear them because the player model has changed
+	if (trap->G2_HaveWeGhoul2Models(&weaponInfo->g2_vmInfo_Arms))
+		trap->G2API_CleanGhoul2Models(&weaponInfo->g2_vmInfo_Arms);
+
 	// Left arm
 	{
-		// If the left arm is already loaded, clear it because the player model has changed
-		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 1))
-			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 1);
-
 		if (!BG_FileExists(va("models/players/%s/arms/larm.glm", modelName)))
 		{
 			Com_Printf("Missing Ghoul2 viewmodel left arm model for '%s', while loading weapon '%s'. Falling back to default.\n", modelName, GetStringForID(WPTable, weaponId));
@@ -1088,36 +1126,26 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 			leftArm = va("models/players/%s/arms/larm.glm", modelName);
 		}
 
-		weaponInfo->g2_vmModelIndexes[1] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, leftArm, 0, 0, 0, 0, 0);
+		weaponInfo->g2_vmModelIndexes[0] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo_Arms, leftArm, 0, 0, 0, 0, 0);
 
-		if (weaponInfo->g2_vmModelIndexes[1] < 0)
+		if (weaponInfo->g2_vmModelIndexes[0] < 0)
 		{
 			Com_Printf("Invalid Ghoul2 viewmodel left arm model specified. Not loaded.\n");
 			return;
 		}
 
 		lArmSkin = trap->R_RegisterSkin(leftArmSkin);
-		trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], lArmSkin, lArmSkin);
-
-		// Indicate which bolt on the viewmodel weapon we will be attached to
-		// In this case: 1 = left arm, 2 = right arm
-		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], 1);
+		trap->G2API_SetSkin(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmModelIndexes[0], lArmSkin, lArmSkin);
 
 		// Add the left hand bolt for force power effects, etc
-		trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], "*l_hand");
+		trap->G2API_AddBolt(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmModelIndexes[0], "*l_hand");
 
 		// Parse the arms animation file
-		CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], &weaponInfo->g2_vmAnims);
-
-		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[1], weaponInfo->g2_vmInfo, 1);
+		CG_ParseVMAnimationCFG(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmModelIndexes[0], &weaponInfo->g2_vmAnims);
 	}
 
 	// Right arm
 	{
-		// If the right arm is already loaded, clear it because the player model has changed
-		if (trap->G2API_HasGhoul2ModelOnIndex(&(weaponInfo->g2_vmInfo), 2))
-			trap->G2API_RemoveGhoul2Model(&(weaponInfo->g2_vmInfo), 2);
-
 		if (!BG_FileExists(va("models/players/%s/arms/rarm.glm", modelName)))
 		{
 			Com_Printf("Missing Ghoul2 viewmodel right arm for '%s', while loading weapon '%s'. Falling back to default.\n", modelName, GetStringForID(WPTable, weaponId));
@@ -1138,25 +1166,19 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 			rightArm = va("models/players/%s/arms/rarm.glm", modelName);
 		}
 
-		weaponInfo->g2_vmModelIndexes[2] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, rightArm, 0, 0, 0, 0, 0);
+		weaponInfo->g2_vmModelIndexes[1] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo_Arms, rightArm, 0, 0, 0, 0, 0);
 
-		if (weaponInfo->g2_vmModelIndexes[2] < 0)
+		if (weaponInfo->g2_vmModelIndexes[1] < 0)
 		{
 			Com_Printf("Invalid Ghoul2 viewmodel right arm model specified. Not loaded.\n");
 			return;
 		}
 
 		rArmSkin = trap->R_RegisterSkin(rightArmSkin);
-		trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], rArmSkin, rArmSkin);
-
-		// Indicate which bolt on the viewmodel weapon we will be attached to
-		// In this case: 1 = left arm, 2 = right arm
-		trap->G2API_SetBoltInfo(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], 2);
+		trap->G2API_SetSkin(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmModelIndexes[1], rArmSkin, rArmSkin);
 
 		// Add the left hand bolt for force power effects, etc
-		trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], "*r_hand");
-
-		trap->G2API_CopySpecificGhoul2Model(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[2], weaponInfo->g2_vmInfo, 2);
+		trap->G2API_AddBolt(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmModelIndexes[1], "*r_hand");
 	}
 }
 //G2 viewmodels - END

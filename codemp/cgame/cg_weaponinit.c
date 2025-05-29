@@ -26,7 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "fx_local.h"
 
 //G2 viewmodels - START
-void CG_ParseVMAnimationFile(void *g2_info, int g2_modelIndex, vmAnimation_t* vmAnims);
+void CG_ParseVMAnimationCFG(void *g2_info, int g2_modelIndex, vmAnimation_t* vmAnims);
 //G2 viewmodels - END
 /*
 =================
@@ -174,26 +174,26 @@ void CG_RegisterWeapon( int weaponNum) {
 		}
 
 		// Init the weapon model
-		weaponInfo->g2_vmModelIndexes[0] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, path, 0, 0, 0, 0, 0);
+		trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, path, 0, 0, 0, 0, 0);
 
 		if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_vmInfo))
 		{
 			// Set the weapon skin
 			int weaponSkin = 0;
 			weaponSkin = trap->R_RegisterSkin(skinName);
-			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], weaponSkin, weaponSkin);
+			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, 0, weaponSkin, weaponSkin);
 
 			// Add the muzzle bolt
-			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*flash");
+			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, 0, "*flash");
 
 			// Add the left arm bolt point (1)
-			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*larm_bolt_point");
+			//trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*larm_bolt_point");
 
 			// Add the right arm bolt point (2)
-			trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*rarm_bolt_point");
+			//trap->G2API_AddBolt(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], "*rarm_bolt_point");
 
 			// Parse the weapon animation file
-			CG_ParseVMAnimationFile(weaponInfo->g2_vmInfo, weaponInfo->g2_vmModelIndexes[0], &weaponInfo->g2_vmAnims);
+			CG_ParseVMAnimationCFG(weaponInfo->g2_vmInfo, 0, &weaponInfo->g2_vmAnims);
 		}
 		else
 		{
@@ -693,7 +693,7 @@ void CG_RegisterWeapon( int weaponNum) {
 //G2 Viewmodels - START
 /*
 ======================
-CG_ParseVMAnimationFile
+CG_ParseVMAnimationCFG
 
 Read a configuration file containing animation counts and rates
 models/players/visor/animation.cfg, etc
@@ -701,7 +701,7 @@ models/players/visor/animation.cfg, etc
 ======================
 */
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
-void CG_ParseVMAnimationFile(void *g2_info, int g2_modelIndex, vmAnimation_t* vmAnims)
+void CG_ParseVMAnimationCFG(void *g2_info, int g2_modelIndex, vmAnimation_t* vmAnims)
 {
 	char *s;
 	int len;
