@@ -649,20 +649,35 @@ Ghoul2 Insert Start
 			mdxaBone_t boltMatrix;
 			vec3_t setAngles;
 
-			memset(&flash, 0, sizeof(flash));
+			// Muzzle tag
+			{
+				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, 0, weapon->g2_vmMuzzleBolt, &boltMatrix, setAngles, gun.origin,
+					cg.time, NULL, gun.modelScale);
 
-			VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
+				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
 
-			trap->G2API_GetBoltMatrix(weapon->g2_vmInfo, 0, weapon->g2_vmMuzzleBolt, &boltMatrix, setAngles, gun.origin,
-				cg.time, NULL, gun.modelScale);
+				VectorCopy(cg.snap->ps.viewangles, flash.angles);
 
-			BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, flash.origin);
+				BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flash.axis[0]);
+				BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Y, flash.axis[1]);
+				BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, flash.axis[2]);
+				
+				// The effect position gets broken with differences in FOV. This should (hopefully) fix that.
+				float actualFOV = cg_fovViewmodel.integer ? cg_fovViewmodel.value : cg_fov.value;
 
-			VectorCopy(cg.snap->ps.viewangles, flash.angles);
+				if (actualFOV < 1)
+					actualFOV = 1;
 
-			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flash.axis[0]);
-			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Y, flash.axis[1]);
-			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, flash.axis[2]);
+				if (actualFOV > 130)
+					actualFOV = 130;
+
+				if (cg_fovViewmodel.integer)
+				{
+					float fracDistFOV = tanf(cg.refdef.fov_x * (M_PI / 180) * 0.5f);
+					float fracWeapFOV = (1.0f / fracDistFOV) * tanf(actualFOV * (M_PI / 180) * 0.5f);
+					VectorScale(flash.axis[0], fracWeapFOV, flash.axis[0]);
+				}				
+			}
 
 			// Left hand tag
 			{
@@ -670,7 +685,7 @@ Ghoul2 Insert Start
 
 				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo_Arms, weapon->g2_vmArmsIndexes[0], weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
+				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo_Arms, 0, weapon->g2_vmLHandBolt, &boltMatrix, setAngles, gun.origin,
 					cg.time, NULL, gun.modelScale);
 
 				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, lhandTagOrigin);
@@ -686,26 +701,10 @@ Ghoul2 Insert Start
 
 				VectorSet(setAngles, cent->lerpAngles[PITCH], cent->lerpAngles[YAW], 0);
 
-				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo_Arms, weapon->g2_vmArmsIndexes[1], weapon->g2_vmRHandBolt, &boltMatrix, setAngles, gun.origin,
+				trap->G2API_GetBoltMatrix(weapon->g2_vmInfo_Arms, 0, weapon->g2_vmRHandBolt, &boltMatrix, setAngles, gun.origin,
 					cg.time, NULL, gun.modelScale);
 
 				BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, rhandTagOrigin);
-			}
-
-			// The effect position gets broken with differences in FOV. This should (hopefully) fix that. 
-			float actualFOV = cg_fovViewmodel.integer ? cg_fovViewmodel.value : cg_fov.value;
-
-			if (actualFOV < 1)
-				actualFOV = 1;
-
-			if (actualFOV > 130)
-				actualFOV = 130;
-
-			if (cg_fovViewmodel.integer) 
-			{
-				float fracDistFOV = tanf(cg.refdef.fov_x * (M_PI / 180) * 0.5f);
-				float fracWeapFOV = (1.0f / fracDistFOV) * tanf(actualFOV * (M_PI / 180) * 0.5f);
-				VectorScale(flash.axis[0], fracWeapFOV, flash.axis[0]);
 			}
 		}
 		//G2 Viewmodels - END
@@ -1175,7 +1174,7 @@ static void CG_StartG2VMAnims(centity_t* cent, playerState_t* ps, weaponInfo_t *
 		for (int i = 0; i < 2; i++)
 		{
 			trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo_Arms,
-									weaponInfo->g2_vmArmsIndexes[i],
+									0,
 									"model_root",
 									armsFirstFrame,
 									armsLastFrame,
@@ -1193,93 +1192,52 @@ extern stringID_table_t WPTable[WP_NUM_WEAPONS + 1];
 void CG_ParseG2VMAnimCFG(void* g2_info, int g2_modelIndex, vmAnimation_t* vmAnims);
 void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char *skinName, int weaponId)
 {
-	int lArmSkin = 0;
-	int rArmSkin = 0;
-	char *leftArm;
-	char *rightArm;
-	char *leftArmSkin;
-	char *rightArmSkin;
+	char *arms;
+	char *armsSkin;
 
 	// If the arms are already loaded, clear them because the player model has changed
 	if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_vmInfo_Arms))
 		trap->G2API_CleanGhoul2Models(&(weaponInfo->g2_vmInfo_Arms));
 
-	// Left arm
+	if (!BG_FileExists(va("models/players/%s/arms/arms.glm", modelName)))
 	{
-		if (!BG_FileExists(va("models/players/%s/arms/larm.glm", modelName)))
-		{
-			Com_Printf("Missing Ghoul2 viewmodel left arm model for '%s', while loading weapon '%s'. Falling back to default.\n", modelName, GetStringForID(WPTable, weaponId));
+		Com_Printf("CG_InitG2VMArms: Missing Ghoul2 viewmodel arms model for '%s', while loading weapon '%s'. Loading default arms model...\n", modelName, GetStringForID(WPTable, weaponId));
 
-			leftArm = "models/players/kyle/arms/larm.glm";
-			leftArmSkin = "models/players/kyle/arms/larm_default.skin";
+		arms = "models/players/vm_arms/arms.glm";
+		armsSkin = "models/players/vm_arms/arms_default.skin";
+	}
+	else
+	{
+		if (!BG_FileExists(va("models/players/%s/arms/arms_%s.skin", modelName, skinName)))
+		{
+			Com_Printf("CG_InitG2VMArms: Missing '%s' Ghoul2 viewmodel arms skin for '%s', while loading weapon '%s'. Loading '%s' 'arms_default.skin'...\n", skinName, modelName, GetStringForID(WPTable, weaponId), modelName);
+			armsSkin = va("models/players/%s/arms/arms_default.skin", modelName);
 		}
 		else
-		{
-			if (!BG_FileExists(va("models/players/%s/arms/larm_%s.skin", modelName, skinName)))
-			{
-				Com_Printf("Missing '%s' Ghoul2 viewmodel left arm skin for '%s', while loading weapon '%s'. Loading 'default' .skin instead.\n", skinName, modelName, GetStringForID(WPTable, weaponId));
-				leftArmSkin = va("models/players/%s/arms/larm_default.skin", modelName);
-			}
-			else
-				leftArmSkin = va("models/players/%s/arms/larm_%s.skin", modelName, skinName);
+			armsSkin = va("models/players/%s/arms/arms_%s.skin", modelName, skinName);
 
-			leftArm = va("models/players/%s/arms/larm.glm", modelName);
-		}
-
-		weaponInfo->g2_vmArmsIndexes[0] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo_Arms, leftArm, 0, 0, 0, 0, 0);
-
-		if (weaponInfo->g2_vmArmsIndexes[0] < 0)
-		{
-			Com_Printf("Invalid Ghoul2 viewmodel left arm model specified. Not loaded.\n");
-			return;
-		}
-
-		lArmSkin = trap->R_RegisterSkin(leftArmSkin);
-		trap->G2API_SetSkin(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmArmsIndexes[0], lArmSkin, lArmSkin);
-
-		// Add the left hand bolt for force power effects, etc
-		trap->G2API_AddBolt(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmArmsIndexes[0], "*l_hand");
-
-		// Parse the arms animation CFG - only need to do this once as both arms share the same GLA
-		CG_ParseG2VMAnimCFG(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmArmsIndexes[0], &weaponInfo->g2_vmArmsAnims);
+		arms = va("models/players/%s/arms/arms.glm", modelName);
 	}
 
-	// Right arm
+	int index = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo_Arms, arms, 0, 0, 0, 0, 0);
+
+	if (index < 0)
 	{
-		if (!BG_FileExists(va("models/players/%s/arms/rarm.glm", modelName)))
-		{
-			Com_Printf("Missing Ghoul2 viewmodel right arm for '%s', while loading weapon '%s'. Falling back to default.\n", modelName, GetStringForID(WPTable, weaponId));
-
-			rightArm = "models/players/kyle/arms/larm.glm";
-			rightArmSkin = "models/players/kyle/arms/rarm_default.skin";
-		}
-		else
-		{
-			if (!BG_FileExists(va("models/players/%s/arms/rarm_%s.skin", modelName, skinName)))
-			{
-				Com_Printf("Missing '%s' Ghoul2 viewmodel right arm skin for '%s', while loading weapon '%s'. Loading 'default' .skin instead.\n", skinName, modelName, GetStringForID(WPTable, weaponId));
-				rightArmSkin = va("models/players/%s/arms/rarm_default.skin", modelName);
-			}
-			else
-				rightArmSkin = va("models/players/%s/arms/rarm_%s.skin", modelName, skinName);
-
-			rightArm = va("models/players/%s/arms/rarm.glm", modelName);
-		}
-
-		weaponInfo->g2_vmArmsIndexes[1] = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo_Arms, rightArm, 0, 0, 0, 0, 0);
-
-		if (weaponInfo->g2_vmArmsIndexes[1] < 0)
-		{
-			Com_Printf("Invalid Ghoul2 viewmodel right arm model specified. Not loaded.\n");
-			return;
-		}
-
-		rArmSkin = trap->R_RegisterSkin(rightArmSkin);
-		trap->G2API_SetSkin(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmArmsIndexes[1], rArmSkin, rArmSkin);
-
-		// Add the left hand bolt for force power effects, etc
-		trap->G2API_AddBolt(weaponInfo->g2_vmInfo_Arms, weaponInfo->g2_vmArmsIndexes[1], "*r_hand");
+		Com_Printf("Invalid Ghoul2 viewmodel left arm model specified. Not loaded.\n");
+		return;
 	}
+
+	int armsSkinIndex = trap->R_RegisterSkin(armsSkin);
+	trap->G2API_SetSkin(weaponInfo->g2_vmInfo_Arms, 0, armsSkinIndex, armsSkinIndex);
+
+	// Add the left hand bolt for force power effects, etc
+	trap->G2API_AddBolt(weaponInfo->g2_vmInfo_Arms, 0, "*l_hand");
+
+	// Add the right hand bolt for force power effects, etc
+	trap->G2API_AddBolt(weaponInfo->g2_vmInfo_Arms, 0, "*r_hand");
+
+	// Parse the arms animation CFG - only need to do this once as both arms share the same GLA
+	CG_ParseG2VMAnimCFG(weaponInfo->g2_vmInfo_Arms, 0, &weaponInfo->g2_vmArmsAnims);
 }
 //G2 viewmodels - END
 
