@@ -1199,7 +1199,15 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 	if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_vmInfo_Arms))
 		trap->G2API_CleanGhoul2Models(&(weaponInfo->g2_vmInfo_Arms));
 
-	if (!BG_FileExists(va("models/players/%s/arms/arms.glm", modelName)))
+	if (strchr(skinName, '|'))
+	{
+		// No support for 3-part skins, so just load the default arms
+		Com_Printf("CG_InitG2VMArms: Attempted to load split skins (head|torso|lower) for '%s', aren't supported for Ghoul2 viewmodels. Loading default arms model...\n", modelName);
+
+		arms = "models/players/vm_arms/arms.glm";
+		armsSkin = "models/players/vm_arms/arms_default.skin";
+	}
+	else if (!BG_FileExists(va("models/players/%s/arms/arms.glm", modelName)))
 	{
 		Com_Printf("CG_InitG2VMArms: Missing Ghoul2 viewmodel arms model for '%s', while loading weapon '%s'. Loading default arms model...\n", modelName, GetStringForID(WPTable, weaponId));
 
