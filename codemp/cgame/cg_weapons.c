@@ -1202,7 +1202,7 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 	if (strchr(skinName, '|'))
 	{
 		// No support for 3-part skins, so just load the default arms
-		trap->Print("CG_InitG2VMArms: Attempted to load split skins (head|torso|lower) for '%s', aren't supported for Ghoul2 viewmodels. Loading default arms model...\n", modelName);
+		trap->Print("CG_InitG2VMArms: Attempted to load split skins (head|torso|lower) for '%s', which aren't supported for Ghoul2 viewmodels. Loading default arms model...\n", modelName);
 
 		arms = "models/players/vm_arms/arms.glm";
 		armsSkin = "models/players/vm_arms/arms_default.skin";
