@@ -1244,7 +1244,7 @@ void CG_InitG2VMArms(weaponInfo_t *weaponInfo, const char *modelName, const char
 	// Add the right hand bolt for force power effects, etc
 	trap->G2API_AddBolt(weaponInfo->g2_vmInfo_Arms, 0, "*r_hand");
 
-	// Parse the arms animation CFG - only need to do this once as both arms share the same GLA
+	// Parse the arms animation CFG
 	CG_ParseG2VMAnimCFG(weaponInfo->g2_vmInfo_Arms, 0, &weaponInfo->g2_vmArmsAnims);
 }
 //G2 viewmodels - END
