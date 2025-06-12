@@ -964,227 +964,206 @@ static int CG_MapTorsoToG2VMAnim(centity_t* cent, playerState_t *ps)
 {
 	switch (ps->torsoAnim)
 	{
-		//ready to fire
-		case TORSO_WEAPONREADY1:
-		case TORSO_WEAPONREADY2:
-		case TORSO_WEAPONREADY3:
-		case TORSO_WEAPONREADY4:
-		case TORSO_WEAPONREADY10:
-			return VM_READY;
-		// idle
-		case TORSO_WEAPONIDLE2:
-		case TORSO_WEAPONIDLE3:
-		case TORSO_WEAPONIDLE4:
-		case TORSO_WEAPONIDLE10:
-			return VM_IDLE;
-		// idle sequence
-		case BOTH_STAND1IDLE1:
-		case BOTH_STAND2IDLE1:
-		case BOTH_STAND3IDLE1:
-		case BOTH_STAND5IDLE1:
-			return VM_IDLE_SEQ;
-		// put away weapon
-		case TORSO_DROPWEAP1:
-			return VM_LOWER;
-		// equip weapon
-		case TORSO_RAISEWEAP1:
-			return VM_RAISE;
-		// primary fire
-		case BOTH_ATTACK1:
-		case BOTH_ATTACK2:
-		case BOTH_ATTACK3:
-		case BOTH_ATTACK4:
-		case BOTH_ATTACK10:
-		case BOTH_THERMAL_THROW:
-			if (cent->currentState.eFlags & EF_ALT_FIRING)
-				return VM_ALT_FIRE;
-			else
-				return VM_FIRE;
-		// grenade pull back to fire
-		case BOTH_THERMAL_READY:
-			return VM_THERMAL_PULLBACK;
-		// force
-		case BOTH_FORCEPUSH:
-			return VM_FPUSH;
-		case BOTH_FORCEPULL:
-			return VM_FPULL;
+		// Ready to fire
+		//================
+	//case TORSO_WEAPONREADY0:
+	case TORSO_WEAPONREADY1:
+	case TORSO_WEAPONREADY2:
+	case TORSO_WEAPONREADY3:
+	case TORSO_WEAPONREADY10:
+	/*case BOTH_PISTOL_READY:
+	case BOTH_MINIGUN_READY:
+	case BOTH_DC15_READY:
+	case BOTH_PLX1_READY:
+	case BOTH_MAND_FLAME_READY:
+	case BOTH_MAND_PISTOL_READY:
+	case BOTH_MAND_DUAL_PISTOLS_READY:
+	case BOTH_DUAL_PISTOLS_READY:
+	case BOTH_WESTARM5_READY:
+	case BOTH_AMBAN_READY:*/
+		return VM_READY;
+	case TORSO_WEAPONREADY4: // Disruptor
+		return VM_DISRUPT_READY;
+
+		// Idle
+		//================
+	/*case BOTH_PISTOL_IDLE:
+	case BOTH_PISTOL_IDLE2:
+	case BOTH_PISTOL_HERO_IDLE:
+	case BOTH_MINIGUN_IDLE:
+	case BOTH_DC15_IDLE:
+	case BOTH_PLX1_IDLE:
+	case BOTH_MAND_FLAME_IDLE:
+	case BOTH_MAND_PISTOL_IDLE:
+	case BOTH_MAND_DUAL_PISTOLS_IDLE:
+	case BOTH_DUAL_PISTOLS_IDLE:
+	case BOTH_WESTARM5_IDLE:
+	case BOTH_AMBAN_IDLE:
+	case BOTH_AMBAN_CROUCH_IDLE:
+		return VM_IDLE;*/
+	case TORSO_WEAPONIDLE4: // Disruptor
+		return VM_DISRUPT_IDLE;
+
+		// Idle sequence
+		//================
+	case BOTH_STAND1IDLE1:
+	case BOTH_STAND2IDLE1:
+	case BOTH_STAND3IDLE1:
+	case BOTH_STAND5IDLE1:
+		return VM_IDLE_SEQ;
+
+		// UnEquip weapon
+		//================
+	case TORSO_DROPWEAP1:
+		return VM_LOWER;
+
+		// Equip weapon
+		//================
+	case TORSO_RAISEWEAP1:
+		return VM_RAISE;
+
+		// Primary Fires
+		//================
+	//case BOTH_ATTACK0:
+	case BOTH_ATTACK1:
+	case BOTH_ATTACK2:
+	case BOTH_ATTACK3:
+	case BOTH_ATTACK10:
+	case BOTH_THERMAL_THROW:
+		if (cent->currentState.eFlags & EF_ALT_FIRING)
+			return VM_ALT_FIRE;
+		else
+			return VM_FIRE;
+	case BOTH_ATTACK4: // Disruptor
+		if (cent->currentState.eFlags & EF_ALT_FIRING)
+			return VM_DISRUPT_ALT_FIRE;
+		else
+			return VM_DISRUPT_FIRE;
+	/*case BOTH_PISTOL_ATTACK:
+	case BOTH_MINIGUN_ATTACK:
+	case BOTH_DC15_ATTACK:
+	case BOTH_PLX1_ATTACK:
+	case BOTH_MAND_FLAME_ATTACK:
+	case BOTH_MAND_PISTOL_ATTACK:
+	case BOTH_MAND_DUAL_PISTOLS_ATTACK:
+	case BOTH_WESTARM5_ATTACK:
+	case BOTH_AMBAN_ATTACK:*/
+		return VM_FIRE;
+
+		// Alt Fires
+		//================
+	/*case BOTH_DC15_ATTACK_ALT:
+		return VM_ALT_FIRE;*/
+
+		// Per-hand fires
+		//================
+	/*case BOTH_DUAL_PISTOLS_ATTACK_L:
+		return VM_LH_FIRE;
+	case BOTH_DUAL_PISTOLS_ATTACK_R:
+		return VM_RH_FIRE;*/
+
+		// Reloads
+		//================
+	/*case BOTH_PLX1_RELOAD:
+	case BOTH_WESTARM5_RELOAD:
+	case BOTH_AMBAN_RELOAD:
+	case BOTH_AMBAN_CROUCH_RELOAD:
+		return VM_RELOAD;*/
+
+		// Grenade
+		//================
+	case BOTH_THERMAL_READY:
+		return VM_THERMAL_PULLBACK;
+
+		// Weapon melees
+		//================
+	/*case BOTH_PISTOL_MELEE:
+	case BOTH_MINIGUN_MELEE:
+	case BOTH_DC15_MELEE:
+	case BOTH_PLX1_MELEE:
+	case BOTH_MAND_PISTOL_MELEE:
+	case BOTH_MAND_DUAL_PISTOLS_MELEE:
+	case BOTH_DUAL_PISTOLS_MELEE:
+	case BOTH_WESTARM5_MELEE:
+	case BOTH_AMBAN_MELEE:
+		return VM_WEAPON_MELEE;*/
+
+		// Force Powers
+		//================
+	case BOTH_FORCEPUSH:
+		return VM_FPUSH;
+	case BOTH_FORCEPULL:
+		return VM_FPULL;
 
 	default:
 		return VM_READY;
 	}
 }
 
-static int CG_MapTorsoToG2VMArmsAnim(centity_t* cent, playerState_t* ps)
-{
-	switch (ps->torsoAnim)
-	{
-		//ready to fire
-	case TORSO_WEAPONREADY1:
-	case TORSO_WEAPONREADY2:
-	case TORSO_WEAPONREADY3:
-	case TORSO_WEAPONREADY4:
-	case TORSO_WEAPONREADY10:
-		return VM_ARMS_READY;
-		// idle
-	case TORSO_WEAPONIDLE2:
-	case TORSO_WEAPONIDLE3:
-	case TORSO_WEAPONIDLE4:
-	case TORSO_WEAPONIDLE10:
-		return VM_ARMS_IDLE;
-		// idle sequence
-	case BOTH_STAND1IDLE1:
-	case BOTH_STAND2IDLE1:
-	case BOTH_STAND3IDLE1:
-	case BOTH_STAND5IDLE1:
-		return VM_ARMS_IDLE_SEQ;
-		// put away weapon
-	case TORSO_DROPWEAP1:
-		return VM_ARMS_LOWER;
-		// equip weapon
-	case TORSO_RAISEWEAP1:
-		return VM_ARMS_RAISE;
-		// primary fire
-	case BOTH_ATTACK1:
-	case BOTH_ATTACK2:
-	case BOTH_ATTACK3:
-	case BOTH_ATTACK4:
-	case BOTH_ATTACK10:
-	case BOTH_THERMAL_THROW:
-		if (cent->currentState.eFlags & EF_ALT_FIRING)
-			return VM_ARMS_ALT_FIRE;
-		else
-			return VM_ARMS_FIRE;
-		// grenade pull back to fire
-	case BOTH_THERMAL_READY:
-		return VM_ARMS_THERMAL_PULLBACK;
-		// force
-	case BOTH_FORCEPUSH:
-		return VM_ARMS_FPUSH;
-	case BOTH_FORCEPULL:
-		return VM_ARMS_FPULL;
-
-	default:
-		return VM_ARMS_READY;
-	}
-}
-
-static int weapLastAnimPlayed = 0;
-static int armsLastAnimPlayed = 0;
-qboolean weapLastFlip = qfalse;
-qboolean armsLastFlip = qfalse;
+static int vmLastAnimPlayed = 0;
+qboolean vmLastFlip = qfalse;
 extern stringID_table_t vmAnimTable[MAX_VIEWMODEL_ANIMATIONS + 1];
 static void CG_StartG2VMAnims(centity_t* cent, playerState_t* ps, weaponInfo_t *weaponInfo)
 {
-	int weapFlags;
-	float weapAnimSpeed;
-	int weapMappedAnim;
-	int	weapFirstFrame;
-	int	weapLastFrame;
+	int flags;
+	float animSpeed;
+	int mappedAnim;
+	int	firstFrame;
+	int	lastFrame;
+
+	mappedAnim = CG_MapTorsoToG2VMAnim(cent, ps);
+	flags = BONE_ANIM_OVERRIDE_FREEZE;
+	animSpeed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp;
+
+	switch (mappedAnim)
+	{
+	default:
+		if (ps->torsoAnim == vmLastAnimPlayed && cent->currentState.torsoFlip == vmLastFlip)
+			return;
+		break;
+	}
+	vmLastAnimPlayed = ps->torsoAnim;
+	vmLastFlip = cent->currentState.torsoFlip;
+
+#ifdef DEBUG_CVARS
+	if (cg_debugAnim.integer && (cg_debugAnim.integer < 0 || cg_debugAnim.integer == cent->currentState.clientNum))
+		Com_Printf("%d: ViewModel Weapon Anim: %i, '%s'\n", cg.time, mappedAnim, GetStringForID(vmAnimTable, mappedAnim));
+#endif
+
+	if (animSpeed < 0)
+	{//play anim backwards
+		lastFrame = weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame - 1;
+		firstFrame = (weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames - 1) + weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
+	}
+	else
+	{
+		firstFrame = weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
+		lastFrame = (weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames) + weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
+	}
 
 	// Weapon
-	{
-		weapMappedAnim = CG_MapTorsoToG2VMAnim(cent, ps);
-		weapFlags = BONE_ANIM_OVERRIDE_FREEZE;
-		weapAnimSpeed = 50.0f / weaponInfo->g2_vmAnims.animations[weapMappedAnim].frameLerp;
-
-		switch (weapMappedAnim)
-		{
-		default:
-			if (ps->torsoAnim == weapLastAnimPlayed && cent->currentState.torsoFlip == weapLastFlip)
-				return;
-			break;
-		}
-		weapLastAnimPlayed = ps->torsoAnim;
-		weapLastFlip = cent->currentState.torsoFlip;
-
-		//debugging
-		/*
-		float currentFrame = 0;
-		int curFrame = 0;
-		trap->G2API_GetBoneFrame(cent->ghoul2, "model_root", cg.time, &currentFrame, cgs.gameModels, 0);
-		curFrame = ceil(currentFrame);
-		trap->Print("time: %d, ps->torsoAnim: %i, '%s', currentFrame: %d, ps->torsoFlip: %d, cent->currentState.torsoFlip: %d,
-					cent->pe.torso.lastFlip: %d, ps->weaponTime: %d, cent->pe.torso.animationTime: %d\n", cg.time, ps->torsoAnim,
-					GetStringForID(animTable, ps->torsoAnim), curFrame, ps->torsoFlip, cent->currentState.torsoFlip,
-					cent->pe.torso.lastFlip, ps->weaponTime, cent->pe.torso.animationTime);
-		*/
-		if (cg_debugAnim.integer && (cg_debugAnim.integer < 0 || cg_debugAnim.integer == cent->currentState.clientNum))
-			trap->Print("%d: ViewModel Weapon Anim: %i, '%s'\n", cg.time, weapMappedAnim, GetStringForID(vmAnimTable, weapMappedAnim));
-
-		if (weapAnimSpeed < 0)
-		{//play anim backwards
-			weapLastFrame = weaponInfo->g2_vmAnims.animations[weapMappedAnim].firstFrame - 1;
-			weapFirstFrame = (weaponInfo->g2_vmAnims.animations[weapMappedAnim].numFrames - 1) + weaponInfo->g2_vmAnims.animations[weapMappedAnim].firstFrame;
-		}
-		else
-		{
-			weapFirstFrame = weaponInfo->g2_vmAnims.animations[weapMappedAnim].firstFrame;
-			weapLastFrame = (weaponInfo->g2_vmAnims.animations[weapMappedAnim].numFrames) + weaponInfo->g2_vmAnims.animations[weapMappedAnim].firstFrame;
-		}
-
-		trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
-								0,
-								"model_root",
-								weapFirstFrame,
-								weapLastFrame,
-								weapFlags,
-								weapAnimSpeed,
-								cg.time,
-								-1,
-								150);
-	}
+	trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
+							0,
+							"model_root",
+							firstFrame,
+							lastFrame,
+							flags,
+							animSpeed,
+							cg.time,
+							-1,
+							150);
 
 	// Arms
-	{
-		int armsFlags;
-		float armsAnimSpeed;
-		int armsMappedAnim;
-		int	armsFirstFrame;
-		int	armsLastFrame;
-
-		armsMappedAnim = CG_MapTorsoToG2VMArmsAnim(cent, ps);
-		armsFlags = BONE_ANIM_OVERRIDE_FREEZE;
-		armsAnimSpeed = 50.0f / weaponInfo->g2_vmArmsAnims.animations[armsMappedAnim].frameLerp;
-
-		switch (armsMappedAnim)
-		{
-		default:
-			if (ps->torsoAnim == armsLastAnimPlayed && cent->currentState.torsoFlip == armsLastFlip)
-				return;
-			break;
-		}
-		armsLastAnimPlayed = ps->torsoAnim;
-		armsLastFlip = cent->currentState.torsoFlip;
-
-		//debugging
-		if (cg_debugAnim.integer && (cg_debugAnim.integer < 0 || cg_debugAnim.integer == cent->currentState.clientNum))
-			trap->Print("%d: ViewModel Arms Anim: %i, '%s'\n", cg.time, armsMappedAnim, GetStringForID(vmAnimTable, armsMappedAnim));
-
-		if (armsAnimSpeed < 0)
-		{//play anim backwards
-			armsLastFrame = weaponInfo->g2_vmArmsAnims.animations[armsMappedAnim].firstFrame - 1;
-			armsFirstFrame = (weaponInfo->g2_vmArmsAnims.animations[armsMappedAnim].numFrames - 1) + weaponInfo->g2_vmArmsAnims.animations[armsMappedAnim].firstFrame;
-		}
-		else
-		{
-			armsFirstFrame = weaponInfo->g2_vmArmsAnims.animations[armsMappedAnim].firstFrame;
-			armsLastFrame = (weaponInfo->g2_vmArmsAnims.animations[armsMappedAnim].numFrames) + weaponInfo->g2_vmArmsAnims.animations[armsMappedAnim].firstFrame;
-		}
-
-		for (int i = 0; i < 2; i++)
-		{
-			trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo_Arms,
-									0,
-									"model_root",
-									armsFirstFrame,
-									armsLastFrame,
-									armsFlags,
-									armsAnimSpeed,
-									cg.time,
-									-1,
-									150);
-		}
-	}
+	trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo_Arms,
+							0,
+							"model_root",
+							firstFrame,
+							lastFrame,
+							flags,
+							animSpeed,
+							cg.time,
+							-1,
+							150);
 }
 
 qboolean BG_FileExists(const char* file);

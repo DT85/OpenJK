@@ -1821,6 +1821,7 @@ Viewmodel Animations
 ======================================
 */
 typedef enum {
+	// Generic
 	VM_READY,						// Weapon 1-frame ready to fire. Usually first frame of VM_FIRE
 	VM_IDLE,						// Weapon holding relaxed, not aiming
 	VM_IDLE_SEQ,					// Weapon idle sequence. "I'm bored and not moving, going to figet"
@@ -1828,20 +1829,25 @@ typedef enum {
 	VM_LOWER,						// Put weapon away
 	VM_FIRE,						// Fire weapon
 	VM_ALT_FIRE,					// Alt fire weapon
+	/*VM_LH_FIRE,						// Fire left weapon
+	VM_RH_FIRE,						// Fire right weapon
+	VM_RELOAD,						// Reload*/
 	VM_THERMAL_PULLBACK,			// Thermal detonator pull back
+	//VM_WEAPON_MELEE,				// Weapon Melee, aka gun bash
 	VM_FPUSH,						// Force Push
 	VM_FPULL,						// Force Pull
-	
-	VM_ARMS_READY,					// Weapon 1-frame ready to fire. Usually first frame of VM_FIRE
-	VM_ARMS_IDLE,					// Weapon holding relaxed, not aiming
-	VM_ARMS_IDLE_SEQ,				// Weapon idle sequence. "I'm bored and not moving, going to figet"
-	VM_ARMS_RAISE,					// Draw weapon
-	VM_ARMS_LOWER,					// Put weapon away
-	VM_ARMS_FIRE,					// Fire weapon
-	VM_ARMS_ALT_FIRE,				// Alt fire weapon
-	VM_ARMS_THERMAL_PULLBACK,		// Thermal detonator pull back
-	VM_ARMS_FPUSH,					// Force Push
-	VM_ARMS_FPULL,					// Force Pull
+
+	// Disruptor
+	VM_DISRUPT_READY,				//# Weapon 1-frame ready to fire. Usually first frame of VM_FIRE
+	VM_DISRUPT_IDLE,				//# Weapon holding relaxed, not aiming
+	VM_DISRUPT_IDLE_SEQ,			//# Weapon idle sequence. "I'm bored and not moving, going to figet"
+	VM_DISRUPT_RAISE,				//# Draw weapon
+	VM_DISRUPT_LOWER,				//# Put weapon away
+	VM_DISRUPT_FIRE,				//# Fire weapon
+	VM_DISRUPT_ALT_FIRE,			//# Alt fire weapon
+	/*VM_DISRUPT_RELOAD,				//# Reload
+	VM_DISRUPT_MELEE,				//# Weapon Melee, aka gun bash
+	VM_DISRUPT_CHARGE,				//# Weapon charge burst*/
 
 	//# #eol
 	MAX_VIEWMODEL_ANIMATIONS,
