@@ -1837,6 +1837,17 @@ typedef enum {
 	VM_FPUSH,						// Force Push
 	VM_FPULL,						// Force Pull
 
+	// Heavy Repeater
+	VM_REPEAT_READY,				//# Weapon 1-frame ready to fire. Usually first frame of VM_<weapon>_FIRE
+	VM_REPEAT_IDLE,					//# Weapon holding relaxed, not aiming
+	VM_REPEAT_IDLE_SEQ,				//# Weapon idle sequence. "I'm bored and not moving, going to figet"
+	VM_REPEAT_RAISE,				//# Draw weapon
+	VM_REPEAT_LOWER,				//# Put weapon away
+	VM_REPEAT_FIRE,					//# Fire weapon
+	VM_REPEAT_ALT_FIRE,				//# Alt fire weapon
+	/*VM_REPEAT_RELOAD,				//# Reload
+	VM_REPEAT_MELEE,				//# Weapon Melee, aka gun bash*/
+	
 	// Disruptor
 	VM_DISRUPT_READY,				//# Weapon 1-frame ready to fire. Usually first frame of VM_FIRE
 	VM_DISRUPT_IDLE,				//# Weapon holding relaxed, not aiming

@@ -969,7 +969,6 @@ static int CG_MapTorsoToG2VMAnim(centity_t* cent, playerState_t *ps)
 	//case TORSO_WEAPONREADY0:
 	case TORSO_WEAPONREADY1:
 	case TORSO_WEAPONREADY2:
-	case TORSO_WEAPONREADY3:
 	case TORSO_WEAPONREADY10:
 	/*case BOTH_PISTOL_READY:
 	case BOTH_MINIGUN_READY:
@@ -982,6 +981,8 @@ static int CG_MapTorsoToG2VMAnim(centity_t* cent, playerState_t *ps)
 	case BOTH_WESTARM5_READY:
 	case BOTH_AMBAN_READY:*/
 		return VM_READY;
+	case TORSO_WEAPONREADY3: // E-11/Repeater
+		return VM_REPEAT_READY;
 	case TORSO_WEAPONREADY4: // Disruptor
 		return VM_DISRUPT_READY;
 
@@ -1001,6 +1002,8 @@ static int CG_MapTorsoToG2VMAnim(centity_t* cent, playerState_t *ps)
 	case BOTH_AMBAN_IDLE:
 	case BOTH_AMBAN_CROUCH_IDLE:
 		return VM_IDLE;*/
+	case TORSO_WEAPONIDLE3: // E-11/Repeater
+		return VM_REPEAT_IDLE;
 	case TORSO_WEAPONIDLE4: // Disruptor
 		return VM_DISRUPT_IDLE;
 
@@ -1027,13 +1030,17 @@ static int CG_MapTorsoToG2VMAnim(centity_t* cent, playerState_t *ps)
 	//case BOTH_ATTACK0:
 	case BOTH_ATTACK1:
 	case BOTH_ATTACK2:
-	case BOTH_ATTACK3:
 	case BOTH_ATTACK10:
 	case BOTH_THERMAL_THROW:
 		if (cent->currentState.eFlags & EF_ALT_FIRING)
 			return VM_ALT_FIRE;
 		else
 			return VM_FIRE;
+	case BOTH_ATTACK3: // E-11/Repeater
+		if (cent->currentState.eFlags & EF_ALT_FIRING)
+			return VM_REPEAT_ALT_FIRE;
+		else
+			return VM_REPEAT_FIRE;
 	case BOTH_ATTACK4: // Disruptor
 		if (cent->currentState.eFlags & EF_ALT_FIRING)
 			return VM_DISRUPT_ALT_FIRE;
@@ -1110,10 +1117,14 @@ static void CG_StartG2VMAnims(centity_t* cent, playerState_t* ps, weaponInfo_t *
 	int mappedAnim;
 	int	firstFrame;
 	int	lastFrame;
+	float animSpeed2;
+	int	firstFrame2;
+	int	lastFrame2;
 
 	mappedAnim = CG_MapTorsoToG2VMAnim(cent, ps);
 	flags = BONE_ANIM_OVERRIDE_FREEZE;
 	animSpeed = 50.0f / weaponInfo->g2_vmAnims.animations[mappedAnim].frameLerp;
+	animSpeed2 = 50.0f / weaponInfo->g2_vmArmsAnims.animations[mappedAnim].frameLerp;
 
 	switch (mappedAnim)
 	{
@@ -1141,6 +1152,17 @@ static void CG_StartG2VMAnims(centity_t* cent, playerState_t* ps, weaponInfo_t *
 		lastFrame = (weaponInfo->g2_vmAnims.animations[mappedAnim].numFrames) + weaponInfo->g2_vmAnims.animations[mappedAnim].firstFrame;
 	}
 
+	if (animSpeed2 < 0)
+	{//play anim backwards
+		lastFrame2 = weaponInfo->g2_vmArmsAnims.animations[mappedAnim].firstFrame - 1;
+		firstFrame2 = (weaponInfo->g2_vmArmsAnims.animations[mappedAnim].numFrames - 1) + weaponInfo->g2_vmArmsAnims.animations[mappedAnim].firstFrame;
+	}
+	else
+	{
+		firstFrame2 = weaponInfo->g2_vmArmsAnims.animations[mappedAnim].firstFrame;
+		lastFrame2 = (weaponInfo->g2_vmArmsAnims.animations[mappedAnim].numFrames) + weaponInfo->g2_vmArmsAnims.animations[mappedAnim].firstFrame;
+	}
+
 	// Weapon
 	trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo,
 							0,
@@ -1157,10 +1179,10 @@ static void CG_StartG2VMAnims(centity_t* cent, playerState_t* ps, weaponInfo_t *
 	trap->G2API_SetBoneAnim(weaponInfo->g2_vmInfo_Arms,
 							0,
 							"model_root",
-							firstFrame,
-							lastFrame,
+							firstFrame2,
+							lastFrame2,
 							flags,
-							animSpeed,
+							animSpeed2,
 							cg.time,
 							-1,
 							150);
