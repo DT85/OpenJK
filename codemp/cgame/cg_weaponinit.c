@@ -152,53 +152,6 @@ void CG_RegisterWeapon( int weaponNum) {
 		weaponInfo->flashModel = 0;
 		weaponInfo->barrelModel = 0;
 		weaponInfo->handsModel = 0;		
-
-		Q_strncpyz(path, item->view_model, sizeof(path));
-
-		// Set the weapon skin by grabbing the skin file path from the model path
-		char skinName[MAX_QPATH];
-		int l;
-
-		Q_strncpyz(skinName, path, MAX_QPATH);
-		l = strlen(skinName);
-
-		while (l > 0 && skinName[l] != '/')
-			//parse back to first /
-			l--;
-
-		if (skinName[l] == '/')
-		{ //got it
-			l++;
-			skinName[l] = 0;
-			Q_strcat(skinName, MAX_QPATH, "model_default.skin");
-		}
-
-		// Init the weapon model
-		int index = trap->G2API_InitGhoul2Model(&weaponInfo->g2_vmInfo, path, 0, 0, 0, 0, 0);
-
-		if (index < 0)
-		{
-			Com_Printf("Invalid Ghoul2 viewmodel weapon model specified.\n");
-			return;
-		}
-
-		if (trap->G2_HaveWeGhoul2Models(weaponInfo->g2_vmInfo))
-		{
-			// Set the weapon skin
-			int weaponSkin = 0;
-			weaponSkin = trap->R_RegisterSkin(skinName);
-			trap->G2API_SetSkin(weaponInfo->g2_vmInfo, 0, weaponSkin, weaponSkin);
-
-			// Add the muzzle bolt
-			weaponInfo->g2_vmMuzzleBolt = trap->G2API_AddBolt(weaponInfo->g2_vmInfo, 0, "*flash");
-
-			// Parse the weapon animation CFG
-			CG_ParseG2VMAnimCFG(weaponInfo->g2_vmInfo, 0, &weaponInfo->g2_vmAnims);
-		}
-		else
-		{
-			Com_Printf("CG_RegisterWeapon: Unable to load G2 viewmodel weapon: %s\n", path);
-		}
 	}
 	//G2 viewmodels - END
 
