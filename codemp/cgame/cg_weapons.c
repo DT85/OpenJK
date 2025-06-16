@@ -2888,8 +2888,14 @@ void CG_ShutDownG2Weapons(void)
 		trap->G2API_CleanGhoul2Models(&g2WeaponInstances[i]);
 
 		//G2 Viewmodels - START
-		if (cg_weapons[i].bIsG2Viewmodel && cg_weapons[i].g2_vmInfo && trap->G2_HaveWeGhoul2Models(cg_weapons[i].g2_vmInfo))
-			trap->G2API_CleanGhoul2Models(&(cg_weapons[i].g2_vmInfo));
+		if (cg_weapons[i].bIsG2Viewmodel)
+		{
+			if (cg_weapons[i].g2_vmInfo && trap->G2_HaveWeGhoul2Models(cg_weapons[i].g2_vmInfo))
+				trap->G2API_CleanGhoul2Models(&(cg_weapons[i].g2_vmInfo));
+
+			if (cg_weapons[i].g2_vmInfo_Arms && trap->G2_HaveWeGhoul2Models(cg_weapons[i].g2_vmInfo_Arms))
+				trap->G2API_CleanGhoul2Models(&(cg_weapons[i].g2_vmInfo_Arms));
+		}
 		//G2 Viewmodels - END
 	}
 }
